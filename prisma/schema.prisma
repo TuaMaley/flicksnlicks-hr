@@ -1,130 +1,15 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-enum EmployeeStatus {
-  ACTIVE
-  ON_LEAVE
-  SUSPENDED
-  EXITED
-}
-
-enum RequestStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  CANCELLED
-}
-
-model Branch {
-  id        String     @id @default(cuid())
-  name      String     @unique
-  location  String?
-  employees Employee[]
-  createdAt DateTime   @default(now())
-}
-
-model Employee {
-  id            String          @id @default(cuid())
-  employeeNo    String          @unique
-  firstName     String
-  lastName      String
-  email         String          @unique
-  phone         String?
-  position      String
-  department    String
-  status        EmployeeStatus  @default(ACTIVE)
-  hireDate      DateTime        @default(now())
-  branchId      String
-  branch        Branch          @relation(fields: [branchId], references: [id])
-  leaveRequests LeaveRequest[]
-  appraisals    Appraisal[]
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-}
-
-model LeaveRequest {
-  id         String        @id @default(cuid())
-  employeeId String
-  employee   Employee      @relation(fields: [employeeId], references: [id])
-  type       String
-  startDate  DateTime
-  endDate    DateTime
-  reason     String?
-  status     RequestStatus @default(PENDING)
-  createdAt  DateTime      @default(now())
-}
-
-model Appraisal {
-  id         String   @id @default(cuid())
-  employeeId String
-  employee   Employee @relation(fields: [employeeId], references: [id])
-  title      String
-  score      Float?
-  period     String
-  status     String   @default("DRAFT")
-  createdAt  DateTime @default(now())
-}
-
-model AuditLog {
-  id        String   @id @default(cuid())
-  actorId   String?
-  action    String
-  entity    String
-  entityId  String?
-  detail    Json?
-  createdAt DateTime @default(now())
-}
-
-model PayrollRun {
-  id          String   @id @default(cuid())
-  period      String   @unique
-  status      String   @default("DRAFT")
-  grossAmount Decimal  @default(0)
-  netAmount   Decimal  @default(0)
-  createdAt   DateTime @default(now())
-}
-
-model Training {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  status      String   @default("PLANNED")
-  createdAt   DateTime @default(now())
-}
-
-model JobOpening {
-  id        String   @id @default(cuid())
-  title     String
-  branch    String
-  status    String   @default("OPEN")
-  createdAt DateTime @default(now())
-}
-
-model OnboardingCase {
-  id         String   @id @default(cuid())
-  employeeId String
-  kind       String
-  status     String   @default("PENDING")
-  createdAt  DateTime @default(now())
-}
-
-model DisciplinaryCase {
-  id         String   @id @default(cuid())
-  employeeId String
-  summary    String
-  status     String   @default("OPEN")
-  createdAt  DateTime @default(now())
-}
-
-model Recognition {
-  id         String   @id @default(cuid())
-  employeeId String
-  title      String
-  awardedAt  DateTime @default(now())
-}
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+enum EmployeeStatus { ACTIVE ON_LEAVE SUSPENDED EXITED }
+enum RequestStatus { PENDING APPROVED REJECTED CANCELLED }
+model Branch { id String @id @default(cuid()) name String @unique location String? employees Employee[] createdAt DateTime @default(now()) }
+model Employee { id String @id @default(cuid()) employeeNo String @unique firstName String lastName String email String @unique phone String? position String department String status EmployeeStatus @default(ACTIVE) hireDate DateTime @default(now()) branchId String branch Branch @relation(fields:[branchId],references:[id]) leaveRequests LeaveRequest[] appraisals Appraisal[] createdAt DateTime @default(now()) updatedAt DateTime @updatedAt }
+model LeaveRequest { id String @id @default(cuid()) employeeId String employee Employee @relation(fields:[employeeId],references:[id]) type String startDate DateTime endDate DateTime reason String? status RequestStatus @default(PENDING) createdAt DateTime @default(now()) }
+model Appraisal { id String @id @default(cuid()) employeeId String employee Employee @relation(fields:[employeeId],references:[id]) title String score Float? period String status String @default("DRAFT") createdAt DateTime @default(now()) }
+model AuditLog { id String @id @default(cuid()) actorId String? action String entity String entityId String? detail Json? createdAt DateTime @default(now()) }
+model PayrollRun { id String @id @default(cuid()) period String @unique status String @default("DRAFT") grossAmount Decimal @default(0) netAmount Decimal @default(0) createdAt DateTime @default(now()) }
+model Training { id String @id @default(cuid()) title String description String? status String @default("PLANNED") createdAt DateTime @default(now()) }
+model JobOpening { id String @id @default(cuid()) title String branch String status String @default("OPEN") createdAt DateTime @default(now()) }
+model OnboardingCase { id String @id @default(cuid()) employeeId String kind String status String @default("PENDING") createdAt DateTime @default(now()) }
+model DisciplinaryCase { id String @id @default(cuid()) employeeId String summary String status String @default("OPEN") createdAt DateTime @default(now()) }
+model Recognition { id String @id @default(cuid()) employeeId String title String awardedAt DateTime @default(now()) }
