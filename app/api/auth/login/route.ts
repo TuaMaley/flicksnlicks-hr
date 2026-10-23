@@ -1,0 +1,3 @@
+import {NextRequest} from 'next/server';
+import {db} from '../../../../lib/db';import {verifyPassword,setSession} from '../../../../lib/auth';import {fail,ok} from '../../../../lib/http';
+export async function POST(req:NextRequest){try{const {email,password}=await req.json();if(typeof email!=='string'||typeof password!=='string')return fail('Invalid credentials',401);const user=await db.user.findUnique({where:{email:email.trim().toLowerCase()}});if(!user||!user.active||!verifyPassword(password,user.passwordHash))return fail('Invalid credentials',401);await setSession(user.id);await db.auditLog.create({data:{actorId:user.id,action:'LOGIN',entity:'User',entityId:user.id}});return ok({success:true})}catch{return fail('Unable to sign in',500)}}

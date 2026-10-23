@@ -1,0 +1,1 @@
+import {db} from '../../../lib/db';import {access} from '../../../lib/auth';import {fail,ok} from '../../../lib/http';export async function GET(){const a=await access();if(!a.user)return fail('Unauthorized',401);return ok({branches:await db.branch.findMany({orderBy:{name:'asc'}})})}
