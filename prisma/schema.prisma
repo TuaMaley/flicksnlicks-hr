@@ -173,6 +173,9 @@ model LeaveRequest {
   startDate  DateTime
   endDate    DateTime
   reason     String?
+  decisionNote String?
+  decidedBy  String?
+  decidedAt  DateTime?
   status     RequestStatus @default(PENDING)
   createdAt  DateTime      @default(now())
 

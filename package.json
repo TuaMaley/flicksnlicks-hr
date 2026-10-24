@@ -9,7 +9,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:dev": "prisma migrate dev",
     "db:bootstrap": "node scripts/bootstrap.mjs",
-    "db:deploy": "prisma db push && node scripts/bootstrap.mjs"
+    "db:deploy": "prisma db push && node scripts/bootstrap.mjs",
+    "db:branches": "node scripts/ensure-branches.mjs"
   },
   "dependencies": {
     "next": "^15.5.0",
