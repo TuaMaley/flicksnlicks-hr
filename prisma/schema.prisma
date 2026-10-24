@@ -92,7 +92,6 @@ model Employee {
   leaveEntitlements LeaveEntitlement[]
   appraisals       Appraisal[]
   appraisalReviews AppraisalReview[]
-  appraisalReviews AppraisalReview[]
   onboardingCases  OnboardingCase[]
   disciplinaryCases DisciplinaryCase[]
   recognitions     Recognition[]
@@ -294,43 +293,6 @@ model Recognition {
   awardedAt  DateTime @default(now())
 
   @@index([employeeId])
-}
-
-
-model AppraisalTemplate {
-  id String @id @default(cuid())
-  name String @unique
-  category String
-  level String
-  description String?
-  criteria Json
-  active Boolean @default(true)
-  deletedAt DateTime?
-  deletedReason String?
-  createdAt DateTime @default(now())
-  reviews AppraisalReview[]
-}
-
-model AppraisalReview {
-  id String @id @default(cuid())
-  employeeId String
-  employee Employee @relation(fields:[employeeId],references:[id])
-  templateId String
-  template AppraisalTemplate @relation(fields:[templateId],references:[id])
-  period String
-  status AppraisalStatus @default(DRAFT)
-  selfScores Json?
-  managerScores Json?
-  selfComment String?
-  managerComment String?
-  score Float?
-  reviewerId String?
-  approvedBy String?
-  approvedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  @@index([employeeId,period])
-  @@index([status])
 }
 
 
