@@ -4,10 +4,32 @@ const types=['ANNUAL','SICK','MATERNITY','PATERNITY','COMPASSIONATE','UNPAID','O
 type Row={id:string;type:string;days:number;reviewStage:number;firstReviewerId:string|null;startDate:string;endDate:string;reason:string|null;status:string;decisionNote:string|null;employee:{id:string;employeeNo:string;firstName:string;lastName:string;department:string;branch:{name:string}}};
 type Emp={id:string;firstName:string;lastName:string;employeeNo:string};
 export default function Leave(){const [tab,setTab]=useState('Requests'),[rows,setRows]=useState<Row[]>([]),[employees,setEmployees]=useState<Emp[]>([]),[perms,setPerms]=useState<string[]>([]),[me,setMe]=useState<any>({}),[policies,setPolicies]=useState<any[]>([]),[balances,setBalances]=useState<any[]>([]),[events,setEvents]=useState<Row[]>([]),[employeeId,setEmployeeId]=useState(''),[year,setYear]=useState(new Date().getFullYear()),[month,setMonth]=useState(new Date().toISOString().slice(0,7)),[status,setStatus]=useState(''),[show,setShow]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[form,setForm]=useState({employeeId:'',type:'ANNUAL',startDate:'',endDate:'',reason:''}),[policyForm,setPolicyForm]=useState({type:'ANNUAL',annualDays:0,approvalSteps:2}),[entForm,setEntForm]=useState({type:'ANNUAL',days:0});
-async function get(url:string){const r=await fetch(url,{cache:'no-store'});if(r.status===401){location.href='/login';throw Error('Session expired')}const d=await r.json();if(!r.ok)throw Error(d.error||'Request failed');return d}
-async function load(){try{const r=await get('/api/leave?status='+status);setRows(r.requests);setPerms(r.permissions);setMe(r.user);const [e,p]=await Promise.allSettled([get('/api/employees'),get('/api/leave/policies')]);const availableEmployees=e.status==='fulfilled'?e.value.employees:[];setEmployees(availableEmployees);setPolicies(p.status==='fulfilled'?p.value.policies:[]);if(!employeeId)setEmployeeId(r.user.employeeId||availableEmployees[0]?.id||'')}catch(e:any){setError(e.message)}}
+async function get(url:string){const r=await fetch(url,{cache:'no-store'});if(r.status===401){location.href='/login';throw Error('Session expired')}const raw=await r.text();let d:any={};try{d=raw?JSON.parse(raw):{}}catch{throw Error(`Server returned an invalid response for ${url} (HTTP ${r.status}). Check Railway logs.`)}if(!r.ok)throw Error(d.error||`Request failed: ${url} (HTTP ${r.status})`);return d}
+async function load(){
+  setError('');
+  // Fetch the signed-in user's permissions separately, so a failing leave API
+  // cannot hide the New Leave Request action.
+  const identity=await Promise.allSettled([get('/api/me'),get('/api/leave?status='+status)]);
+  const profile=identity[0];
+  if(profile.status==='fulfilled')setPerms(Array.isArray(profile.value.permissions)?profile.value.permissions:[]);
+  const leave=identity[1];
+  if(leave.status==='fulfilled'){
+    const r=leave.value;
+    setRows(Array.isArray(r.requests)?r.requests:[]);
+    setMe(r.user||{});
+    if(profile.status!=='fulfilled')setPerms(Array.isArray(r.permissions)?r.permissions:[]);
+    if(!employeeId&&r.user?.employeeId)setEmployeeId(r.user.employeeId);
+  }
+  const [e,p]=await Promise.allSettled([get('/api/employees'),get('/api/leave/policies')]);
+  const availableEmployees=e.status==='fulfilled'?(e.value.employees||[]):[];
+  setEmployees(availableEmployees);
+  setPolicies(p.status==='fulfilled'?(p.value.policies||[]):[]);
+  if(leave.status==='rejected')setError('Unable to load leave requests: '+String(leave.reason?.message||leave.reason));
+  else if(profile.status==='rejected')setError('Unable to verify account permissions: '+String(profile.reason?.message||profile.reason));
+}
+
 useEffect(()=>{load()},[status]);useEffect(()=>{if(employeeId)get(`/api/leave/balances?employeeId=${encodeURIComponent(employeeId)}&year=${year}`).then(x=>setBalances(x.balances)).catch(e=>setError(e.message))},[employeeId,year,rows]);useEffect(()=>{get('/api/leave/calendar?month='+month).then(x=>setEvents(x.events)).catch(e=>setError(e.message))},[month,rows]);
-async function mutate(url:string,method:string,data:any){setBusy(true);setError('');setNotice('');try{const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const x=await r.json();if(!r.ok)throw Error(x.error||'Operation failed');setNotice('Changes saved successfully');setShow(false);await load();if(tab==='Balances'&&employeeId){const b=await get(`/api/leave/balances?employeeId=${employeeId}&year=${year}`);setBalances(b.balances)}}catch(e:any){setError(e.message)}finally{setBusy(false)}}
+async function mutate(url:string,method:string,data:any){setBusy(true);setError('');setNotice('');try{const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const raw=await r.text();let x:any={};try{x=raw?JSON.parse(raw):{}}catch{throw Error(`Server returned an invalid response (HTTP ${r.status}). Check Railway logs.`)}if(!r.ok)throw Error(x.error||`Operation failed (HTTP ${r.status})`);setNotice('Changes saved successfully');setShow(false);await load();if(tab==='Balances'&&employeeId){const b=await get(`/api/leave/balances?employeeId=${employeeId}&year=${year}`);setBalances(b.balances)}}catch(e:any){setError(e.message)}finally{setBusy(false)}}
 const pending=rows.filter(r=>r.status==='PENDING').length,approved=rows.filter(r=>r.status==='APPROVED').length,rejected=rows.filter(r=>r.status==='REJECTED').length,today=new Date().toISOString().slice(0,10),onLeave=rows.filter(r=>r.status==='APPROVED'&&r.startDate.slice(0,10)<=today&&r.endDate.slice(0,10)>=today).length;
 const first=new Date(month+'-01T12:00:00Z'),daysInMonth=new Date(Date.UTC(first.getUTCFullYear(),first.getUTCMonth()+1,0)).getUTCDate(),offset=new Date(Date.UTC(first.getUTCFullYear(),first.getUTCMonth(),1)).getUTCDay();
 return <div className="workspace"><div className="workspaceTop"><Link href="/" className="backLink">← Dashboard</Link><div className="workspaceBrand"><Image src="/logo.png" width={44} height={44} alt="Flicks & Licks"/><span>FLICKS & LICKS HRMS</span></div></div><div className="workspaceHeading"><div><h1>Leave Management</h1><p>Entitlements, approvals, leave calendar and reporting</p></div>{perms.includes('leave.create')&&<button className="primaryBtn" onClick={()=>{setForm({...form,employeeId:me.employeeId||employeeId});setShow(true)}}>+ New Leave Request</button>}</div><div className="leaveStats">{[['Total Requests',rows.length],['Pending Approvals',pending],['On Leave Today',onLeave],['Approved',approved],['Rejected',rejected]].map(([label,n])=><div className="leaveStat" key={label}><span>{label}</span><strong>{n}</strong></div>)}</div><div className="leaveTabs">{['Requests','Balances','Calendar','Reports','Policies'].filter(x=>x!=='Policies'||me.isHR).map(x=><button className={tab===x?'selected':''} onClick={()=>{setTab(x);setError('')}} key={x}>{x}</button>)}</div>{notice&&<div className="successNotice">{notice}</div>}{error&&<div className="formError">{error}</div>}
