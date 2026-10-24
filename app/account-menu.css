@@ -1,0 +1,21 @@
+
+/* Shared signed-in account menu: visible on every authenticated module. */
+body:has(.fnlAccountDock){padding-top:68px}
+.fnlAccountDock{position:fixed;z-index:1000;top:8px;right:18px;font-family:inherit}
+.fnlAccountTrigger{display:flex;align-items:center;gap:11px;min-width:215px;max-width:min(360px,calc(100vw - 36px));border:1px solid #e2e4e9;border-radius:14px;background:#fff;padding:7px 12px;box-shadow:0 4px 20px #0f172a12;cursor:pointer;text-align:left;color:#101827}
+.fnlAccountAvatar{display:grid;place-items:center;flex:none;width:38px;height:38px;border-radius:50%;background:#e8edf8;color:#213b70;font-size:13px;font-weight:800}
+.fnlAccountIdentity{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.fnlAccountIdentity strong{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fnlAccountIdentity small{font-size:11px;color:#667085}
+.fnlAccountDropdown{position:absolute;top:calc(100% + 7px);right:0;width:270px;max-width:calc(100vw - 36px);border:1px solid #e6e8ee;background:#fff;border-radius:13px;box-shadow:0 14px 38px #10182825;padding:7px;overflow:hidden}
+.fnlAccountSummary{padding:12px 13px;border-bottom:1px solid #edf0f3;margin-bottom:5px;display:flex;flex-direction:column;gap:5px;overflow-wrap:anywhere}
+.fnlAccountSummary strong{font-size:14px}.fnlAccountSummary small{font-size:12px;color:#667085}
+.fnlAccountDropdown a,.fnlAccountDropdown button{width:100%;display:flex;align-items:center;gap:11px;padding:11px 12px;background:transparent;border:0;border-radius:8px;text-decoration:none;color:#222;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.fnlAccountDropdown a:hover,.fnlAccountDropdown button:hover{background:#f5f6f8}.fnlAccountDropdown button:last-child{color:#cb1720}
+.topbar>.account{display:none!important}
+.fnlSettingsPage{max-width:760px;margin:0 auto;padding:30px 22px 65px;color:#19212c}.fnlSettingsPage h1{margin:24px 0 5px;font-size:30px}.fnlSettingsPage>p{color:#687282;margin-bottom:26px}
+.fnlSettingsCard{background:white;border:1px solid #e4e6ea;border-radius:16px;padding:25px;margin:18px 0;box-shadow:0 4px 18px #15203408}.fnlSettingsCard h2{margin:0 0 18px;font-size:19px}
+.fnlSettingsCard dl{display:grid;grid-template-columns:150px 1fr;gap:15px}.fnlSettingsCard dt{color:#6b7280}.fnlSettingsCard dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.fnlSettingsCard form{display:grid;gap:16px}.fnlSettingsCard form label{display:grid;gap:7px;font-weight:600;font-size:13px}.fnlSettingsCard input{padding:11px 12px;border:1px solid #d5d9df;border-radius:9px;width:100%;max-width:450px}
+.fnlSettingsCard .primaryBtn{justify-self:start}.fnlMuted{font-size:13px;color:#687282}.fnlError{color:#bc171e}.fnlSuccess{color:#13803c}
+@media(max-width:520px){.fnlAccountDock{right:8px}.fnlAccountTrigger{min-width:0;padding:6px 8px}.fnlAccountIdentity{max-width:135px}.fnlSettingsCard dl{grid-template-columns:1fr;gap:5px}}
