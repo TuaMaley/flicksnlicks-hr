@@ -1,0 +1,7 @@
+import {db} from './db';
+export const leaveTypes=['ANNUAL','SICK','MATERNITY','PATERNITY','COMPASSIONATE','UNPAID','OTHER'];
+export const defaults:Record<string,number>={ANNUAL:0,SICK:0,MATERNITY:0,PATERNITY:0,COMPASSIONATE:0,UNPAID:0,OTHER:0};
+export function dateOnly(value:unknown){if(typeof value!=='string'||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(value))return null;const d=new Date(value+'T12:00:00.000Z');return d.toISOString().slice(0,10)===value?d:null}
+export function businessDays(start:Date,end:Date){let n=0;for(let t=Date.UTC(start.getUTCFullYear(),start.getUTCMonth(),start.getUTCDate());t<=Date.UTC(end.getUTCFullYear(),end.getUTCMonth(),end.getUTCDate());t+=86400000){const day=new Date(t).getUTCDay();if(day!==0&&day!==6)n++}return n}
+export async function balance(employeeId:string,type:string,year:number){const [policy,override,approved]=await Promise.all([db.leavePolicy.findUnique({where:{type}}),db.leaveEntitlement.findUnique({where:{employeeId_type_year:{employeeId,type,year}}}),db.leaveRequest.findMany({where:{employeeId,type,status:'APPROVED',startDate:{gte:new Date(`${year}-01-01T00:00:00Z`),lt:new Date(`${year+1}-01-01T00:00:00Z`)}},select:{days:true}})]);const entitled=override?.days??policy?.annualDays??defaults[type]??0;const used=approved.reduce((n,x)=>n+x.days,0);return {type,year,entitled,used,remaining:entitled-used}}
+export function isHR(a:any){return a.user?.roles.some((r:any)=>r.role.active&&['Administrator','HR Manager'].includes(r.role.name))??false}
