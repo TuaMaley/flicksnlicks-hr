@@ -1,0 +1,38 @@
+// Add these models ONCE at the end of your existing prisma/schema.prisma.
+// No changes to Employee or User models are required.
+model PerformanceImprovementPlan {
+  id String @id @default(cuid())
+  employeeId String
+  employee Employee @relation(fields: [employeeId], references: [id])
+  title String
+  reason String
+  goals Json
+  status String @default("DRAFT") // DRAFT, ACTIVE, COMPLETED, UNSUCCESSFUL, CANCELLED
+  startDate DateTime
+  dueDate DateTime
+  createdById String
+  managerId String?
+  closedById String?
+  closedAt DateTime?
+  outcomeNote String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  checkIns PerformanceImprovementCheckIn[]
+  @@index([employeeId, status])
+  @@index([dueDate, status])
+}
+
+model PerformanceImprovementCheckIn {
+  id String @id @default(cuid())
+  planId String
+  plan PerformanceImprovementPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  authorId String
+  progressNote String
+  progressPercent Int
+  nextSteps String?
+  createdAt DateTime @default(now())
+  @@index([planId, createdAt])
+}
+
+// ALSO add this line inside your EXISTING model Employee { ... }:
+// improvementPlans PerformanceImprovementPlan[]
