@@ -42,3 +42,45 @@
 .persistentTopbarBack { flex:0 0 46px; width:46px; height:46px; display:grid; place-items:center; border:0; border-radius:11px; color:#1b2b49; background:#f3f5fa; cursor:pointer; }
 .persistentTopbarBack:hover { background:#e8edf7; }
 .persistentTopbarBack:focus-visible { outline:2px solid #c91f1b; outline-offset:2px; }
+
+/* Phase 13C: remove the 68px strip reserved by the old account menu.
+   Keep the account card in the same 70px row as the toolbar. */
+html body:has(.fnlAccountDock) {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+@media (min-width: 761px) {
+  html body:has(.fnlAccountDock) > .shell.persistentShell,
+  html body:has(.fnlAccountDock) > div.shell.persistentShell {
+    margin-top: 0 !important;
+    top: 0 !important;
+    height: 100dvh !important;
+  }
+  html body .fnlAccountDock {
+    position: fixed !important;
+    top: 8px !important;
+    right: 18px !important;
+    z-index: 1500 !important;
+  }
+  html body .persistentTopbar {
+    flex-shrink: 0 !important;
+    height: 70px !important;
+    min-height: 70px !important;
+    padding-left: 28px !important;
+    padding-right: 280px !important;
+    gap: 14px !important;
+  }
+  html body .persistentTopbarBack {
+    display: grid !important;
+    visibility: visible !important;
+    flex: 0 0 46px !important;
+  }
+  html body .persistentTopbarSearch {
+    flex: 1 1 260px !important;
+    max-width: 450px !important;
+  }
+}
+@media (max-width: 1100px) and (min-width: 761px) {
+  html body .persistentTopbar { padding-right: 250px !important; }
+  html body .persistentTopbarSearch { min-width: 130px !important; }
+}
