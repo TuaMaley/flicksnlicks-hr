@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useState} from 'react';
+import Link from 'next/link';
 import {Wallet,Users,Clock3,TrendingUp,Search,FileText,ShieldCheck,CalendarDays,ArrowUpRight} from 'lucide-react';
 import './payroll.css';
 type Run={id:string;period:string;status:string;gross:number;net:number};
@@ -12,7 +13,7 @@ export default function PayrollPage(){
  const max=Math.max(1,...(data?.branches||[]).map(b=>b.count));
  return <main className="payrollWorkspace">
  <div className="payrollHeading"><div><span className="payrollEyebrow">FINANCE / PAYROLL</span><h1>Payroll &amp; Benefits</h1><p>Compensation, payroll operations and workforce insights in one place.</p></div><span className="payrollLive"><span/> Live PostgreSQL data</span></div>
- <nav className="payrollTabs" aria-label="Payroll sections"><a className="selected" href="/payroll">Overview</a><span>Compensation <em>Coming next</em></span><span>Attendance &amp; Overtime</span><span>Process Payroll</span><span>Approvals</span><span>Payslips</span><span>Payments</span><span>Reports</span></nav>
+ <nav className="payrollTabs" aria-label="Payroll sections"><a className="selected" href="/payroll">Overview</a><Link href="/payroll/compensation">Compensation</Link><span>Attendance &amp; Overtime</span><span>Process Payroll</span><span>Approvals</span><span>Payslips</span><span>Payments</span><span>Reports</span></nav>
  {error&&<div className="payrollError" role="alert">{error}</div>}
  <div className="payrollCards">
  <article className="payrollCard"><div className="payrollCardIcon blue"><Wallet/></div><p>Latest gross payroll</p><strong>{loading?'…':data?.latest?money(data.latest.gross):'Not available'}</strong><small>{data?.latest?`Period ${data.latest.period}`:data?.payrollTotalsRestricted?'Restricted to authorized HR / Admin':'No payroll runs yet'}</small></article>

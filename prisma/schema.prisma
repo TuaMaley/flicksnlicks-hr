@@ -66,59 +66,60 @@ enum DisciplinaryStatus {
 }
 
 model Branch {
-  id        String           @id @default(cuid())
-  name      String           @unique
-  location  String?
-  employees Employee[]
-  scopes    UserAccessScope[]
+  id          String            @id @default(cuid())
+  name        String            @unique
+  location    String?
+  employees   Employee[]
+  scopes      UserAccessScope[]
   jobOpenings JobOpening[]
-  createdAt DateTime         @default(now())
+  createdAt   DateTime          @default(now())
 }
 
 model Employee {
-  id               String         @id @default(cuid())
-  employeeNo       String         @unique
-  firstName        String
-  lastName         String
-  email            String         @unique
-  phone            String?
-  position         String
-  department       String
-  status           EmployeeStatus @default(ACTIVE)
-  hireDate         DateTime       @default(now())
-  branchId         String
-  branch           Branch         @relation(fields: [branchId], references: [id])
-  employmentType   String         @default("FULL_TIME")
-  emergencyContact String?
-  notes            String?
-  leaveRequests    LeaveRequest[]
-  leaveEntitlements LeaveEntitlement[]
-  appraisals       Appraisal[]
-  appraisalReviews AppraisalReview[]
-  onboardingCases  OnboardingCase[]
-  disciplinaryCases DisciplinaryCase[]
-  recognitions     Recognition[]
-  user             User?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  id                          String                       @id @default(cuid())
+  employeeNo                  String                       @unique
+  firstName                   String
+  lastName                    String
+  email                       String                       @unique
+  phone                       String?
+  position                    String
+  department                  String
+  status                      EmployeeStatus               @default(ACTIVE)
+  hireDate                    DateTime                     @default(now())
+  branchId                    String
+  branch                      Branch                       @relation(fields: [branchId], references: [id])
+  employmentType              String                       @default("FULL_TIME")
+  emergencyContact            String?
+  notes                       String?
+  leaveRequests               LeaveRequest[]
+  leaveEntitlements           LeaveEntitlement[]
+  appraisals                  Appraisal[]
+  appraisalReviews            AppraisalReview[]
+  onboardingCases             OnboardingCase[]
+  disciplinaryCases           DisciplinaryCase[]
+  recognitions                Recognition[]
+  user                        User?
+  createdAt                   DateTime                     @default(now())
+  updatedAt                   DateTime                     @updatedAt
+  performanceImprovementPlans PerformanceImprovementPlan[]
+  compensationPackages EmployeeCompensation[]
 
   @@index([branchId])
   @@index([status])
-performanceImprovementPlans PerformanceImprovementPlan[]
 }
 
 model User {
-  id           String           @id @default(cuid())
-  email        String           @unique
+  id           String            @id @default(cuid())
+  email        String            @unique
   name         String
   passwordHash String
-  active       Boolean          @default(true)
-  employeeId   String?          @unique
-  employee     Employee?        @relation(fields: [employeeId], references: [id])
+  active       Boolean           @default(true)
+  employeeId   String?           @unique
+  employee     Employee?         @relation(fields: [employeeId], references: [id])
   roles        UserRole[]
   scopes       UserAccessScope[]
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 }
 
 model Role {
@@ -153,8 +154,8 @@ model RolePermission {
 model UserRole {
   userId String
   roleId String
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role   Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Restrict)
 
   @@id([userId, roleId])
 }
@@ -172,54 +173,55 @@ model UserAccessScope {
 }
 
 model LeaveRequest {
-  id         String        @id @default(cuid())
-  employeeId String
-  employee   Employee      @relation(fields: [employeeId], references: [id])
-  type       String
-  startDate  DateTime
-  endDate    DateTime
-  reason     String?
-  days       Int           @default(1)
-  reviewStage Int           @default(1)
+  id              String        @id @default(cuid())
+  employeeId      String
+  employee        Employee      @relation(fields: [employeeId], references: [id])
+  type            String
+  startDate       DateTime
+  endDate         DateTime
+  reason          String?
+  days            Int           @default(1)
+  reviewStage     Int           @default(1)
   firstReviewerId String?
   firstReviewedAt DateTime?
-  decisionNote String?
-  decidedBy  String?
-  decidedAt  DateTime?
-  status     RequestStatus @default(PENDING)
-  createdAt  DateTime      @default(now())
+  decisionNote    String?
+  decidedBy       String?
+  decidedAt       DateTime?
+  status          RequestStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
 
   @@index([employeeId])
   @@index([status])
 }
 
 model LeavePolicy {
-  id String @id @default(cuid())
-  type String @unique
-  annualDays Int @default(0)
-  approvalSteps Int @default(2)
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  type          String   @unique
+  annualDays    Int      @default(0)
+  approvalSteps Int      @default(2)
+  updatedAt     DateTime @updatedAt
 }
 
 model LeaveEntitlement {
-  id String @id @default(cuid())
-  employeeId String
-  employee Employee @relation(fields: [employeeId], references: [id])
-  type String
-  year Int
-  days Int
-  @@unique([employeeId,type,year])
-}
-
-model Appraisal {
   id         String   @id @default(cuid())
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id])
+  type       String
+  year       Int
+  days       Int
+
+  @@unique([employeeId, type, year])
+}
+
+model Appraisal {
+  id         String          @id @default(cuid())
+  employeeId String
+  employee   Employee        @relation(fields: [employeeId], references: [id])
   title      String
   score      Float?
   period     String
   status     AppraisalStatus @default(DRAFT)
-  createdAt  DateTime @default(now())
+  createdAt  DateTime        @default(now())
 
   @@index([employeeId])
 }
@@ -239,24 +241,24 @@ model AuditLog {
 }
 
 model PayrollRun {
-  id          String   @id @default(cuid())
-  period      String   @unique
+  id          String        @id @default(cuid())
+  period      String        @unique
   status      PayrollStatus @default(DRAFT)
-  grossAmount Decimal  @default(0)
-  netAmount   Decimal  @default(0)
-  createdAt   DateTime @default(now())
+  grossAmount Decimal       @default(0)
+  netAmount   Decimal       @default(0)
+  createdAt   DateTime      @default(now())
 }
 
 model Training {
-  id          String   @id @default(cuid())
+  id          String         @id @default(cuid())
   title       String
   description String?
   status      TrainingStatus @default(PLANNED)
-  createdAt   DateTime @default(now())
+  createdAt   DateTime       @default(now())
 }
 
 model JobOpening {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   title     String
   branchId  String
   branch    Branch           @relation(fields: [branchId], references: [id])
@@ -268,23 +270,23 @@ model JobOpening {
 }
 
 model OnboardingCase {
-  id         String   @id @default(cuid())
+  id         String           @id @default(cuid())
   employeeId String
-  employee   Employee @relation(fields: [employeeId], references: [id])
+  employee   Employee         @relation(fields: [employeeId], references: [id])
   kind       String
   status     OnboardingStatus @default(PENDING)
-  createdAt  DateTime @default(now())
+  createdAt  DateTime         @default(now())
 
   @@index([employeeId])
 }
 
 model DisciplinaryCase {
-  id         String   @id @default(cuid())
+  id         String             @id @default(cuid())
   employeeId String
-  employee   Employee @relation(fields: [employeeId], references: [id])
+  employee   Employee           @relation(fields: [employeeId], references: [id])
   summary    String
   status     DisciplinaryStatus @default(OPEN)
-  createdAt  DateTime @default(now())
+  createdAt  DateTime           @default(now())
 
   @@index([employeeId])
 }
@@ -299,107 +301,140 @@ model Recognition {
   @@index([employeeId])
 }
 
-
 model AppraisalTemplate {
-  id String @id @default(cuid())
-  name String @unique
-  category String
-  level String
-  description String?
-  criteria Json
-  active Boolean @default(true)
-  deletedAt DateTime?
+  id            String            @id @default(cuid())
+  name          String            @unique
+  category      String
+  level         String
+  description   String?
+  criteria      Json
+  active        Boolean           @default(true)
+  deletedAt     DateTime?
   deletedReason String?
-  createdAt DateTime @default(now())
-  reviews AppraisalReview[]
+  createdAt     DateTime          @default(now())
+  reviews       AppraisalReview[]
 }
 
 model AppraisalReview {
-  id String @id @default(cuid())
-  employeeId String
-  employee Employee @relation(fields:[employeeId],references:[id])
-  templateId String
-  template AppraisalTemplate @relation(fields:[templateId],references:[id])
-  period String
-  status AppraisalStatus @default(DRAFT)
-  selfScores Json?
-  managerScores Json?
-  selfComment String?
+  id             String            @id @default(cuid())
+  employeeId     String
+  employee       Employee          @relation(fields: [employeeId], references: [id])
+  templateId     String
+  template       AppraisalTemplate @relation(fields: [templateId], references: [id])
+  period         String
+  status         AppraisalStatus   @default(DRAFT)
+  selfScores     Json?
+  managerScores  Json?
+  selfComment    String?
   managerComment String?
-  score Float?
-  reviewerId String?
-  approvedBy String?
-  approvedAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  @@index([employeeId,period])
+  score          Float?
+  reviewerId     String?
+  approvedBy     String?
+  approvedAt     DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([employeeId, period])
   @@index([status])
 }
 
 model AppraisalCycle {
-  id String @id @default(cuid())
-  name String
-  period String
-  startDate DateTime
-  selfDeadline DateTime
+  id              String                     @id @default(cuid())
+  name            String
+  period          String
+  startDate       DateTime
+  selfDeadline    DateTime
   managerDeadline DateTime
-  endDate DateTime
-  status String @default("OPEN")
-  createdBy String
-  createdAt DateTime @default(now())
-  assignments AppraisalCycleAssignment[]
+  endDate         DateTime
+  status          String                     @default("OPEN")
+  createdBy       String
+  createdAt       DateTime                   @default(now())
+  assignments     AppraisalCycleAssignment[]
+
   @@index([status, endDate])
 }
 
 model AppraisalCycleAssignment {
-  id String @id @default(cuid())
-  cycleId String
-  cycle AppraisalCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
-  employeeId String
-  templateId String
-  reviewId String?
-  status String @default("PENDING")
-  selfCompletedAt DateTime?
+  id                 String         @id @default(cuid())
+  cycleId            String
+  cycle              AppraisalCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  employeeId         String
+  templateId         String
+  reviewId           String?
+  status             String         @default("PENDING")
+  selfCompletedAt    DateTime?
   managerCompletedAt DateTime?
-  completedAt DateTime?
-  createdAt DateTime @default(now())
+  completedAt        DateTime?
+  createdAt          DateTime       @default(now())
+
   @@unique([cycleId, employeeId])
   @@index([employeeId])
   @@index([cycleId, status])
 }
 
 model PerformanceImprovementPlan {
-  id String @id @default(cuid())
-  employeeId String
-  employee Employee @relation(fields: [employeeId], references: [id])
-  title String
-  reason String
-  goals Json
-  status String @default("DRAFT") // DRAFT, ACTIVE, COMPLETED, UNSUCCESSFUL, CANCELLED
-  startDate DateTime
-  dueDate DateTime
+  id          String                          @id @default(cuid())
+  employeeId  String
+  employee    Employee                        @relation(fields: [employeeId], references: [id])
+  title       String
+  reason      String
+  goals       Json
+  status      String                          @default("DRAFT") // DRAFT, ACTIVE, COMPLETED, UNSUCCESSFUL, CANCELLED
+  startDate   DateTime
+  dueDate     DateTime
   createdById String
-  managerId String?
-  closedById String?
-  closedAt DateTime?
+  managerId   String?
+  closedById  String?
+  closedAt    DateTime?
   outcomeNote String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  checkIns PerformanceImprovementCheckIn[]
+  createdAt   DateTime                        @default(now())
+  updatedAt   DateTime                        @updatedAt
+  checkIns    PerformanceImprovementCheckIn[]
+
   @@index([employeeId, status])
   @@index([dueDate, status])
 }
 
 model PerformanceImprovementCheckIn {
-  id String @id @default(cuid())
-  planId String
-  plan PerformanceImprovementPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  authorId String
-  progressNote String
+  id              String                     @id @default(cuid())
+  planId          String
+  plan            PerformanceImprovementPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  authorId        String
+  progressNote    String
   progressPercent Int
-  nextSteps String?
-  createdAt DateTime @default(now())
+  nextSteps       String?
+  createdAt       DateTime                   @default(now())
+
   @@index([planId, createdAt])
 }
 
 // improvementPlans PerformanceImprovementPlan[]
+
+// Compensation history: each approved package is immutable and effective-dated.
+enum CompensationStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+model EmployeeCompensation {
+  id String @id @default(cuid())
+  employeeId String
+  employee Employee @relation(fields:[employeeId],references:[id])
+  effectiveDate DateTime
+  basicSalary Decimal @db.Decimal(14,2)
+  allowances Json
+  deductions Json
+  benefits Json
+  currency String @default("GHS")
+  status CompensationStatus @default(DRAFT)
+  reason String?
+  reviewNote String?
+  createdById String
+  reviewedById String?
+  reviewedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([employeeId,effectiveDate])
+  @@index([status])
+}
