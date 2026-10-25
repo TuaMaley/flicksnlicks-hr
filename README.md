@@ -1,15 +1,14 @@
-# Phase 4 — build correction
+# Phase 5 navigation repair
 
-This package repairs the errors in the provided local npm run build log.
+Restores the full Phase 4 appraisal workspace at /appraisals, adds a link to /appraisals/cycles, and routes the dashboard Performance Appraisal menu to /appraisals.
 
-Copy the `app/` folder contents into your existing project, retaining all other files.
+## Installation
+1. Back up your existing app/page.tsx and app/appraisals/page.tsx.
+2. Replace ONLY these two files using the same paths in this ZIP.
+3. Keep the existing app/appraisals/cycles/page.tsx and Phase 5 API routes. Do not replace or remove them.
+4. Check for app/appraisals/layout.tsx or middleware.ts redirects if /appraisals still redirects after deployment.
+5. Run npm run build, commit the two files, and redeploy.
 
-Files:
-- `app/appraisals/page.tsx`: fixes missing JSX `}` after the Create New Template button; retains create/edit/duplicate UI.
-- `app/api/appraisals/templates/[id]/route.ts`: fixes three incorrect relative imports.
-- `app/api/appraisals/templates/route.ts`: retains the Create New Template API from the prior update.
-- `app/api/appraisals/templates/[id]/duplicate/route.ts`: includes the duplication endpoint from the previous update.
+No Prisma or PostgreSQL changes required.
 
-Run `npm run build` locally. Commit only after it succeeds. This patch requires no Prisma migration.
-
-Note: full Next.js production build has not been run here; verify locally before deploying.
+Note: This patch uses the last known working Phase 4 appraisal page and dashboard source. If you have made newer changes to these exact files, merge the changes instead of replacing them blindly.
