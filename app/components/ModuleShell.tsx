@@ -9,7 +9,7 @@ import {LayoutDashboard,Users,Wallet,CalendarDays,GraduationCap,UserPlus,Clipboa
 const items=[
  {label:'Dashboard',href:'/',Icon:LayoutDashboard},
  {label:'Employee Management',href:'/employees',permission:'employees.view',Icon:Users},
- {label:'Payroll & Benefits',href:'/',permission:'payroll.view',Icon:Wallet},
+ {label:'Payroll & Benefits',href:'/payroll',permission:'payroll.view',Icon:Wallet},
  {label:'Leave Management',href:'/leave',permission:'leave.view',Icon:CalendarDays},
  {label:'Training & Development',href:'/',permission:'training.view',Icon:GraduationCap},
  {label:'Recruitment',href:'/',permission:'recruitment.view',Icon:UserPlus},
