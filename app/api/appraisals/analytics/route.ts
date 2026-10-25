@@ -1,7 +1,7 @@
 import {NextRequest} from 'next/server';
-import {db} from '../../../../../lib/db';
-import {access,employeeWhere} from '../../../../../lib/auth';
-import {fail,ok} from '../../../../../lib/http';
+import {db} from '../../../../lib/db';
+import {access,employeeWhere} from '../../../../lib/auth';
+import {fail,ok} from '../../../../lib/http';
 
 const statuses=['DRAFT','SUBMITTED','MANAGER_REVIEWED','PENDING_HR_APPROVAL','REJECTED','APPROVED','FINALIZED'];
 export async function GET(req:NextRequest){
