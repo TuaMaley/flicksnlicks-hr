@@ -482,5 +482,20 @@ model PayrollCalculationBatch {
   lineItems Json
   createdById String
   createdAt DateTime @default(now())
+  approvals PayrollApprovalEvent[]
   @@index([period,createdAt])
+}
+
+// Append-only review decisions. PayrollCalculationBatch.status is the current workflow state.
+model PayrollApprovalEvent {
+  id String @id @default(cuid())
+  batchId String
+  batch PayrollCalculationBatch @relation(fields:[batchId],references:[id],onDelete:Restrict)
+  actorId String
+  action String
+  fromStatus String
+  toStatus String
+  reason String?
+  createdAt DateTime @default(now())
+  @@index([batchId,createdAt])
 }
