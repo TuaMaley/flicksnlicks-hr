@@ -1,0 +1,13 @@
+In prisma/schema.prisma, find enum AppraisalStatus and replace ONLY that enum with:
+
+enum AppraisalStatus {
+  DRAFT
+  SUBMITTED
+  MANAGER_REVIEWED
+  PENDING_HR_APPROVAL
+  APPROVED
+  REJECTED
+  FINALIZED
+}
+
+Do not duplicate the enum or replace the rest of your schema. APPROVED is retained for legacy records.

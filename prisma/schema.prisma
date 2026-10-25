@@ -24,8 +24,11 @@ enum RequestStatus {
 enum AppraisalStatus {
   DRAFT
   SUBMITTED
+  MANAGER_REVIEWED
+  PENDING_HR_APPROVAL
   APPROVED
   REJECTED
+  FINALIZED
 }
 
 enum PayrollStatus {
