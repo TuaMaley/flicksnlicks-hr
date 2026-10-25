@@ -1,5 +1,5 @@
-import '../performance-ui.css';
 'use client';
+import '../performance-ui.css';
 import Link from 'next/link';
 import {useEffect,useState} from 'react';
 type Assignment={id:string;employeeId:string;templateId:string;reviewId:string|null;status:string;selfCompletedAt:string|null;managerCompletedAt:string|null;completedAt:string|null};

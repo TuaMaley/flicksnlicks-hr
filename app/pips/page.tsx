@@ -1,5 +1,5 @@
-import '../appraisals/performance-ui.css';
 'use client';
+import '../appraisals/performance-ui.css';
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 type EmployeeOption={id:string;employeeNo:string;firstName:string;lastName:string;department:string;branch:{name:string}};

@@ -1,5 +1,5 @@
-import '../performance-ui.css';
 'use client';
+import '../performance-ui.css';
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 type Employee={id:string;employeeNo:string;firstName:string;lastName:string;position?:string;department?:string;branch?:{name:string}};

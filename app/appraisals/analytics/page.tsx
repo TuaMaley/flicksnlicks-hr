@@ -1,5 +1,5 @@
-import '../performance-ui.css';
 'use client';
+import '../performance-ui.css';
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 type Group={name:string;total:number;finalized:number;pendingHR:number;averageScore:number|null};
