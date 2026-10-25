@@ -468,3 +468,19 @@ model PayrollAttendance {
   @@unique([employeeId, workDate])
   @@index([workDate, status])
 }
+
+// Payroll calculation snapshots: intentionally separate from legacy PayrollRun.
+// These are DRAFT estimates, not approved payments or statutory tax calculations.
+model PayrollCalculationBatch {
+  id String @id @default(cuid())
+  period String
+  status String @default("DRAFT")
+  currency String @default("GHS")
+  employeeCount Int
+  grossAmount Decimal @db.Decimal(16,2)
+  netBeforeStatutory Decimal @db.Decimal(16,2)
+  lineItems Json
+  createdById String
+  createdAt DateTime @default(now())
+  @@index([period,createdAt])
+}

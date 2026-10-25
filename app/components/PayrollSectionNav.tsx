@@ -7,7 +7,7 @@ const sections = [
   {label:'Overview',href:'/payroll',enabled:true},
   {label:'Compensation',href:'/payroll/compensation',enabled:true},
   {label:'Attendance & Overtime',href:'/payroll/attendance',enabled:true},
-  {label:'Process Payroll',href:'/payroll/process',enabled:false},
+  {label:'Process Payroll',href:'/payroll/process',enabled:true},
   {label:'Approvals',href:'/payroll/approvals',enabled:false},
   {label:'Payslips',href:'/payroll/payslips',enabled:false},
   {label:'Payments',href:'/payroll/payments',enabled:false},
