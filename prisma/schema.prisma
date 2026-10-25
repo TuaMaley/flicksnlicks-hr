@@ -104,6 +104,7 @@ model Employee {
   performanceImprovementPlans PerformanceImprovementPlan[]
   compensationPackages EmployeeCompensation[]
 payrollAttendance PayrollAttendance[]
+  ghanaPayrollAdjustments GhanaPayrollAdjustment[]
 
   @@index([branchId])
   @@index([status])
@@ -498,4 +499,43 @@ model PayrollApprovalEvent {
   reason String?
   createdAt DateTime @default(now())
   @@index([batchId,createdAt])
+}
+
+// Effective-dated Ghana payroll settings. A new record is required when rules change.
+model GhanaPayrollPolicy {
+  id String @id @default(cuid())
+  effectiveFrom DateTime @unique @db.Date
+  taxBands Json
+  ssnitEmployeeRate Decimal @db.Decimal(7,5)
+  employerPensionRate Decimal @db.Decimal(7,5)
+  tier1Rate Decimal @db.Decimal(7,5)
+  tier2Rate Decimal @db.Decimal(7,5)
+  minimumInsurable Decimal @db.Decimal(14,2)
+  maximumInsurable Decimal @db.Decimal(14,2)
+  workDaysPerMonth Int @default(22)
+  overtimeRates Json
+  approvedForUse Boolean @default(false)
+  approvedById String?
+  approvedAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+// Approved manual attendance / pension adjustments; do not infer absences from missing clock records.
+model GhanaPayrollAdjustment {
+  id String @id @default(cuid())
+  employeeId String
+  employee Employee @relation(fields:[employeeId],references:[id])
+  period String
+  overtimeDays Int @default(0)
+  unpaidDays Decimal @default(0) @db.Decimal(8,2)
+  tier3Employee Decimal @default(0) @db.Decimal(14,2)
+  notes String?
+  status String @default("DRAFT")
+  createdById String
+  approvedById String?
+  approvedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([employeeId,period])
+  @@index([period,status])
 }
