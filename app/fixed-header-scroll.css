@@ -1,0 +1,44 @@
+/* Phase 13: one scrollable content area, stationary top toolbar and account */
+@media (min-width:761px) {
+ html,body { height:100%; min-height:100%; overflow:hidden !important; }
+ body:has(.fnlAccountDock) { padding-top:0 !important; }
+ body > .shell, .shell.persistentShell { height:100dvh !important; min-height:0 !important; max-height:100dvh !important; overflow:hidden !important; }
+ /* Dashboard (/) has its own shell, topbar and sidebar. */
+ body > .shell > .sidebar, .shell.persistentShell > aside.sidebar.persistentSidebar {
+   height:100dvh !important; min-height:0 !important; max-height:100dvh !important;
+   overflow-y:auto !important; overflow-x:hidden !important;
+   scrollbar-width:none !important; -ms-overflow-style:none !important;
+ }
+ body > .shell > .sidebar::-webkit-scrollbar, .shell.persistentShell > aside.sidebar.persistentSidebar::-webkit-scrollbar { display:none !important; width:0 !important; }
+ body > .shell > main { height:100dvh; min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; }
+ body > .shell > main > .topbar { position:sticky; top:0; z-index:90; }
+ .shell.persistentShell > .persistentContent {
+   display:flex !important; flex-direction:column !important; height:100dvh !important;
+   max-height:100dvh !important; min-height:0 !important; overflow:hidden !important;
+ }
+ .persistentPageScroll { flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; }
+ .persistentTopbar { flex:0 0 70px; height:70px; background:white; border-bottom:1px solid #e8eaf0; display:flex; align-items:center; gap:22px; padding:0 280px 0 30px; position:relative; z-index:90; }
+ .persistentTopbarSearch { display:flex; align-items:center; gap:12px; background:#f4f5fa; color:#63769e; border-radius:9px; padding:12px; width:min(450px,100%); }
+ .persistentTopbarSearch input { width:100%; min-width:0; border:0; background:transparent; outline:0; font-size:13px; }
+ .persistentTopbarRight { margin-left:auto; display:flex; align-items:center; gap:20px; }
+ .persistentBranchLabel { display:flex; gap:9px; align-items:center; border:1px solid #dfe4ed; border-radius:8px; padding:10px 12px; font-size:12px; white-space:nowrap; }
+ .persistentBell { background:#f7f8fc; color:#1c2944; width:40px; height:40px; display:grid; place-items:center; border-radius:9px; }
+ .fnlAccountDock { position:fixed !important; top:9px !important; right:18px !important; z-index:1200 !important; }
+ /* Account dock floats over toolbar, not over content. */
+ .persistentPageScroll > .workspace, .persistentPageScroll > main { min-height:0; }
+}
+@media (max-width:1100px) and (min-width:761px) {
+ .persistentTopbar { padding-right:250px; gap:10px; }
+ .persistentBranchLabel { display:none; }
+}
+@media (max-width:760px) {
+ .persistentTopbar { display:none; }
+ .persistentPageScroll { min-height:0; }
+}
+/* Hide the duplicate account widget in the dashboard header: shared account dock is the sole profile card. */
+.topbar > .account { display:none !important; }
+
+/* Back navigation is placed before the search box in the fixed header. */
+.persistentTopbarBack { flex:0 0 46px; width:46px; height:46px; display:grid; place-items:center; border:0; border-radius:11px; color:#1b2b49; background:#f3f5fa; cursor:pointer; }
+.persistentTopbarBack:hover { background:#e8edf7; }
+.persistentTopbarBack:focus-visible { outline:2px solid #c91f1b; outline-offset:2px; }
