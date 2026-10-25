@@ -135,3 +135,17 @@ html body .persistentTopbarRight .fnlAccountDropdown { z-index: 250; }
  html body .persistentTopbarRight .fnlAccountIdentity { display: none; }
  html body .persistentContent { padding-top: 0 !important; }
 }
+
+/* Phase 13F: Dashboard uses the shared module shell and header, not a second one. */
+.persistentPageScroll .dashboardInnerContent { padding: 28px 32px 42px; min-height:100%; }
+.persistentPageScroll .dashboardInnerContent .welcome { margin-top: 0; }
+/* Remove the old per-page header/banner (Back to Dashboard and extra logo)
+   because navigation now lives in the persistent top bar and sidebar. */
+.persistentPageScroll .workspaceTop { display:none !important; }
+.persistentPageScroll .backLink { display:none !important; }
+/* Legacy page banners are hidden only when nested inside the shared content pane. */
+.persistentPageScroll > .workspace > .workspaceTop,
+.persistentPageScroll > main > .workspaceTop { display:none !important; }
+@media (max-width:760px) {
+ .persistentPageScroll .dashboardInnerContent { padding:16px; }
+}

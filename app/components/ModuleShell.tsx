@@ -31,7 +31,7 @@ export default function ModuleShell({children}:{children:React.ReactNode}){
  useEffect(()=>{let active=true;fetch('/api/me',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(active){setPermissions(d?.permissions||[]);setReady(Boolean(d))}}).catch(()=>{if(active)setReady(false)});return()=>{active=false}},[pathname]);
  useEffect(()=>setOpen(false),[pathname]);
  // Dashboard already owns its full sidebar. Do not render two sidebars there.
- if(pathname==='/'||hiddenPaths.some(p=>pathname===p||pathname.startsWith(p+'/'))||pathname.startsWith('/api/'))return <><AccountMenu/>{children}</>;
+ if(hiddenPaths.some(p=>pathname===p||pathname.startsWith(p+'/'))||pathname.startsWith('/api/'))return children;
  const activeHref=pathname.startsWith('/appraisals')||pathname.startsWith('/pips')?'/appraisals':pathname.startsWith('/employees')?'/employees':pathname.startsWith('/leave')?'/leave':pathname.startsWith('/access')?'/access':pathname.startsWith('/settings')?'/settings':pathname;
  return <div className="shell persistentShell">
  <aside className={'sidebar persistentSidebar '+(open?'open':'')} aria-label="Main navigation">
