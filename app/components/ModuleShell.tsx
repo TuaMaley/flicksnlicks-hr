@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import {usePathname,useRouter} from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import AccountMenu from './AccountMenu';
 import {LayoutDashboard,Users,Wallet,CalendarDays,GraduationCap,UserPlus,ClipboardCheck,LogOut,ShieldAlert,Award,UserRound,ShieldCheck,BarChart3,Settings,Menu,X,Search,UsersRound,Bell,ChevronDown,ArrowLeft} from 'lucide-react';
 
 const items=[
@@ -30,7 +31,7 @@ export default function ModuleShell({children}:{children:React.ReactNode}){
  useEffect(()=>{let active=true;fetch('/api/me',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(active){setPermissions(d?.permissions||[]);setReady(Boolean(d))}}).catch(()=>{if(active)setReady(false)});return()=>{active=false}},[pathname]);
  useEffect(()=>setOpen(false),[pathname]);
  // Dashboard already owns its full sidebar. Do not render two sidebars there.
- if(pathname==='/'||hiddenPaths.some(p=>pathname===p||pathname.startsWith(p+'/'))||pathname.startsWith('/api/'))return <>{children}</>;
+ if(pathname==='/'||hiddenPaths.some(p=>pathname===p||pathname.startsWith(p+'/'))||pathname.startsWith('/api/'))return <><AccountMenu/>{children}</>;
  const activeHref=pathname.startsWith('/appraisals')||pathname.startsWith('/pips')?'/appraisals':pathname.startsWith('/employees')?'/employees':pathname.startsWith('/leave')?'/leave':pathname.startsWith('/access')?'/access':pathname.startsWith('/settings')?'/settings':pathname;
  return <div className="shell persistentShell">
  <aside className={'sidebar persistentSidebar '+(open?'open':'')} aria-label="Main navigation">
@@ -51,7 +52,7 @@ export default function ModuleShell({children}:{children:React.ReactNode}){
  <header className="persistentTopbar" aria-label="Page toolbar">
   <button type="button" className="persistentTopbarBack" aria-label="Go back" title="Go back" onClick={()=>{if(window.history.length>1)router.back();else router.push('/')}}><ArrowLeft size={21}/></button>
   <div className="persistentTopbarSearch"><Search size={19}/><input type="search" aria-label="Search" placeholder="Search employees, modules, reports..." value={search} onChange={e=>setSearch(e.target.value)}/></div>
-  <div className="persistentTopbarRight"><div className="persistentBranchLabel"><UsersRound size={18}/> All Branches <ChevronDown size={15}/></div><span className="persistentBell" aria-label="Notifications"><Bell size={21}/></span></div>
+  <div className="persistentTopbarRight"><div className="persistentBranchLabel"><UsersRound size={18}/> All Branches <ChevronDown size={15}/></div><span className="persistentBell" aria-label="Notifications"><Bell size={21}/></span><AccountMenu/></div>
  </header>
  <div className="persistentPageScroll" id="module-page-scroll">{children}</div>
  </div>

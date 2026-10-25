@@ -84,3 +84,54 @@ html body:has(.fnlAccountDock) {
   html body .persistentTopbar { padding-right: 250px !important; }
   html body .persistentTopbarSearch { min-width: 130px !important; }
 }
+
+/* Phase 13E: profile is a real flex item inside the toolbar, never an overlay. */
+html body .persistentTopbar {
+  padding-right: 22px !important;
+  gap: 14px !important;
+}
+html body .persistentTopbarRight {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  flex: 0 0 auto !important;
+  margin-left: auto !important;
+  min-width: 0;
+}
+html body .persistentTopbarRight .fnlAccountDock {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+  z-index: 200 !important;
+  flex: 0 0 auto;
+}
+html body .persistentTopbarRight .fnlAccountTrigger {
+  min-width: 210px;
+  max-width: 245px;
+  box-shadow: none;
+}
+html body .persistentTopbarSearch { flex: 1 1 260px !important; max-width: 450px !important; min-width: 100px; }
+html body .persistentTopbarRight .fnlAccountDropdown { z-index: 250; }
+@media (min-width: 761px) and (max-width: 1190px) {
+ html body .persistentTopbar { padding-right: 14px !important; }
+ html body .persistentTopbarRight .persistentBranchLabel { display: none !important; }
+ html body .persistentTopbarRight .fnlAccountTrigger { min-width: 165px; }
+}
+@media (min-width: 761px) and (max-width: 900px) {
+ html body .persistentTopbarRight .fnlAccountIdentity { display: none; }
+ html body .persistentTopbarRight .fnlAccountTrigger { min-width: 75px; }
+}
+@media (max-width: 760px) {
+ /* Mobile account card remains accessible while the desktop toolbar is hidden. */
+ html body .persistentTopbar { display: flex !important; padding: 0 10px 0 95px !important; height: 64px; gap: 8px; }
+ html body .persistentTopbarSearch, html body .persistentBranchLabel, html body .persistentBell { display: none !important; }
+ html body .persistentTopbarRight { margin-left: auto; }
+ html body .persistentTopbarRight .fnlAccountDock { position: relative !important; top:auto !important; right:auto !important; }
+ html body .persistentTopbarRight .fnlAccountTrigger { min-width: 0; padding: 5px 7px; }
+ html body .persistentTopbarRight .fnlAccountIdentity { display: none; }
+ html body .persistentContent { padding-top: 0 !important; }
+}
