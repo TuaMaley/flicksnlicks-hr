@@ -1,0 +1,14 @@
+.persistentShell{min-height:100vh;align-items:stretch}
+.persistentSidebar{position:sticky;top:0;height:100vh;overflow-y:auto;overflow-x:hidden;z-index:30;width:247px}
+.persistentSidebar .nav{text-decoration:none}
+.persistentSidebar .nav.selected{background:#d5261b;color:white}
+.persistentContent{flex:1;min-width:0}
+.persistentMobileToggle{display:none}
+.persistentBackdrop{display:none}
+@media(max-width:850px){
+ .persistentSidebar{position:fixed;left:0;top:0;bottom:0;height:100vh;transform:translateX(-105%);transition:transform .2s ease;z-index:80}
+ .persistentSidebar.open{transform:translateX(0)}
+ .persistentContent{width:100%;padding-top:48px}
+ .persistentMobileToggle{display:flex;position:fixed;top:8px;left:10px;z-index:70;gap:7px;align-items:center;padding:8px 12px;background:#18243e;color:white;border:0;border-radius:8px}
+ .persistentBackdrop{display:block;position:fixed;inset:0;z-index:75;background:#0007;border:0}
+}
