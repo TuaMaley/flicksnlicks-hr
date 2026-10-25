@@ -331,3 +331,35 @@ model AppraisalReview {
   @@index([employeeId,period])
   @@index([status])
 }
+
+model AppraisalCycle {
+  id String @id @default(cuid())
+  name String
+  period String
+  startDate DateTime
+  selfDeadline DateTime
+  managerDeadline DateTime
+  endDate DateTime
+  status String @default("OPEN")
+  createdBy String
+  createdAt DateTime @default(now())
+  assignments AppraisalCycleAssignment[]
+  @@index([status, endDate])
+}
+
+model AppraisalCycleAssignment {
+  id String @id @default(cuid())
+  cycleId String
+  cycle AppraisalCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  employeeId String
+  templateId String
+  reviewId String?
+  status String @default("PENDING")
+  selfCompletedAt DateTime?
+  managerCompletedAt DateTime?
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  @@unique([cycleId, employeeId])
+  @@index([employeeId])
+  @@index([cycleId, status])
+}
