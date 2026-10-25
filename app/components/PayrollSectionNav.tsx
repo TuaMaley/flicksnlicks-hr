@@ -9,7 +9,7 @@ const sections = [
   {label:'Attendance & Overtime',href:'/payroll/attendance',enabled:true},
   {label:'Process Payroll',href:'/payroll/process',enabled:true},
   {label:'Approvals',href:'/payroll/approvals',enabled:true},
-  {label:'Payslips',href:'/payroll/payslips',enabled:false},
+  {label:'Payslips',href:'/payroll/payslips',enabled:true},
   {label:'Payments',href:'/payroll/payments',enabled:false},
   {label:'Reports',href:'/payroll/reports',enabled:false},
 ];
