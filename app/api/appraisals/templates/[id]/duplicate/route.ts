@@ -6,7 +6,7 @@ import {fail,ok} from '../../../../../../lib/http';
 export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){
  const a=await access();
  if(!a.user)return fail('Unauthorized',401);
- if(!a.can('appraisals.create'))return fail('Forbidden',403);
+ if(!a.can('appraisals.create')||!a.user.roles.some(r=>r.role.active&&['Administrator','HR Manager'].includes(r.role.name)))return fail('HR Manager or Administrator required',403);
  const {id}=await params;
  const body=await req.json().catch(()=>null);
  if(!body||typeof body.name!=='string')return fail('New template name is required',400);

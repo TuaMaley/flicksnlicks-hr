@@ -1,19 +1,17 @@
-# Flicks & Licks HRMS — Three-Level Appraisal Approval (Option B)
+# Flicks & Licks HRMS — Appraisal Template Visibility Restriction
 
-Files to replace:
+Only users with an ACTIVE `Administrator` or `HR Manager` role can see the Appraisal templates section (including the 15 template cards), create/duplicate/edit templates, and see the Start a new appraisal form.
+
+Other roles (Branch Manager, Supervisor, Employee, etc.) continue to see Performance reviews and can use the appraisal workflow according to their permissions. Template data is still fetched internally because the review modal needs KPI definitions; the template gallery and management controls are hidden.
+
+API security: template POST, PATCH, and duplicate POST now require both the corresponding permission AND an active Administrator/HR Manager role. Template GET remains available to appraisal viewers so KPI review continues to function. Administrator-only template retirement remains unchanged.
+
+Replace these four files at the same paths in your Next.js project:
 - app/appraisals/page.tsx
-- app/api/appraisals/reviews/[id]/route.ts
+- app/api/appraisals/templates/route.ts
+- app/api/appraisals/templates/[id]/route.ts
+- app/api/appraisals/templates/[id]/duplicate/route.ts
 
-Schema change: edit the existing AppraisalStatus enum using prisma/PHASE6-SCHEMA-CHANGE.txt. Do NOT replace your complete schema.
+No Prisma schema changes or migrations. Run `npx tsc --noEmit` and `npm run build`, then deploy.
 
-Workflow: DRAFT -> SUBMITTED -> MANAGER_REVIEWED -> PENDING_HR_APPROVAL -> FINALIZED.
-- Employee self-submits.
-- Authorized branch manager saves ratings, then approves and forwards to HR.
-- HR Manager/Administrator finalizes; cannot be the same account that approved as manager.
-- Manager rejection returns to REJECTED with a required reason. HR rejection returns to MANAGER_REVIEWED with a required reason. Reasons and transitions are recorded in AuditLog.detail.
-- Branch scoping is enforced using existing employeeWhere access scope.
-- Old APPROVED values remain in the enum for compatibility; previously approved appraisals are not automatically converted.
-
-Install: back up project/database; edit schema; run `npx prisma validate`, `npx prisma generate`, `npx tsc --noEmit`, `npm run build`; then apply `npx prisma db push` against the intended database after reviewing warnings. Commit and deploy.
-
-NOTE: This patch does not automatically migrate previously APPROVED records or introduce new approver-specific DB columns. AuditLog records HR finalization and rejection. Test with employee, manager and separate HR accounts.
+NOTE: The UI file is based on Phase 6. Apply Phase 6 first if it is not already installed. This patch does not restrict visibility of template names shown as labels within actual performance reviews.
