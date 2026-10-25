@@ -1,25 +1,15 @@
-# Flicks & Licks HRMS — Foundation
+# Phase 4 — build correction
 
-A Next.js 15 + Prisma + PostgreSQL starter using the supplied Flicks & Licks logo and red/black/white palette.
+This package repairs the errors in the provided local npm run build log.
 
-## Local setup
-1. Install Node.js 20+ and PostgreSQL (or use a Railway PostgreSQL database).
-2. `npm install`
-3. Copy `.env.example` to `.env` and set `DATABASE_URL`.
-4. `npx prisma migrate dev --name init`
-5. `npm run dev` and visit http://localhost:3000.
+Copy the `app/` folder contents into your existing project, retaining all other files.
 
-## GitHub → Railway
-1. Push this project folder to a private GitHub repository. Never commit `.env`.
-2. In Railway, create a project and add a PostgreSQL service.
-3. Add a service from your GitHub repository.
-4. Set the web service `DATABASE_URL` to the PostgreSQL service's internal `DATABASE_URL` reference in Railway's Variables UI.
-5. Set the build command to `npm run build` and start command to `npm run start`.
-6. Apply database migrations via `npx prisma migrate deploy` as a controlled release step (e.g. Railway pre-deploy command). Create the first migration locally and commit the generated `prisma/migrations` directory before deployment.
-7. Generate a Railway public domain and verify `/api/health`.
+Files:
+- `app/appraisals/page.tsx`: fixes missing JSX `}` after the Create New Template button; retains create/edit/duplicate UI.
+- `app/api/appraisals/templates/[id]/route.ts`: fixes three incorrect relative imports.
+- `app/api/appraisals/templates/route.ts`: retains the Create New Template API from the prior update.
+- `app/api/appraisals/templates/[id]/duplicate/route.ts`: includes the duplication endpoint from the previous update.
 
-## Current scope and security
-This is a branded navigation/UI and database schema **foundation**, not a production-ready HR system. It intentionally displays no fabricated employee records. Employee API endpoints return 401 until secure sign-in, sessions, and role-based authorization are implemented. Do **not** enter actual employee, payroll, or disciplinary data until authentication, permissions, validation, audit logging, backups and data protection are completed. Do not make sensitive HR data public.
+Run `npm run build` locally. Commit only after it succeeds. This patch requires no Prisma migration.
 
-## Planned 11 modules
-Employee Management, Payroll & Benefits, Leave Management, Training & Development, Recruitment, Performance Appraisal, Onboarding & Exit, Disciplinary Management, Rewards & Recognition, Employee Self-Service, Access & Audit Controls.
+Note: full Next.js production build has not been run here; verify locally before deploying.
