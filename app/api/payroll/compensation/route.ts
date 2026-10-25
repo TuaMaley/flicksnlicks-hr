@@ -22,7 +22,7 @@ export async function POST(req:NextRequest){
   const basic=Number(d.basicSalary);
   if(!Number.isFinite(basic)||basic<0||basic>1e9)throw Error('Invalid basic salary');
   const date=new Date(`${d.effectiveDate}T00:00:00.000Z`);
-  if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(d.effectiveDate)||Number.isNaN(date.getTime()))throw Error('Invalid effective date');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d.effectiveDate)||Number.isNaN(date.getTime()))throw Error('Invalid effective date');
   const row=await db.employeeCompensation.create({data:{employeeId:employee.id,effectiveDate:date,basicSalary:basic.toFixed(2),allowances:moneyParts(d.allowances||[]),deductions:moneyParts(d.deductions||[]),benefits:moneyParts(d.benefits||[]),reason:String(d.reason||'').slice(0,1000),createdById:a.user.id}});
   return NextResponse.json({id:row.id},{status:201});
  }catch(e){return NextResponse.json({error:e instanceof Error?e.message:'Invalid request'},{status:400})}
