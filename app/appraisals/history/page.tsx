@@ -1,3 +1,4 @@
+import '../performance-ui.css';
 'use client';
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
@@ -11,7 +12,7 @@ export default function EmployeePerformanceHistory(){
  const [employeeId,setEmployeeId]=useState('');const [data,setData]=useState<Payload|null>(null);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [open,setOpen]=useState<string|null>(null);
  useEffect(()=>{let cancelled=false;setLoading(true);setError('');fetch('/api/appraisals/history'+(employeeId?'?employeeId='+encodeURIComponent(employeeId):''),{cache:'no-store'}).then(async r=>{const body=await r.json();if(!r.ok)throw Error(body.error||`HTTP ${r.status}`);return body as Payload}).then(d=>{if(!cancelled)setData(d)}).catch(e=>{if(!cancelled)setError(e instanceof Error?e.message:'Unable to load history')}).finally(()=>{if(!cancelled)setLoading(false)});return()=>{cancelled=true}},[employeeId]);
  const panel:React.CSSProperties={background:'#fff',border:'1px solid #e4e7ec',borderRadius:12,padding:20};
- return <main className="workspace"><div className="workspaceTop"><Link className="backLink" href="/appraisals">← Performance Appraisal</Link></div><div className="workspaceHeading"><div><h1>Employee Performance History</h1><p>Historical appraisals and performance trends from PostgreSQL</p></div></div>
+ return <main className="workspace pt-subpage"><div className="workspaceTop"><Link className="backLink" href="/appraisals">← Performance Appraisal</Link></div><div className="workspaceHeading"><div><h1>Employee Performance History</h1><p>Historical appraisals and performance trends from PostgreSQL</p></div></div>
  {error&&<div className="formError" role="alert">{error}</div>}{loading&&<p>Loading appraisal history…</p>}
  {data&&!loading&&<>
  {data.employees.length>0&&<div style={{...panel,margin:'16px 0'}}><label htmlFor="history-employee"><strong>Select employee</strong></label><select id="history-employee" value={employeeId||data.employee?.id||''} onChange={e=>{setEmployeeId(e.target.value);setOpen(null)}} style={{display:'block',marginTop:8,padding:10,minWidth:270,maxWidth:'100%'}}>{data.employee&&!data.employees.some(e=>e.id===data.employee?.id)&&<option value={data.employee.id}>{data.employee.firstName} {data.employee.lastName}</option>}{data.employees.map(e=><option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.employeeNo})</option>)}</select>{data.employeeListTruncated&&<p className="helper">Employee selector shows the first 1,000 authorized employees.</p>}</div>}
