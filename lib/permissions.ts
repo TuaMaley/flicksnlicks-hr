@@ -4,7 +4,7 @@ export const PERMISSIONS=[
 'leave.view','leave.create','leave.edit','leave.approve',
 'training.view','training.create','training.edit','training.approve',
 'recruitment.view','recruitment.create','recruitment.edit','recruitment.approve',
-'appraisals.view','appraisals.create','appraisals.edit','appraisals.approve',
+'appraisals.view','appraisals.analytics.view','appraisals.create','appraisals.edit','appraisals.approve',
 'onboarding.view','onboarding.create','onboarding.edit','onboarding.approve',
 'disciplinary.view','disciplinary.create','disciplinary.edit','disciplinary.approve',
 'rewards.view','rewards.create','rewards.edit','rewards.approve',
