@@ -1,15 +1,17 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {compensationAccess,moneyParts,scopedEmployee,db} from './helpers';
 export async function GET(req:NextRequest){
+ try{
  const {a,canView}=await compensationAccess();
  if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});
  if(!canView)return NextResponse.json({error:'Compensation permission required'},{status:403});
  const employees=await db.employee.findMany({where:scopedEmployee(a),select:{id:true,employeeNo:true,firstName:true,lastName:true,department:true,position:true,branch:{select:{name:true}}},orderBy:{firstName:'asc'},take:1000});
  const packages=await db.employeeCompensation.findMany({where:{employee:scopedEmployee(a)},orderBy:[{effectiveDate:'desc'},{createdAt:'desc'}],take:1000});
  return NextResponse.json({employees,packages:packages.map(p=>({...p,basicSalary:Number(p.basicSalary)}))},{headers:{'Cache-Control':'private, no-store'}});
+ }catch(err){console.error('[compensation GET]',err);return NextResponse.json({error:'Unable to load compensation data. Confirm the EmployeeCompensation table exists and Prisma Client was regenerated; see Railway logs for details.'},{status:500})}
 }
 export async function POST(req:NextRequest){
- const {a,canEdit}=await compensationAccess();
+ let a:Awaited<ReturnType<typeof compensationAccess>>['a'];let canEdit:boolean;try{({a,canEdit}=await compensationAccess())}catch(err){console.error('[compensation POST auth]',err);return NextResponse.json({error:'Unable to initialize compensation access'},{status:500})}
  if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});
  if(!canEdit)return NextResponse.json({error:'HR edit permission required'},{status:403});
  try{
