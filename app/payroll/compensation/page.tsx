@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
 import {Search,Plus,Wallet,Users,Clock3,ShieldCheck,CheckCircle2} from 'lucide-react';
-import PayrollSectionNav from '../../../components/PayrollSectionNav';
+import PayrollSectionNav from '../../components/PayrollSectionNav';
 import './compensation.css';
 type Employee={id:string;employeeNo:string;firstName:string;lastName:string;department:string;position:string;branch:{name:string}};
 type Item={label:string;amount:number};

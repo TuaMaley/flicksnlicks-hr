@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 import {Wallet,Users,Clock3,TrendingUp,Search,FileText,ShieldCheck,CalendarDays,ArrowUpRight} from 'lucide-react';
 import './payroll.css';
-import PayrollSectionNav from '../../components/PayrollSectionNav';
+import PayrollSectionNav from '../components/PayrollSectionNav';
 type Run={id:string;period:string;status:string;gross:number;net:number};
 type Data={activeEmployees:number;branches:{name:string;count:number}[];latest:{period:string;status:string;gross:number;net:number}|null;runs:Run[];pending:number|null;payrollTotalsRestricted:boolean};
 const money=(v:number)=>new Intl.NumberFormat('en-GH',{style:'currency',currency:'GHS',maximumFractionDigits:2}).format(v);
