@@ -6,7 +6,7 @@ export async function GET(){
  const a=await access();if(!a.user)return fail('Unauthorized',401);if(!a.can('appraisals.view'))return fail('Forbidden',403);
  const allowed=await db.employee.findMany({where:employeeWhere(a),select:{id:true}});
  const ids=allowed.map(x=>x.id);
- const cycles=await db.appraisalCycle.findMany({where:{assignments:{some:{employeeId:{in:ids}}}},include:{assignments:{where:{employeeId:{in:ids}},select:{id:true,employeeId:true,templateId:true,reviewId:true,status:true,selfCompletedAt:true,managerCompletedAt:true,completedAt:true}}},orderBy:{createdAt:'desc'},take:100});
+ const cycles=await db.appraisalCycle.findMany({where:{OR:[{createdBy:a.user.id},{assignments:{some:{employeeId:{in:ids}}}}]},include:{assignments:{where:{employeeId:{in:ids}},select:{id:true,employeeId:true,templateId:true,reviewId:true,status:true,selfCompletedAt:true,managerCompletedAt:true,completedAt:true}}},orderBy:{createdAt:'desc'},take:100});
  const reviewIds=cycles.flatMap(c=>c.assignments.map(x=>x.reviewId).filter((x):x is string=>Boolean(x)));
  const reviews=await db.appraisalReview.findMany({where:{id:{in:reviewIds}},select:{id:true,status:true,selfScores:true,managerScores:true,approvedAt:true}});
  const byId=new Map(reviews.map(r=>[r.id,r]));
