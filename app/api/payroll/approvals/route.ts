@@ -3,7 +3,7 @@ import {access} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
 export const dynamic='force-dynamic';
 const roles=(a:Awaited<ReturnType<typeof access>>)=>a.user?.roles.filter(x=>x.role.active).map(x=>x.role.name)||[];
-const allowed=(a:Awaited<ReturnType<typeof access>>)=>roles(a).some(r=>['Administrator','HR Manager','Finance Officer','Finance Manager'].includes(r));
+const allowed=(a:Awaited<ReturnType<typeof access>>)=>roles(a).some(r=>['Administrator','HR Manager','Finance','Finance Officer','Finance Manager'].includes(r));
 export async function GET(req:NextRequest){
  try{
   const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});

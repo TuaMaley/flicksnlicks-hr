@@ -12,7 +12,7 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
   if(action==='reject'&&(reason.length<10||reason.length>1000))return NextResponse.json({error:'Rejection reason must be 10–1000 characters'},{status:400});
   const names=a.user.roles.filter(r=>r.role.active).map(r=>r.role.name);
   const isHR=names.some(n=>['HR Manager','Administrator'].includes(n));
-  const isFinance=names.some(n=>['Finance Officer','Finance Manager','Administrator'].includes(n));
+  const isFinance=names.some(n=>['Finance','Finance Officer','Finance Manager','Administrator'].includes(n));
   const result=await db.$transaction(async tx=>{
    const batch=await tx.payrollCalculationBatch.findUnique({where:{id},include:{approvals:{orderBy:{createdAt:'asc'}}}});
    if(!batch)return {error:'Payroll batch not found',status:404};
