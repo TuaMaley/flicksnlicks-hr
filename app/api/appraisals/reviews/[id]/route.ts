@@ -25,7 +25,7 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
    if(weightedScore(criteria,d.scores||{})===null)return fail('Score each KPI from 1 to 5',400);
    data={selfScores:d.scores,selfComment:reason.slice(0,2000),status:'SUBMITTED'};
  } else if(d.action==='manager') {
-   if(self||!isManager||!['SUBMITTED','MANAGER_REVIEWED'].includes(row.status))return fail('Not allowed',403);
+   if(self||!isManager||!(['SUBMITTED','MANAGER_REVIEWED'].includes(row.status)||(row.status==='REJECTED'&&row.managerScores!==null)))return fail('Not allowed',403);
    const score=weightedScore(criteria,d.scores||{});
    if(score===null)return fail('Score each KPI from 1 to 5',400);
    data={managerScores:d.scores,managerComment:reason.slice(0,2000),score,reviewerId:a.user.id,status:'MANAGER_REVIEWED'};
@@ -40,7 +40,7 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
    if(reason.length<10)return fail('Provide a rejection reason of at least 10 characters',400);
    if(row.status==='PENDING_HR_APPROVAL') {
      if(!isHR||self||row.approvedBy===a.user.id)return fail('Not allowed',403);
-     data={status:'MANAGER_REVIEWED',approvedBy:null,approvedAt:null};
+     data={status:'REJECTED',approvedBy:null,approvedAt:null};
    } else if(['SUBMITTED','MANAGER_REVIEWED'].includes(row.status)) {
      if(self||!mayApproveManager)return fail('Not allowed',403);
      data={status:'REJECTED',managerScores:null,managerComment:null,score:null,reviewerId:null,approvedBy:null,approvedAt:null};

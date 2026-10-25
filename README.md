@@ -1,17 +1,17 @@
-# Flicks & Licks HRMS — Appraisal Template Visibility Restriction
+# HR rejection reason / manager return patch
 
-Only users with an ACTIVE `Administrator` or `HR Manager` role can see the Appraisal templates section (including the 15 template cards), create/duplicate/edit templates, and see the Start a new appraisal form.
+Replace these three files in your existing Next.js project:
+- `app/api/appraisals/reviews/[id]/route.ts`
+- `app/api/appraisals/reviews/route.ts`
+- `app/appraisals/page.tsx`
 
-Other roles (Branch Manager, Supervisor, Employee, etc.) continue to see Performance reviews and can use the appraisal workflow according to their permissions. Template data is still fetched internally because the review modal needs KPI definitions; the template gallery and management controls are hidden.
+Changes:
+- HR returning an appraisal sets status to `REJECTED` rather than `MANAGER_REVIEWED`.
+- Manager can re-evaluate a returned appraisal (REJECTED with existing manager scores), save it as MANAGER_REVIEWED, then forward it to HR again.
+- Manager sees the latest rejection reason prominently when opening a rejected appraisal. The reason is read from the existing `AuditLog.detail.reason` stored by the rejection action.
+- Employee-rejected appraisals (REJECTED with no manager scores) still go back to the employee for resubmission.
+- No schema migration required if your Phase 6 statuses and AuditLog are already deployed.
 
-API security: template POST, PATCH, and duplicate POST now require both the corresponding permission AND an active Administrator/HR Manager role. Template GET remains available to appraisal viewers so KPI review continues to function. Administrator-only template retirement remains unchanged.
+Test: HR returns a PENDING_HR_APPROVAL review with a 10+ character reason; manager sees Rejected status and reason; manager saves revised evaluation and forwards it to HR.
 
-Replace these four files at the same paths in your Next.js project:
-- app/appraisals/page.tsx
-- app/api/appraisals/templates/route.ts
-- app/api/appraisals/templates/[id]/route.ts
-- app/api/appraisals/templates/[id]/duplicate/route.ts
-
-No Prisma schema changes or migrations. Run `npx tsc --noEmit` and `npm run build`, then deploy.
-
-NOTE: The UI file is based on Phase 6. Apply Phase 6 first if it is not already installed. This patch does not restrict visibility of template names shown as labels within actual performance reviews.
+Run `npx prisma generate`, `npx tsc --noEmit`, and `npm run build` before deployment. This patch has not been verified against a complete install of your live project.
