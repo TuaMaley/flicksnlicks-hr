@@ -103,6 +103,7 @@ model Employee {
   updatedAt                   DateTime                     @updatedAt
   performanceImprovementPlans PerformanceImprovementPlan[]
   compensationPackages EmployeeCompensation[]
+payrollAttendance PayrollAttendance[]
 
   @@index([branchId])
   @@index([status])
@@ -437,4 +438,33 @@ model EmployeeCompensation {
   updatedAt DateTime @updatedAt
   @@index([employeeId,effectiveDate])
   @@index([status])
+}
+enum PayrollAttendanceStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+model PayrollAttendance {
+  id              String                  @id @default(cuid())
+  employeeId      String
+  employee        Employee                @relation(fields: [employeeId], references: [id])
+  workDate        DateTime                @db.Date
+  clockIn         String?
+  clockOut        String?
+  breakMinutes    Int                     @default(0)
+  regularMinutes  Int                     @default(0)
+  overtimeMinutes Int                     @default(0)
+  notes           String?
+  status          PayrollAttendanceStatus @default(DRAFT)
+  submittedById   String
+  reviewedById    String?
+  reviewedAt      DateTime?
+  reviewNote      String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@unique([employeeId, workDate])
+  @@index([workDate, status])
 }
