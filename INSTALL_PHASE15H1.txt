@@ -1,0 +1,23 @@
+PHASE 15H.1 — Advanced Payroll Payments (incremental patch)
+
+Includes: branch summary, payment completion indicator, batch net payable totals, verification queue counts, batch filter, recipient/payment destination capture, and existing payment audit history, payment retry and CSV exports.
+
+IMPORTANT: This is an incremental enhancement, NOT a complete bank/MoMo integration or automatic reconciliation system. Confirmation remains manual with independently checked transaction evidence. Do not enter actual banking details into a test environment. Protect PostgreSQL backups and restrict Finance access to payment destinations.
+
+INSTALL
+1. Back up PostgreSQL and project.
+2. Merge app/api/payroll/payments/route.ts, app/payroll/payments/page.tsx and payments.css into existing project.
+3. Add ONLY these fields to existing model PayrollPayment in prisma/schema.prisma:
+     recipientName String?
+     paymentDestination String?
+   Do not replace your entire Prisma schema with the supplied reference schema.
+4. npx prisma validate
+5. Inspect schema diff and confirm correct DATABASE_URL. Back up database before npx prisma db push. Stop if destructive changes are proposed.
+6. npx prisma generate
+7. npx tsc --noEmit
+8. npm run build
+9. Redeploy and test with dummy payment records and separate Finance users.
+
+Security: destination is masked in GET responses, but stored as plaintext in the database. Do NOT use real bank or MoMo identifiers until encryption-at-rest, access audits and a data retention policy are implemented. CSV intentionally omits destination details.
+
+Known gaps for follow-up: actual bank/MoMo integration, bank statement import and automated matching, reversal workflow, separate recipient verification/dual authorization, encrypted destination storage, dedicated exceptions queue, full downloadable bank-specific bulk format. This patch does not claim to implement these.

@@ -553,6 +553,8 @@ model PayrollPayment {
   netAmount Decimal @db.Decimal(16,2)
   currency String @default("GHS")
   method String @default("BANK")
+  recipientName String?
+  paymentDestination String?
   status String @default("PENDING")
   preparedById String
   preparedAt DateTime @default(now())
