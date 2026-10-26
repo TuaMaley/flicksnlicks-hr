@@ -10,7 +10,7 @@ const sections = [
   {label:'Process Payroll',href:'/payroll/process',enabled:true},
   {label:'Approvals',href:'/payroll/approvals',enabled:true},
   {label:'Payslips',href:'/payroll/payslips',enabled:true},
-  {label:'Payments',href:'/payroll/payments',enabled:false},
+  {label:'Payments',href:'/payroll/payments',enabled:true},
   {label:'Reports',href:'/payroll/reports',enabled:false},
 ];
 export default function PayrollSectionNav(){

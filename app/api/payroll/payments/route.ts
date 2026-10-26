@@ -1,0 +1,39 @@
+import {NextRequest,NextResponse} from 'next/server';
+import {access} from '../../../../lib/auth';
+import {db} from '../../../../lib/db';
+export const dynamic='force-dynamic';
+type A=Awaited<ReturnType<typeof access>>;
+function finance(a:A){return !!a.user?.roles.some(r=>r.role.active&&['Administrator','Finance','Finance Officer','Finance Manager'].includes(r.role.name))}
+function hr(a:A){return !!a.user?.roles.some(r=>r.role.active&&r.role.name==='HR Manager')}
+function money(x:unknown):x is number{return typeof x==='number'&&Number.isFinite(x)&&x>=0}
+const validPeriod=(p:string)=>/^\d{4}-(0[1-9]|1[0-2])$/.test(p);
+export async function GET(req:NextRequest){
+ try{const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!finance(a)&&!hr(a))return NextResponse.json({error:'Payroll payments access restricted'},{status:403});
+ const period=req.nextUrl.searchParams.get('period')||new Date().toISOString().slice(0,7);if(!validPeriod(period))return NextResponse.json({error:'Invalid period'},{status:400});
+ const [payments,batches]=await Promise.all([db.payrollPayment.findMany({where:{period},orderBy:{preparedAt:'desc'},include:{events:{orderBy:{createdAt:'asc'}}}}),db.payrollCalculationBatch.findMany({where:{period,status:'APPROVED'},select:{id:true,period:true,employeeCount:true,lineItems:true,approvals:{select:{action:true}}}})]);
+ const eligible=batches.filter(b=>b.approvals.some(e=>e.action==='finance_approve')).map(b=>({id:b.id,period:b.period,employeeCount:b.employeeCount,prepared:payments.some(p=>p.batchId===b.id),eligibleCount:Array.isArray(b.lineItems)?b.lineItems.filter((x:any)=>x&&typeof x==='object'&&!Array.isArray(x)&&typeof x.employeeId==='string'&&money(x.net)&&money(x.incomeTax)&&money(x.employeeSSNIT)&&typeof x.policyId==='string').length:0}));
+ return NextResponse.json({period,canManage:finance(a),payments:payments.map(p=>({...p,netAmount:Number(p.netAmount)})),batches:eligible},{headers:{'Cache-Control':'private, no-store'}});
+ }catch(e){console.error('[payments GET]',e);return NextResponse.json({error:'Could not load payroll payments'},{status:500})}}
+export async function POST(req:NextRequest){
+ try{const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!finance(a))return NextResponse.json({error:'Finance permission required'},{status:403});
+ const body=await req.json();const batchId=String(body.batchId||'');if(!batchId)return NextResponse.json({error:'Batch required'},{status:400});
+ const result=await db.$transaction(async tx=>{const b=await tx.payrollCalculationBatch.findUnique({where:{id:batchId},include:{approvals:true}});if(!b||b.status!=='APPROVED'||!b.approvals.some(e=>e.action==='finance_approve'))return {error:'Finance-approved payroll batch required',status:409};
+ const items=Array.isArray(b.lineItems)?b.lineItems:[];if(items.length===0)return {error:'Payroll batch has no employees',status:409};
+ const rows:{employeeId:string;name:string;employeeNo:string;branch:string;net:number}[]=[];const ids=new Set<string>();for(const raw of items){if(!raw||typeof raw!=='object'||Array.isArray(raw))return {error:'Invalid payroll snapshot',status:409};const x=raw as Record<string,unknown>;if(typeof x.employeeId!=='string'||ids.has(x.employeeId)||!money(x.net)||!money(x.incomeTax)||!money(x.employeeSSNIT)||typeof x.policyId!=='string')return {error:'Payroll contains incomplete or duplicate statutory calculations; payment preparation blocked',status:409};ids.add(x.employeeId);rows.push({employeeId:x.employeeId,name:String(x.name||'Employee'),employeeNo:String(x.employeeNo||''),branch:String(x.branch||''),net:x.net})}
+ const existing=await tx.payrollPayment.count({where:{batchId}});if(existing)return {error:'This batch already has a payment schedule. Open the existing register instead.',status:409};const duplicates=await tx.payrollPayment.count({where:{period:b.period,employeeId:{in:rows.map(r=>r.employeeId)},status:{not:'FAILED'}}});if(duplicates)return {error:'An employee already has a payment obligation for this month in another batch. Resolve the existing obligation before preparing a new schedule.',status:409};
+ for(const x of rows){const p=await tx.payrollPayment.create({data:{batchId,period:b.period,employeeId:x.employeeId,employeeName:x.name,employeeNo:x.employeeNo,branch:x.branch,netAmount:x.net,currency:b.currency,preparedById:a.user!.id}});await tx.payrollPaymentEvent.create({data:{paymentId:p.id,actorId:a.user!.id,action:'PREPARE',toStatus:'PENDING'}})}
+ return {created:rows.length,status:201}});
+ if('error'in result)return NextResponse.json({error:result.error},{status:result.status});return NextResponse.json(result,{status:201});
+ }catch(e){console.error('[payments POST]',e);return NextResponse.json({error:'Unable to prepare payments'},{status:500})}}
+export async function PATCH(req:NextRequest){
+ try{const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!finance(a))return NextResponse.json({error:'Finance permission required'},{status:403});const d=await req.json();const id=String(d.id||''),action=String(d.action||'');if(!['VERIFY','CONFIRM_PAID','MARK_FAILED','RETRY'].includes(action))return NextResponse.json({error:'Invalid action'},{status:400});
+ const method=String(d.method||'BANK');if(!['BANK','MOMO','CASH'].includes(method))return NextResponse.json({error:'Invalid payment method'},{status:400});const reference=String(d.reference||'').trim(),notes=String(d.notes||'').trim().slice(0,500);
+ if(action==='CONFIRM_PAID'&&(reference.length<5||reference.length>120))return NextResponse.json({error:'Payment confirmation requires an external transaction reference (5–120 characters)'},{status:400});
+ if(action==='MARK_FAILED'&&notes.length<10)return NextResponse.json({error:'Provide a reason (at least 10 characters)'},{status:400});
+ const result=await db.$transaction(async tx=>{const p=await tx.payrollPayment.findUnique({where:{id}});if(!p)return {error:'Payment not found',status:404};const allowed:Record<string,string>={VERIFY:'PENDING',CONFIRM_PAID:'VERIFIED',MARK_FAILED:'VERIFIED',RETRY:'FAILED'};if(p.status!==allowed[action])return {error:'Invalid payment stage; refresh the page',status:409};
+ if(action==='VERIFY'&&p.preparedById===a.user!.id)return {error:'Payment preparer cannot verify their own schedule',status:403};
+ if(action==='CONFIRM_PAID'&&(p.preparedById===a.user!.id||p.verifiedById===a.user!.id))return {error:'Payment confirmation requires a different Finance user from preparer and verifier',status:403};
+ if(action==='CONFIRM_PAID'&&await tx.payrollPayment.count({where:{reference,status:'PAID'}}))return {error:'This payment reference is already used for a paid salary',status:409};
+ const next=action==='VERIFY'?'VERIFIED':action==='CONFIRM_PAID'?'PAID':action==='MARK_FAILED'?'FAILED':'PENDING';const changed=await tx.payrollPayment.updateMany({where:{id,status:p.status},data:{status:next,...(action==='VERIFY'?{verifiedById:a.user!.id,verifiedAt:new Date(),method}:{}),...(action==='CONFIRM_PAID'?{confirmedById:a.user!.id,confirmedAt:new Date(),reference,notes}:{}),...(action==='MARK_FAILED'?{notes}:{}),...(action==='RETRY'?{verifiedById:null,verifiedAt:null,confirmedById:null,confirmedAt:null,reference:null,notes:null,preparedById:a.user!.id}: {})}});if(changed.count!==1)return {error:'Payment changed during review',status:409};await tx.payrollPaymentEvent.create({data:{paymentId:id,actorId:a.user!.id,action,fromStatus:p.status,toStatus:next,detail:{method,reference:action==='CONFIRM_PAID'?reference:undefined,notes:notes||undefined}}});return {status:200,success:true}});
+ if('error'in result)return NextResponse.json({error:result.error},{status:result.status});return NextResponse.json(result);
+ }catch(e){console.error('[payments PATCH]',e);return NextResponse.json({error:'Unable to update payment'},{status:500})}}
