@@ -1,35 +1,18 @@
-# Phase 15F — Payroll Approvals (preliminary calculation workflow)
+# Phase 16.1 — Synthetic workforce starter (NOT production-ready)
 
-Built against Phase 15E schema, with `PayrollCalculationBatch` and `PayrollApprovalEvent`.
+This patch is **not a complete production deployment**. It contains a synthetic data generator and a guard in the Payroll Process API excluding synthetic employee IDs. It does **not** implement the promised Administrator UI, a complete isolation review across all exports, an ownership registry, or a tested reversible deletion across every relation. Therefore **DO NOT RUN `seed` against production yet**, even though the script exposes explicit confirmation variables. Those variables are defense-in-depth, not proof of safety.
 
-## Files
-- `prisma/schema.prisma`: MERGE the new `approvals PayrollApprovalEvent[]` field into `PayrollCalculationBatch`, and add the `PayrollApprovalEvent` model. **Do not overwrite a newer live schema**.
-- `app/components/PayrollSectionNav.tsx`: REPLACE; enables Approvals.
-- `app/payroll/approvals/page.tsx` and `approvals.css`: NEW.
-- `app/api/payroll/approvals/route.ts` and `[id]/route.ts`: NEW.
+## Included
+- `scripts/demo-data.cjs`: 30–50 synthetic employees, salary drafts, attendance drafts, leave, appraisals, PIPs, training, openings, six months of DRAFT payroll snapshots. Default 40. No approved payroll, real payment records, or payslips.
+- `app/api/payroll/process/route.ts`: excludes employee numbers starting with `FNL-SYNTH-` from payroll calculation. Keep this guard in future updates.
 
-## Deployment
-From project root, after merging schema and verifying DATABASE_URL targets the intended database:
-```
-npx prisma validate
-npx prisma db push
-npx prisma generate
-npx tsc --noEmit
-npm run build
-```
-Take a backup and stop if Prisma warns of destructive changes. Commit all files to GitHub and verify Railway deploys the matching schema. Do not expose DATABASE_URL.
+## Before production use
+1. Test seeding, dashboard and deletion on a restored copy of production. Inspect dependencies and record counts.
+2. Add isolation to **all** compensation approval, attendance approval, payroll approval, payments preparation, Excel import/export, payslip, regulatory exports and report paths. Never let synthetic records create payable obligations.
+3. Add durable seed-batch ownership tracking, administrative UI, audit logs, and transactional dependency-aware deletion with preview.
+4. Obtain approval from the database administrator and confirm the production backup is restorable.
 
-## Workflow
-- HR Manager / Administrator submits DRAFT -> HR_REVIEW.
-- Different HR Manager / Administrator approves HR_REVIEW -> FINANCE_REVIEW.
-- Finance Officer / Finance Manager / Administrator, different from the batch creator and HR reviewer, approves FINANCE_REVIEW -> APPROVED.
-- Active reviewer may reject with 10–1000 character reason; REJECTED is terminal. Prepare a new calculation draft for corrections.
-- Workflow changes use a conditional update inside a DB transaction; append-only events capture actor, reason and timestamps.
-- The `APPROVED` status **only approves preliminary calculation snapshots for workflow**. The calculations omit statutory taxes, pension, overtime pay and final payroll adjustments. They are NOT approved for disbursement.
+## Safe test instructions (isolated test DB only)
+In Windows CMD: `set CONFIRM_DEMO_DATABASE=YES` then `node scripts\demo-data.cjs seed 40`; `node scripts\demo-data.cjs preview`; `set CONFIRM_DELETE_DEMO=DELETE` then `node scripts\demo-data.cjs delete`.
 
-## Notes
-- Existing Phase 15E `PayrollCalculationBatch` is required; run Phase 15E schema synchronization first.
-- Roles must be named exactly `Finance Officer` or `Finance Manager` for Finance access (or `Administrator` with separation of duties).
-- Batch scope is company-wide, consistent with Phase 15E; do not grant Finance roles to branch-limited users until branch-level batch scoping is implemented.
-- Reviewer's ID rather than name is shown in the history; future work can add a directory lookup.
-- The source package has not been compiled against the user's current deployed repository.
+The dashboard may show synthetic workforce/leave/training figures without a visible label, as requested, but this must never be represented as actual workforce statistics in formal reporting. Synthetic identification remains internal.
