@@ -539,3 +539,44 @@ model GhanaPayrollAdjustment {
   @@unique([employeeId,period])
   @@index([period,status])
 }
+
+
+// Phase 15H: manual payroll payment register; does not transfer money.
+model PayrollPayment {
+  id String @id @default(cuid())
+  batchId String
+  employeeId String
+  period String
+  employeeName String
+  employeeNo String?
+  branch String?
+  netAmount Decimal @db.Decimal(16,2)
+  currency String @default("GHS")
+  method String @default("BANK")
+  status String @default("PENDING")
+  preparedById String
+  preparedAt DateTime @default(now())
+  verifiedById String?
+  verifiedAt DateTime?
+  confirmedById String?
+  confirmedAt DateTime?
+  reference String?
+  notes String?
+  updatedAt DateTime @updatedAt
+  events PayrollPaymentEvent[]
+  @@unique([batchId,employeeId])
+  @@index([period,status])
+}
+
+model PayrollPaymentEvent {
+  id String @id @default(cuid())
+  paymentId String
+  payment PayrollPayment @relation(fields:[paymentId],references:[id],onDelete:Restrict)
+  actorId String
+  action String
+  fromStatus String?
+  toStatus String
+  detail Json?
+  createdAt DateTime @default(now())
+  @@index([paymentId,createdAt])
+}
