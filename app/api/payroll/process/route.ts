@@ -11,7 +11,7 @@ async function calculate(period:string){
  const [y,m]=period.split('-').map(Number);const end=new Date(Date.UTC(y,m,0,23,59,59,999));const start=new Date(Date.UTC(y,m-1,1));
  const policy=await db.ghanaPayrollPolicy.findFirst({where:{effectiveFrom:{lte:end},approvedForUse:true},orderBy:{effectiveFrom:'desc'}});
  if(!policy)return {period,lines:[],excludedEmployees:0,employeeCount:0,gross:0,net:0,notice:'No active Ghana statutory payroll policy for this period. Configure and approve one before calculating.',ready:false,batches:[]};
- const employees=await db.employee.findMany({where:{status:'ACTIVE'},select:{id:true,employeeNo:true,firstName:true,lastName:true,position:true,department:true,branch:{select:{name:true}}},orderBy:{firstName:'asc'}});
+ const employees=await db.employee.findMany({where:{status:'ACTIVE',NOT:{employeeNo:{startsWith:'FNL-SYNTH-'}}},select:{id:true,employeeNo:true,firstName:true,lastName:true,position:true,department:true,branch:{select:{name:true}}},orderBy:{firstName:'asc'}});
  const ids=employees.map(e=>e.id);
  const [comp,attendance,adjustments]=await Promise.all([
   db.employeeCompensation.findMany({where:{employeeId:{in:ids},status:'APPROVED',effectiveDate:{lte:end}},orderBy:[{effectiveDate:'desc'},{createdAt:'desc'}]}),
