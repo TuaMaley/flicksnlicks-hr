@@ -11,7 +11,7 @@ const sections = [
   {label:'Approvals',href:'/payroll/approvals',enabled:true},
   {label:'Payslips',href:'/payroll/payslips',enabled:true},
   {label:'Payments',href:'/payroll/payments',enabled:true},
-  {label:'Reports',href:'/payroll/reports',enabled:false},
+  {label:'Reports',href:'/payroll/reports',enabled:true},
 ];
 export default function PayrollSectionNav(){
  const pathname=usePathname();
