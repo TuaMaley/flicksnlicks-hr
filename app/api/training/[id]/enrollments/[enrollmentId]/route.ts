@@ -8,7 +8,7 @@ export async function PATCH(req:NextRequest,{params}:Ctx){
  const {id,enrollmentId}=await params;let body:any;try{body=await req.json()}catch{return fail('Invalid JSON',400)}
  if(!['ENROLLED','WITHDRAWN','COMPLETED'].includes(body?.status))return fail('Invalid enrollment status',400);
  const existing=await db.trainingEnrollment.findFirst({where:{id:enrollmentId,trainingId:id,employee:employeeWhere(a)}});if(!existing)return fail('Enrollment not found or access denied',404);
- try{const updated=await db.$transaction(async tx=>{await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${id}))`;
+ try{const updated=await db.$transaction(async tx=>{await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${id}))`;
   if(existing.status==='WITHDRAWN'&&body.status==='ENROLLED'){
    const t=await tx.training.findUnique({where:{id}});if(!t||t.status==='CANCELLED')throw Error('Training unavailable');
    const count=await tx.trainingEnrollment.count({where:{trainingId:id,status:{not:'WITHDRAWN'}}});if(t.maxParticipants!=null&&count>=t.maxParticipants)throw Error('Training capacity reached');
