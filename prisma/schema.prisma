@@ -106,6 +106,7 @@ model Employee {
 payrollAttendance PayrollAttendance[]
   ghanaPayrollAdjustments GhanaPayrollAdjustment[]
   trainingEnrollments TrainingEnrollment[]
+  trainingAttendance TrainingAttendance[]
 
   @@index([branchId])
   @@index([status])
@@ -275,6 +276,7 @@ model Training {
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
   enrollments        TrainingEnrollment[]
+  attendanceSessions TrainingAttendanceSession[]
 
   @@index([status, startDate])
   @@index([category])
@@ -296,10 +298,48 @@ model TrainingEnrollment {
   updatedAt   DateTime                 @updatedAt
   training    Training                 @relation(fields: [trainingId], references: [id], onDelete: Restrict)
   employee    Employee                 @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  attendance TrainingAttendance[]
 
   @@unique([trainingId, employeeId])
   @@index([employeeId, status])
   @@index([trainingId, status])
+}
+
+enum TrainingAttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+model TrainingAttendanceSession {
+  id         String @id @default(cuid())
+  trainingId String
+  sessionDate DateTime @db.Date
+  title      String?
+  createdById String?
+  createdAt DateTime @default(now())
+  training Training @relation(fields: [trainingId], references: [id], onDelete: Restrict)
+  records TrainingAttendance[]
+  @@unique([trainingId, sessionDate])
+  @@index([trainingId])
+}
+
+model TrainingAttendance {
+  id String @id @default(cuid())
+  sessionId String
+  enrollmentId String
+  employeeId String
+  status TrainingAttendanceStatus
+  markedById String
+  markedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  session TrainingAttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  enrollment TrainingEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  @@unique([sessionId, enrollmentId])
+  @@index([employeeId, status])
+  @@index([sessionId, status])
 }
 
 model JobOpening {
