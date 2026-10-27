@@ -89,3 +89,36 @@ html, body { min-height:100%; height:auto !important; overflow-x:hidden; overflo
 @media (max-width:850px) {
   .shell.persistentShell > aside.sidebar.persistentSidebar .nexoraBrand { min-height:88px; }
 }
+
+/* Nexora signature N engraving: purely decorative, behind sidebar content. */
+.shell.persistentShell > aside.sidebar.persistentSidebar {
+  isolation:isolate;
+}
+.shell.persistentShell > aside.sidebar.persistentSidebar::before {
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:0;
+  width:100%;
+  height:390px;
+  background-image:url('/nexora-n-engraving.svg');
+  background-repeat:no-repeat;
+  background-position:center bottom;
+  background-size:100% 100%;
+  opacity:.72;
+  pointer-events:none;
+  z-index:0;
+}
+.shell.persistentShell > aside.sidebar.persistentSidebar > * {
+  position:relative;
+  z-index:1;
+}
+/* Keep the decorative N anchored to the bottom of the mobile drawer. */
+@media(max-width:850px) {
+  .shell.persistentShell > aside.sidebar.persistentSidebar::before {
+    position:fixed;
+    width:247px;
+    height:350px;
+    bottom:0;
+  }
+}
