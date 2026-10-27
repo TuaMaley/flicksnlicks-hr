@@ -252,11 +252,30 @@ model PayrollRun {
 }
 
 model Training {
-  id          String         @id @default(cuid())
-  title       String
-  description String?
-  status      TrainingStatus @default(PLANNED)
-  createdAt   DateTime       @default(now())
+  id                 String         @id @default(cuid())
+  title              String
+  description        String?
+  status             TrainingStatus @default(PLANNED)
+  code               String?        @unique
+  category           String?
+  trainingType       String?        @default("OPTIONAL")
+  deliveryMethod     String?
+  trainer            String?
+  startDate          DateTime?
+  endDate            DateTime?
+  durationHours      Float?
+  location           String?
+  targetAudience     String?
+  maxParticipants    Int?
+  estimatedCost      Decimal?       @db.Decimal(12, 2)
+  assessmentRequired Boolean        @default(false)
+  passingScore       Float?
+  createdById        String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  @@index([status, startDate])
+  @@index([category])
 }
 
 model JobOpening {
