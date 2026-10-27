@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 247 390" preserveAspectRatio="xMidYMax slice">
+<defs>
+ <linearGradient id="n1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#bc1239"/><stop offset=".45" stop-color="#8c0d2e"/><stop offset="1" stop-color="#3a1432"/></linearGradient>
+ <linearGradient id="n2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#70122b"/><stop offset="1" stop-color="#230e25"/></linearGradient>
+</defs>
+<!-- subtle sweeping N monogram, deliberately low contrast -->
+<path d="M-44 359 L-4 200 Q14 145 49 166 Q62 174 77 193 L159 307 L205 257 Q222 236 264 226 L264 320 L178 388 L143 388 L41 251 L0 390 L-44 390 Z" fill="url(#n1)" opacity=".75"/>
+<path d="M-44 390 L4 239 Q18 204 41 251 L143 388 L85 390 L20 316 L0 390 Z" fill="url(#n2)" opacity=".95"/>
+<path d="M-20 286 L18 203 Q38 162 69 185 L139 273 Q153 294 170 288 L264 215 L264 258 L165 337 Q141 353 121 330 L51 239 Q32 216 15 241 Z" fill="#aa1235" opacity=".42"/>
+<circle cx="241" cy="142" r="45" fill="#a31538" opacity=".24"/>
+</svg>
