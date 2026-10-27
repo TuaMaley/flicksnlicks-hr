@@ -14,7 +14,7 @@ export async function POST(req:NextRequest,{params}:Ctx){
  const {id}=await params;let body:any;try{body=await req.json()}catch{return fail('Invalid JSON',400)}
  const ids=body?.employeeIds;if(!Array.isArray(ids)||!ids.length||ids.length>500||ids.some((x:unknown)=>typeof x!=='string')||new Set(ids).size!==ids.length)return fail('Provide 1–500 unique employee IDs',400);
  try{const result=await db.$transaction(async tx=>{
-  await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${id}))`;
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${id}))`;
   const training=await tx.training.findUnique({where:{id}});if(!training)throw Error('Training not found');if(training.status==='CANCELLED')throw Error('Cannot enroll in cancelled training');
   const employees=await tx.employee.findMany({where:{AND:[{id:{in:ids},status:'ACTIVE'},employeeWhere(a)]},select:{id:true}});
   if(employees.length!==ids.length)throw Error('Some employees are inactive or outside your authorized scope');
