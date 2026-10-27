@@ -73,3 +73,19 @@ html, body { min-height:100%; height:auto !important; overflow-x:hidden; overflo
     background:#0007; border:0;
   }
 }
+
+/* Nexora branding: scoped to the persistent module sidebar only. */
+.shell.persistentShell > aside.sidebar.persistentSidebar .nexoraBrand {
+  display:flex; align-items:center; justify-content:center;
+  width:100%; min-height:96px; padding:9px 7px 12px;
+  box-sizing:border-box; text-decoration:none; overflow:hidden;
+}
+.shell.persistentShell > aside.sidebar.persistentSidebar .nexoraBrandImage {
+  display:block; width:100%; max-width:224px; height:auto; object-fit:contain;
+}
+.shell.persistentShell > aside.sidebar.persistentSidebar .nexoraFooter {
+  line-height:1.45;
+}
+@media (max-width:850px) {
+  .shell.persistentShell > aside.sidebar.persistentSidebar .nexoraBrand { min-height:88px; }
+}
