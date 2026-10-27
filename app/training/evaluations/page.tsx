@@ -1,12 +1,12 @@
  'use client';
-import {useEffect,useState} from 'react';
+import {Suspense,useEffect,useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import '../training.css';
 import './evaluation.css';
 type Question={id:string;prompt:string;kind:string;category:string;required:boolean};
 type Draft={prompt:string;kind:string;category:string;required:boolean};
 const defaults:Draft[]=[{prompt:'How relevant was this training to your role?',kind:'RATING',category:'RELEVANCE',required:true},{prompt:'How knowledgeable was the trainer?',kind:'RATING',category:'TRAINER',required:true},{prompt:'How effective was the trainer’s delivery?',kind:'RATING',category:'TRAINER',required:true},{prompt:'How useful were the learning materials?',kind:'RATING',category:'MATERIALS',required:true},{prompt:'How confident are you applying what you learned?',kind:'RATING',category:'EFFECTIVENESS',required:true},{prompt:'What should be improved?',kind:'TEXT',category:'GENERAL',required:false}];
-export default function EvaluationsPage(){
+function EvaluationsContent(){
  const params=useSearchParams();const id=params.get('trainingId')||'';
  const [data,setData]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[draft,setDraft]=useState<Draft[]>(defaults),[selected,setSelected]=useState(''),[answers,setAnswers]=useState<Record<string,{rating?:number;comment?:string}>>({});
  async function load(){if(!id)return;try{const r=await fetch(`/api/training/${encodeURIComponent(id)}/evaluations`,{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to load evaluations');setData(d);setDraft(d.questions.length?d.questions.map((q:Question)=>({prompt:q.prompt,kind:q.kind,category:q.category,required:q.required})):defaults);setError('')}catch(e:any){setError(e.message)}}
@@ -21,4 +21,8 @@ export default function EvaluationsPage(){
  <section className="trainingPanel evalSection"><h2>Submit participant feedback</h2><p>Feedback opens when the training program is marked Completed. Each participant can submit once.</p><label>Participant <select value={selected} onChange={e=>{setSelected(e.target.value);setAnswers({})}}><option value="">Select eligible participant</option>{eligible.filter((e:any)=>data.canManage||data.currentEmployeeId===e.employeeId).map((e:any)=><option value={e.id} key={e.id}>{e.employee.firstName} {e.employee.lastName} — {e.employee.employeeNo}</option>)}</select></label>{selected&&data.questions.map((q:Question)=><div className="evalAnswer" key={q.id}><label>{q.prompt}{q.required?' *':''}</label>{q.kind==='RATING'?<select value={answers[q.id]?.rating||''} onChange={e=>setAnswers({...answers,[q.id]:{rating:Number(e.target.value)}})}><option value="">Select rating</option>{[1,2,3,4,5].map(n=><option key={n} value={n}>{n} / 5</option>)}</select>:<textarea rows={3} value={answers[q.id]?.comment||''} onChange={e=>setAnswers({...answers,[q.id]:{comment:e.target.value}})}/>}</div>)}<div className="trainingActions"><button className="trainingPrimary" disabled={busy||!selected||!data.questions.length||data.training.status!=='COMPLETED'} onClick={submit}>Submit feedback</button></div></section>
  {data.canManage&&<section className="trainingPanel evalSection"><h2>Evaluation responses</h2><div className="trainingTableWrap"><table><thead><tr><th>Participant</th><th>Branch / Department</th><th>Submitted</th><th>Average rating</th></tr></thead><tbody>{data.responses.length?data.responses.map((r:any)=>{const e=data.enrollments.find((x:any)=>x.id===r.enrollmentId);const nums=r.answers.filter((x:any)=>x.rating!=null).map((x:any)=>x.rating);return <tr key={r.id}><td>{e?.employee.firstName} {e?.employee.lastName}</td><td>{e?.employee.branch?.name||'—'} / {e?.employee.department||'—'}</td><td>{new Date(r.submittedAt).toLocaleDateString()}</td><td>{nums.length?(nums.reduce((a:number,b:number)=>a+b,0)/nums.length).toFixed(2):'—'}</td></tr>}):<tr><td colSpan={4}>No responses yet.</td></tr>}</tbody></table></div></section>}</>}
  </div>;
+}
+
+export default function EvaluationsPage(){
+ return <Suspense fallback={<div className="trainingWorkspace">Loading training evaluations…</div>}><EvaluationsContent /></Suspense>;
 }
