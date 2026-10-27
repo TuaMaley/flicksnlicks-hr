@@ -107,6 +107,7 @@ payrollAttendance PayrollAttendance[]
   ghanaPayrollAdjustments GhanaPayrollAdjustment[]
   trainingEnrollments TrainingEnrollment[]
   trainingAttendance TrainingAttendance[]
+  trainingEvaluationResponses TrainingEvaluationResponse[]
 
   @@index([branchId])
   @@index([status])
@@ -277,6 +278,8 @@ model Training {
   updatedAt          DateTime       @updatedAt
   enrollments        TrainingEnrollment[]
   attendanceSessions TrainingAttendanceSession[]
+  evaluationQuestions TrainingEvaluationQuestion[]
+  evaluationResponses TrainingEvaluationResponse[]
 
   @@index([status, startDate])
   @@index([category])
@@ -299,6 +302,7 @@ model TrainingEnrollment {
   training    Training                 @relation(fields: [trainingId], references: [id], onDelete: Restrict)
   employee    Employee                 @relation(fields: [employeeId], references: [id], onDelete: Restrict)
   attendance TrainingAttendance[]
+  evaluations TrainingEvaluationResponse[]
 
   @@unique([trainingId, employeeId])
   @@index([employeeId, status])
@@ -664,4 +668,48 @@ model PayrollPaymentEvent {
   detail Json?
   createdAt DateTime @default(now())
   @@index([paymentId,createdAt])
+}
+
+
+// Phase 3: Training evaluation and participant feedback.
+model TrainingEvaluationQuestion {
+  id String @id @default(cuid())
+  trainingId String
+  prompt String
+  kind String @default("RATING") // RATING or TEXT
+  category String @default("GENERAL")
+  required Boolean @default(true)
+  sortOrder Int @default(0)
+  createdAt DateTime @default(now())
+  training Training @relation(fields: [trainingId], references: [id], onDelete: Restrict)
+  answers TrainingEvaluationAnswer[]
+  @@index([trainingId, sortOrder])
+}
+
+model TrainingEvaluationResponse {
+  id String @id @default(cuid())
+  trainingId String
+  enrollmentId String
+  employeeId String
+  submittedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  training Training @relation(fields: [trainingId], references: [id], onDelete: Restrict)
+  enrollment TrainingEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  answers TrainingEvaluationAnswer[]
+  @@unique([trainingId, enrollmentId])
+  @@index([trainingId, submittedAt])
+  @@index([employeeId])
+}
+
+model TrainingEvaluationAnswer {
+  id String @id @default(cuid())
+  responseId String
+  questionId String
+  rating Int?
+  comment String?
+  response TrainingEvaluationResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  question TrainingEvaluationQuestion @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  @@unique([responseId, questionId])
+  @@index([questionId])
 }
