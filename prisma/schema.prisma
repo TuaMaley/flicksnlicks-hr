@@ -105,6 +105,7 @@ model Employee {
   compensationPackages EmployeeCompensation[]
 payrollAttendance PayrollAttendance[]
   ghanaPayrollAdjustments GhanaPayrollAdjustment[]
+  trainingEnrollments TrainingEnrollment[]
 
   @@index([branchId])
   @@index([status])
@@ -273,9 +274,32 @@ model Training {
   createdById        String?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
+  enrollments        TrainingEnrollment[]
 
   @@index([status, startDate])
   @@index([category])
+}
+
+enum TrainingEnrollmentStatus {
+  ENROLLED
+  WITHDRAWN
+  COMPLETED
+}
+
+model TrainingEnrollment {
+  id          String                   @id @default(cuid())
+  trainingId  String
+  employeeId  String
+  status      TrainingEnrollmentStatus @default(ENROLLED)
+  enrolledById String?
+  enrolledAt  DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  training    Training                 @relation(fields: [trainingId], references: [id], onDelete: Restrict)
+  employee    Employee                 @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+
+  @@unique([trainingId, employeeId])
+  @@index([employeeId, status])
+  @@index([trainingId, status])
 }
 
 model JobOpening {
