@@ -4,6 +4,8 @@ const crypto=require('crypto');
 const prisma=new PrismaClient();
 const PREFIX='FNL-SYN-16-1-';
 const MARKER='[SYNTHETIC PHASE16.3]';
+const APPROVED_EXCEPTION_ID='cmvos3uvx006xyic4j2sw0wao';
+const APPROVED_EXCEPTION_EMPLOYEE='FNL-SYN-16-1-035';
 const EXPECT={employees:40,compensation:40,attendance:240,leave:20,appraisals:30,pips:5};
 const mode=process.argv[2]||'preview';
 const models={
@@ -46,9 +48,25 @@ async function inspect(tx){
      tx.employeeCompensation.count({where:{...where,status:'DRAFT',reason:{contains:'SYNTHETIC'}}}),
      tx.payrollAttendance.count({where:{...where,status:'DRAFT',notes:{contains:'SYNTHETIC'}}}),
    ]);
-   checks.allRecordsMarked=markedLeave===counts.leave&&markedAppraisals===counts.appraisals&&markedPips===counts.pips&&draftComp===counts.compensation&&draftAttendance===counts.attendance;
+   // Exactly one previously reviewed synthetic attendance row is permitted as an exception.
+   // Do not weaken checks for any other row or for other data categories.
+   const unmarkedAttendance=await tx.payrollAttendance.findMany({
+     where:{...where,NOT:{AND:[{status:'DRAFT'},{notes:{contains:'SYNTHETIC'}}]}},
+     select:{id:true,employeeId:true,status:true,notes:true,workDate:true,reviewedById:true,reviewedAt:true}
+   });
+   const exception=unmarkedAttendance[0];
+   const exceptionEmployee=employees.find(e=>e.id===exception?.employeeId);
+   const exactApprovedException=unmarkedAttendance.length===1
+     &&exception.id===APPROVED_EXCEPTION_ID
+     &&exceptionEmployee?.employeeNo===APPROVED_EXCEPTION_EMPLOYEE
+     &&exception.status==='APPROVED'
+     &&exception.notes==='SYNTHETIC DRAFT ATTENDANCE — NOT VERIFIED'
+     &&exception.workDate.toISOString().slice(0,10)==='2026-09-18'
+     &&Boolean(exception.reviewedById)&&Boolean(exception.reviewedAt);
+   checks.approvedAttendanceExceptionVerified=exactApprovedException;
+   checks.allRecordsMarked=markedLeave===counts.leave&&markedAppraisals===counts.appraisals&&markedPips===counts.pips&&draftComp===counts.compensation&&draftAttendance===counts.attendance-1&&exactApprovedException;
  }else checks.allRecordsMarked=false;
- const token=crypto.createHash('sha256').update(JSON.stringify({ids,counts,unexpected})).digest('hex').slice(0,12).toUpperCase();
+ const token=crypto.createHash('sha256').update(JSON.stringify({ids,counts,unexpected,approvedExceptionId:APPROVED_EXCEPTION_ID,checks})).digest('hex').slice(0,12).toUpperCase();
  return {counts,unexpected,checks,ready:Object.values(checks).every(Boolean),token,ids};
 }
 async function main(){
