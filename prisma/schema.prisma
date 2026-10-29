@@ -838,3 +838,43 @@ model DisciplinaryAppeal {
   decidedAt DateTime?
   @@index([caseId, createdAt])
 }
+
+// Phase 4: additive disciplinary workflow records; no changes to existing case data.
+model DisciplinaryApprovalRequest {
+  id String @id @default(cuid())
+  caseId String
+  requestedById String
+  reviewedById String?
+  actionType String
+  proposal String
+  reason String
+  status String @default("PENDING")
+  reviewNote String?
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+  @@index([caseId, status])
+}
+
+model DisciplinaryLetter {
+  id String @id @default(cuid())
+  caseId String
+  letterType String
+  subject String
+  body String @db.Text
+  status String @default("DRAFT")
+  createdById String
+  issuedById String?
+  createdAt DateTime @default(now())
+  issuedAt DateTime?
+  @@index([caseId, createdAt])
+}
+
+model DisciplinaryNotice {
+  id String @id @default(cuid())
+  caseId String
+  recipientUserId String
+  message String
+  readAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([recipientUserId, readAt])
+}
