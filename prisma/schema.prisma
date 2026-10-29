@@ -73,6 +73,7 @@ model Branch {
   scopes      UserAccessScope[]
   jobOpenings JobOpening[]
   recruitmentRequisitions RecruitmentRequisition[]
+  recruitmentVacancies RecruitmentVacancy[]
   createdAt   DateTime          @default(now())
 }
 
@@ -901,7 +902,52 @@ model RecruitmentRequisition {
   managementNote  String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  vacancies       RecruitmentVacancy[]
 
   @@index([branchId, status])
   @@index([createdAt])
+}
+
+// Recruitment Phase 2 — additive; existing JobOpening records remain untouched.
+model RecruitmentVacancy {
+  id            String @id @default(cuid())
+  requisitionId String
+  requisition   RecruitmentRequisition @relation(fields: [requisitionId], references: [id], onDelete: Restrict)
+  branchId      String
+  branch        Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  title         String
+  description   String
+  status        String @default("DRAFT")
+  createdById   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  applications  RecruitmentApplication[]
+  @@index([branchId, status])
+  @@index([requisitionId])
+}
+
+model RecruitmentCandidate {
+  id            String @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String @unique
+  phone         String?
+  qualification String?
+  experience    String?
+  createdAt     DateTime @default(now())
+  applications  RecruitmentApplication[]
+}
+
+model RecruitmentApplication {
+  id          String @id @default(cuid())
+  vacancyId   String
+  vacancy     RecruitmentVacancy @relation(fields: [vacancyId], references: [id], onDelete: Restrict)
+  candidateId String
+  candidate   RecruitmentCandidate @relation(fields: [candidateId], references: [id], onDelete: Restrict)
+  status      String @default("APPLIED")
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@unique([vacancyId, candidateId])
+  @@index([status])
 }
