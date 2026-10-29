@@ -948,6 +948,44 @@ model RecruitmentApplication {
   notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  interview   RecruitmentInterview?
   @@unique([vacancyId, candidateId])
   @@index([status])
+}
+
+// Recruitment Phase 3: one scheduled interview per application; multiple interviewer scorecards.
+model RecruitmentInterview {
+  id            String @id @default(cuid())
+  applicationId String @unique
+  application   RecruitmentApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  scheduledAt   DateTime
+  location      String
+  mode          String @default("IN_PERSON")
+  interviewer   String
+  status        String @default("SCHEDULED")
+  notes         String?
+  createdById   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  assessments   RecruitmentAssessment[]
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+model RecruitmentAssessment {
+  id              String @id @default(cuid())
+  interviewId     String
+  interview       RecruitmentInterview @relation(fields: [interviewId], references: [id], onDelete: Restrict)
+  reviewerId      String
+  reviewerName    String
+  communication   Int
+  technical       Int
+  experience      Int
+  cultureFit      Int
+  professionalism Int
+  recommendation  String
+  comments        String?
+  createdAt       DateTime @default(now())
+  @@unique([interviewId, reviewerId])
+  @@index([interviewId])
 }
