@@ -1,0 +1,6 @@
+/* Onboarding & Exit section tabs — scoped to this module */
+.onboardSectionTabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 22px;border-bottom:1px solid #e5e7eb;padding-bottom:0}
+.onboardSectionTabs button{appearance:none;border:0;border-bottom:3px solid transparent;background:transparent;color:#555b66;padding:13px 19px;cursor:pointer;font-size:14px;font-weight:700;border-radius:8px 8px 0 0}
+.onboardSectionTabs button:hover{background:#f8f8f8;color:#161616}
+.onboardSectionTabs button.selected{color:#b91c1c;border-bottom-color:#b91c1c;background:#fff5f5}
+.onboardSectionTabs button:focus-visible{outline:2px solid #b91c1c;outline-offset:-2px}
