@@ -97,6 +97,7 @@ model Employee {
   appraisalReviews            AppraisalReview[]
   onboardingCases             OnboardingCase[]
   onboardingTasks             OnboardingTask[]
+  exitCases                   EmployeeExitCase[]
   disciplinaryCases           DisciplinaryCase[]
   recognitions                Recognition[]
   user                        User?
@@ -732,4 +733,38 @@ model TrainingEvaluationAnswer {
   question TrainingEvaluationQuestion @relation(fields: [questionId], references: [id], onDelete: Restrict)
   @@unique([responseId, questionId])
   @@index([questionId])
+}
+
+// Phase 3: Employee exit and offboarding. Existing onboarding tables are unchanged.
+model EmployeeExitCase {
+  id String @id @default(cuid())
+  employeeId String
+  employee Employee @relation(fields: [employeeId], references: [id])
+  reason String
+  reasonDetail String?
+  noticeDate DateTime?
+  lastWorkingDate DateTime
+  status String @default("IN_PROGRESS")
+  interviewNotes String?
+  settlementNotes String?
+  createdById String
+  approvedById String?
+  approvedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tasks EmployeeExitTask[]
+  @@index([employeeId,status])
+}
+model EmployeeExitTask {
+  id String @id @default(cuid())
+  exitCaseId String
+  exitCase EmployeeExitCase @relation(fields: [exitCaseId], references: [id], onDelete: Cascade)
+  category String
+  title String
+  completed Boolean @default(false)
+  completedById String?
+  completedAt DateTime?
+  note String?
+  createdAt DateTime @default(now())
+  @@index([exitCaseId])
 }
