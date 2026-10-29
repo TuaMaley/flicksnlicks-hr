@@ -1,0 +1,7 @@
+import {NextRequest} from 'next/server';
+import {db} from '../../../../../../lib/db';
+import {access,employeeWhere} from '../../../../../../lib/auth';
+import {fail,ok} from '../../../../../../lib/http';
+export async function PATCH(req:NextRequest,ctx:{params:Promise<{id:string}>}){try{const a=await access();if(!a.user)return fail('Unauthorized',401);if(!a.can('recruitment.approve'))return fail('Forbidden',403);const {id}=await ctx.params,b=await req.json();if(!['SCREENING','SHORTLISTED','REJECTED','INTERVIEW'].includes(b.status))return fail('Invalid application status',400);const notes=typeof b.notes==='string'?b.notes.trim():'';if(notes.length>2000)return fail('Notes too long',400);
+const app=await db.recruitmentApplication.findFirst({where:{id,vacancy:{branch:{employees:{some:employeeWhere(a)}}}}});if(!app)return fail('Application not found',404);if(app.status==='REJECTED')return fail('Rejected application is closed',409);
+const result=await db.$transaction(async tx=>{const changed=await tx.recruitmentApplication.updateMany({where:{id,status:app.status},data:{status:b.status,notes}});if(!changed.count)return null;await tx.auditLog.create({data:{actorId:a.user!.id,action:'RECRUITMENT_APPLICATION_STATUS',entity:'RecruitmentApplication',entityId:id,detail:{from:app.status,to:b.status}}});return tx.recruitmentApplication.findUnique({where:{id}})});if(!result)return fail('Application changed; refresh',409);return ok({application:result});}catch(e){console.error('Application status PATCH',e);return fail('Unable to update application',500)}}
