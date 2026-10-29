@@ -1,7 +1,7 @@
 import {NextRequest} from 'next/server';
-import {db} from '../../../../../lib/db';
-import {access,employeeWhere} from '../../../../../lib/auth';
-import {fail,ok} from '../../../../../lib/http';
+import {db} from '../../../../lib/db';
+import {access,employeeWhere} from '../../../../lib/auth';
+import {fail,ok} from '../../../../lib/http';
 const scopeWhere=(a:Awaited<ReturnType<typeof access>>)=>({employees:{some:employeeWhere(a)}});
 export async function GET(){try{const a=await access();if(!a.user)return fail('Unauthorized',401);if(!a.can('recruitment.view'))return fail('Forbidden',403);
  const branchIds=(await db.branch.findMany({where:scopeWhere(a),select:{id:true}})).map(x=>x.id);

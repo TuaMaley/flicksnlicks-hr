@@ -1,7 +1,7 @@
 import {NextRequest} from 'next/server';
-import {db} from '../../../../../lib/db';
-import {access,employeeWhere} from '../../../../../lib/auth';
-import {fail,ok} from '../../../../../lib/http';
+import {db} from '../../../../lib/db';
+import {access,employeeWhere} from '../../../../lib/auth';
+import {fail,ok} from '../../../../lib/http';
 const scopeWhere=(a:Awaited<ReturnType<typeof access>>)=>({employees:{some:employeeWhere(a)}});
 export async function POST(req:NextRequest){try{const a=await access();if(!a.user)return fail('Unauthorized',401);if(!a.can('recruitment.create'))return fail('Forbidden',403);
  const b=await req.json();const description=typeof b.description==='string'?b.description.trim():'';
