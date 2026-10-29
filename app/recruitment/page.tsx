@@ -3,10 +3,11 @@ import {useEffect,useMemo,useState} from 'react';
 import NexoraModuleTabs from '../components/NexoraModuleTabs';
 import './recruitment.css';
 type Tab='overview'|'requisitions'|'vacancies'|'candidates'|'interviews'|'offers'|'reports';
-const tabs:{id:Tab;label:string;disabled?:boolean}[]=[{id:'overview',label:'Overview'},{id:'requisitions',label:'Job Requisitions'},{id:'vacancies',label:'Job Vacancies',},{id:'candidates',label:'Candidates & Applications'},{id:'interviews',label:'Interviews & Assessments',disabled:true},{id:'offers',label:'Offers & Hiring',disabled:true},{id:'reports',label:'Analytics & Reports',disabled:true}];
+const tabs:{id:Tab;label:string;disabled?:boolean}[]=[{id:'overview',label:'Overview'},{id:'requisitions',label:'Job Requisitions'},{id:'vacancies',label:'Job Vacancies',},{id:'candidates',label:'Candidates & Applications'},{id:'interviews',label:'Interviews & Assessments'},{id:'offers',label:'Offers & Hiring',disabled:true},{id:'reports',label:'Analytics & Reports',disabled:true}];
 type Vacancy={id:string;title:string;description:string;status:string;branch:{name:string};requisitionId:string};
 type Candidate={id:string;firstName:string;lastName:string;email:string};
 type Application={id:string;status:string;notes:string|null;candidate:Candidate;vacancy:{title:string;branchId:string}};
+type Interview={id:string;applicationId:string;scheduledAt:string;location:string;mode:string;interviewer:string;status:string;application:{candidate:Candidate;vacancy:{title:string;branch:{name:string}}};assessments:{id:string;reviewerName:string;communication:number;technical:number;experience:number;cultureFit:number;professionalism:number;recommendation:string;comments:string|null}[]};
 type Approved={id:string;title:string;branchId:string;positions:number;branch:{name:string}};
 type Branch={id:string;name:string};
 type Req={id:string;title:string;department:string;positions:number;status:string;justification:string;requestedByName:string;createdAt:string;branch:Branch};
@@ -16,11 +17,16 @@ export default function RecruitmentPage(){
  const [vacancies,setVacancies]=useState<Vacancy[]>([]),[applications,setApplications]=useState<Application[]>([]),[approved,setApproved]=useState<Approved[]>([]);
  const [vacancyForm,setVacancyForm]=useState({requisitionId:'',description:''});
  const [candidateForm,setCandidateForm]=useState({vacancyId:'',firstName:'',lastName:'',email:'',phone:'',qualification:'',experience:''});
+ const [interviews,setInterviews]=useState<Interview[]>([]);
+ const [interviewForm,setInterviewForm]=useState({applicationId:'',scheduledAt:'',location:'',interviewer:'',mode:'IN_PERSON'});
+ const [assessmentForm,setAssessmentForm]=useState({interviewId:'',communication:3,technical:3,experience:3,cultureFit:3,professionalism:3,recommendation:'YES',comments:''});
+ async function loadInterviews(){try{const r=await fetch('/api/recruitment/interviews',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to load interviews');setInterviews(d.interviews||[])}catch(e:any){setError(e.message)}}
+ async function sendInterview(path:string,method:string,data:unknown,message:string){setBusy(true);setError('');try{const r=await fetch('/api/recruitment/'+path,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to save interview');setNotice(message);await loadInterviews();return true}catch(e:any){setError(e.message);return false}finally{setBusy(false)}}
  async function loadPipeline(){try{const r=await fetch('/api/recruitment/phase2',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to load recruitment pipeline');setVacancies(d.vacancies||[]);setApplications(d.applications||[]);setApproved(d.approved||[])}catch(e:any){setError(e.message)}}
  async function send(path:string,method:string,data:unknown,message:string){setBusy(true);setError('');try{const r=await fetch('/api/recruitment/'+path,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to save');setNotice(message);await Promise.all([load(),loadPipeline()]);return true}catch(e:any){setError(e.message);return false}finally{setBusy(false)}}
  const canCreate=permissions.includes('recruitment.create'),canApprove=permissions.includes('recruitment.approve');
  async function load(){setError('');try{const r=await fetch('/api/recruitment/requisitions',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to load recruitment');setRows(d.requisitions||[]);setBranches(d.branches||[]);setPermissions(d.permissions||[]);setOpenings(d.openings||0)}catch(e:any){setError(e.message)}finally{setLoading(false)}}
- useEffect(()=>{load();loadPipeline();const t=new URLSearchParams(location.search).get('tab');if(t==='requisitions'||t==='vacancies'||t==='candidates')setTab(t)},[]);
+ useEffect(()=>{load();loadPipeline();loadInterviews();const t=new URLSearchParams(location.search).get('tab');if(t==='requisitions'||t==='vacancies'||t==='candidates'||t==='interviews')setTab(t)},[]);
  const pending=useMemo(()=>rows.filter(r=>r.status.startsWith('PENDING')), [rows]);
  async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');try{const r=await fetch('/api/recruitment/requisitions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(form)});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to create request');setNotice('Requisition submitted for HR review');setForm(initial);await load();setTab('requisitions')}catch(e:any){setError(e.message)}finally{setBusy(false)}}
  async function decide(id:string,action:string){setBusy(true);setError('');try{const r=await fetch('/api/recruitment/requisitions/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,note:notes[id]||''})});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to review request');setNotice('Decision recorded');await Promise.all([load(),loadPipeline()])}catch(e:any){setError(e.message)}finally{setBusy(false)}}
@@ -63,5 +69,32 @@ export default function RecruitmentPage(){
     {!applications.length&&<tr><td colSpan={5}>No candidate applications yet.</td></tr>}
    </tbody></table></div></section>
   </>}
+
+ {tab==='interviews'&&<>
+  <div className="recruitStats">{[['Scheduled',interviews.filter(i=>i.status==='SCHEDULED').length],['Completed',interviews.filter(i=>i.status==='COMPLETED').length],['Cancelled',interviews.filter(i=>i.status==='CANCELLED').length],['Assessments',interviews.reduce((n,i)=>n+i.assessments.length,0)]].map(([label,count])=><article key={label}><small>{label}</small><strong>{count}</strong></article>)}</div>
+  <section className="recruitPanel"><h2>Schedule an interview</h2><p>Only applications selected for interview can be scheduled. One interview is supported per application in this phase.</p>
+   {canApprove?<form className="recruitForm" onSubmit={async e=>{e.preventDefault();if(await sendInterview('interviews','POST',interviewForm,'Interview scheduled'))setInterviewForm({applicationId:'',scheduledAt:'',location:'',interviewer:'',mode:'IN_PERSON'})}}>
+    <label className="recruitWide">Interview-selected application<select required value={interviewForm.applicationId} onChange={e=>setInterviewForm({...interviewForm,applicationId:e.target.value})}><option value="">Select candidate and vacancy</option>{applications.filter(a=>a.status==='INTERVIEW'&&!interviews.some(i=>i.applicationId===a.id)).map(a=><option key={a.id} value={a.id}>{a.candidate.firstName} {a.candidate.lastName} — {a.vacancy.title}</option>)}</select></label>
+    <label>Date and time<input required type="datetime-local" value={interviewForm.scheduledAt} onChange={e=>setInterviewForm({...interviewForm,scheduledAt:e.target.value})}/></label>
+    <label>Interview mode<select value={interviewForm.mode} onChange={e=>setInterviewForm({...interviewForm,mode:e.target.value})}><option value="IN_PERSON">In person</option><option value="VIDEO">Video call</option><option value="PHONE">Phone</option></select></label>
+    <label>Location / meeting details<input required minLength={2} maxLength={250} value={interviewForm.location} onChange={e=>setInterviewForm({...interviewForm,location:e.target.value})}/></label>
+    <label>Interviewer name<input required minLength={2} maxLength={160} value={interviewForm.interviewer} onChange={e=>setInterviewForm({...interviewForm,interviewer:e.target.value})}/></label>
+    <button className="recruitButton" disabled={busy||!interviewForm.applicationId}>Schedule interview</button>
+   </form>:<p>Recruitment approval permission is required to schedule interviews.</p>}
+  </section>
+  <section className="recruitPanel"><h2>Interview schedule and results</h2><div className="recruitTable"><table><thead><tr><th>Candidate / Vacancy</th><th>Scheduled</th><th>Mode / Location</th><th>Interviewer</th><th>Status</th><th>Assessments</th><th>Actions</th></tr></thead><tbody>
+   {interviews.map(i=><tr key={i.id}><td><b>{i.application.candidate.firstName} {i.application.candidate.lastName}</b><small>{i.application.vacancy.title} — {i.application.vacancy.branch.name}</small></td><td>{new Date(i.scheduledAt).toLocaleString()}</td><td>{i.mode.replaceAll('_',' ')}<small>{i.location}</small></td><td>{i.interviewer}</td><td>{i.status}</td><td>{i.assessments.length?i.assessments.map(s=><div key={s.id}>{s.reviewerName}: {((s.communication+s.technical+s.experience+s.cultureFit+s.professionalism)/5).toFixed(1)}/5 — {s.recommendation.replaceAll('_',' ')}</div>):'Not assessed'}</td><td>{canApprove&&i.status==='SCHEDULED'?<div className="recruitActions"><button disabled={busy} onClick={()=>sendInterview('interviews/'+i.id,'PATCH',{status:'COMPLETED'},'Interview completed')}>Mark completed</button><button disabled={busy} onClick={()=>sendInterview('interviews/'+i.id,'PATCH',{status:'CANCELLED'},'Interview cancelled')}>Cancel</button></div>:'—'}</td></tr>)}
+   {!interviews.length&&<tr><td colSpan={7}>No interviews scheduled yet. Select an application for interview in Candidates & Applications.</td></tr>}
+  </tbody></table></div></section>
+  <section className="recruitPanel"><h2>Interviewer assessment scorecard</h2><p>Score each criterion from 1 (poor) to 5 (excellent). Assessments are submitted only for completed interviews, and each reviewer may submit once per interview.</p>
+   {canApprove?<form className="recruitForm" onSubmit={async e=>{e.preventDefault();if(await sendInterview('assessments','POST',assessmentForm,'Assessment submitted'))setAssessmentForm({interviewId:'',communication:3,technical:3,experience:3,cultureFit:3,professionalism:3,recommendation:'YES',comments:''})}}>
+    <label className="recruitWide">Completed interview<select required value={assessmentForm.interviewId} onChange={e=>setAssessmentForm({...assessmentForm,interviewId:e.target.value})}><option value="">Select completed interview</option>{interviews.filter(i=>i.status==='COMPLETED').map(i=><option key={i.id} value={i.id}>{i.application.candidate.firstName} {i.application.candidate.lastName} — {i.application.vacancy.title}</option>)}</select></label>
+    {(['communication','technical','experience','cultureFit','professionalism'] as const).map(k=><label key={k}>{({communication:'Communication',technical:'Technical skills',experience:'Relevant experience',cultureFit:'Team fit',professionalism:'Professionalism'} as Record<string,string>)[k]}<select value={assessmentForm[k]} onChange={e=>setAssessmentForm({...assessmentForm,[k]:Number(e.target.value)})}>{[1,2,3,4,5].map(n=><option key={n} value={n}>{n} / 5</option>)}</select></label>)}
+    <label>Recommendation<select value={assessmentForm.recommendation} onChange={e=>setAssessmentForm({...assessmentForm,recommendation:e.target.value})}><option value="STRONG_YES">Strong yes</option><option value="YES">Yes</option><option value="MAYBE">Maybe</option><option value="NO">No</option></select></label>
+    <label className="recruitWide">Assessment comments<textarea maxLength={2000} value={assessmentForm.comments} onChange={e=>setAssessmentForm({...assessmentForm,comments:e.target.value})}/></label>
+    <button className="recruitButton" disabled={busy||!assessmentForm.interviewId}>Submit assessment</button>
+   </form>:<p>Recruitment approval permission is required to submit an assessment.</p>}
+  </section>
+ </>}
  </main>;
 }
