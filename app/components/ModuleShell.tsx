@@ -15,7 +15,7 @@ const items=[
  {label:'Recruitment',href:'/',permission:'recruitment.view',Icon:UserPlus},
  {label:'Performance Appraisal',href:'/appraisals',permission:'appraisals.view',Icon:ClipboardCheck},
  {label:'Onboarding & Exit',href:'/onboarding',permission:'onboarding.view',Icon:LogOut},
- {label:'Disciplinary Management',href:'/',permission:'disciplinary.view',Icon:ShieldAlert},
+ {label:'Disciplinary Management',href:'/disciplinary',permission:'disciplinary.view',Icon:ShieldAlert},
  {label:'Rewards & Recognition',href:'/',permission:'rewards.view',Icon:Award},
  {label:'Employee Self-Service',href:'/',permission:'selfservice.view',Icon:UserRound},
  {label:'Access & Audit Controls',href:'/access',permission:'access.view',Icon:ShieldCheck},
@@ -32,7 +32,7 @@ export default function ModuleShell({children}:{children:React.ReactNode}){
  useEffect(()=>setOpen(false),[pathname]);
  // Dashboard already owns its full sidebar. Do not render two sidebars there.
  if(hiddenPaths.some(p=>pathname===p||pathname.startsWith(p+'/'))||pathname.startsWith('/api/'))return children;
- const activeHref=pathname.startsWith('/appraisals')||pathname.startsWith('/pips')?'/appraisals':pathname.startsWith('/employees')?'/employees':pathname.startsWith('/leave')?'/leave':pathname.startsWith('/access')?'/access':pathname.startsWith('/settings')?'/settings':pathname.startsWith('/onboarding')?'/onboarding':pathname;
+ const activeHref=pathname.startsWith('/appraisals')||pathname.startsWith('/pips')?'/appraisals':pathname.startsWith('/employees')?'/employees':pathname.startsWith('/leave')?'/leave':pathname.startsWith('/access')?'/access':pathname.startsWith('/settings')?'/settings':pathname.startsWith('/onboarding')?'/onboarding':pathname.startsWith('/disciplinary')?'/disciplinary':pathname;
  return <div className="shell persistentShell">
  <aside className={'sidebar persistentSidebar '+(open?'open':'')} aria-label="Main navigation">
  <Link href="/" className="nexoraBrand" aria-label="Nexora HRMS — Dashboard"><Image src="/nexora-sidebar-brand.png" alt="Nexora — People, Performance, Growth" width={224} height={76} priority className="nexoraBrandImage"/></Link>
