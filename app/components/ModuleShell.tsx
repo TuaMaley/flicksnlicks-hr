@@ -12,7 +12,7 @@ const items=[
  {label:'Payroll & Benefits',href:'/payroll',permission:'payroll.view',Icon:Wallet},
  {label:'Leave Management',href:'/leave',permission:'leave.view',Icon:CalendarDays},
  {label:'Training & Development',href:'/training',permission:'training.view',Icon:GraduationCap},
- {label:'Recruitment',href:'/',permission:'recruitment.view',Icon:UserPlus},
+ {label:'Recruitment',href:'/recruitment',permission:'recruitment.view',Icon:UserPlus},
  {label:'Performance Appraisal',href:'/appraisals',permission:'appraisals.view',Icon:ClipboardCheck},
  {label:'Onboarding & Exit',href:'/onboarding',permission:'onboarding.view',Icon:LogOut},
  {label:'Disciplinary Management',href:'/disciplinary',permission:'disciplinary.view',Icon:ShieldAlert},
