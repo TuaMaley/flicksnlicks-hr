@@ -391,14 +391,24 @@ model OnboardingTask {
 }
 
 model DisciplinaryCase {
-  id         String             @id @default(cuid())
-  employeeId String
-  employee   Employee           @relation(fields: [employeeId], references: [id])
-  summary    String
-  status     DisciplinaryStatus @default(OPEN)
-  createdAt  DateTime           @default(now())
+  id                String              @id @default(cuid())
+  employeeId        String
+  employee          Employee            @relation(fields: [employeeId], references: [id])
+  summary           String
+  status            DisciplinaryStatus  @default(OPEN)
+  createdAt         DateTime            @default(now())
 
-  @@index([employeeId])
+  category          String              @default("OTHER")
+  severity          String              @default("MINOR")
+  incidentDate      DateTime            @default(now())
+  location          String?
+  reportedBy        String?
+  description       String?
+  assignedTo        String?
+  employeeResponse  String?
+  investigationNote String?
+  decision          String?
+  decidedAt         DateTime?
 }
 
 model Recognition {
