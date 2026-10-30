@@ -14,9 +14,9 @@ export async function activeTenant(user:{id:string;platformAdmin:boolean}):Promi
   if(!secret||secret.length<32)throw new Error('AUTH_SECRET missing');
   const expected=createHmac('sha256',secret).update(user.id+':'+id).digest('hex');
   if(sig.length===expected.length&&timingSafeEqual(Buffer.from(sig),Buffer.from(expected))){
-   return memberships.some(m=>m.companyId===id)?id:null;
+   return memberships.some(m=>m.companyId===id)?id:(memberships.length===1?memberships[0].companyId:null);
   }
-  return null;
+  return memberships.length===1?memberships[0].companyId:null;
  }
  return memberships.length===1?memberships[0].companyId:null;
 }

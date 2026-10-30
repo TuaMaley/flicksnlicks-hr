@@ -12,7 +12,7 @@ export async function selectedCompany(){
  const expected=companyId?sign(user.id+':'+companyId):'';
  const valid=signature&&signature.length===expected.length&&timingSafeEqual(Buffer.from(signature),Buffer.from(expected));
  const membership=valid?memberships.find(m=>m.companyId===companyId):null;
- return {user,memberships,selected:membership||null};
+ return {user,memberships,selected:membership||(memberships.length===1?memberships[0]:null)};
 }
 export async function chooseCompany(companyId:string){
  const state=await selectedCompany();
