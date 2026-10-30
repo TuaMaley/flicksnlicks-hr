@@ -1,6 +1,14 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {db} from '../../../../lib/db';
 import {securityAdmin} from '../../../../lib/accessSecurity';
+import {selectedCompany} from '../../../../lib/companyContext';
+
+async function companyScope(){
+ const state=await selectedCompany();
+ return state?.selected?.companyId || null;
+}
+const denied=()=>NextResponse.json({error:'Active company membership required'},{status:403});
+
 
 const eventActions=['LOGIN','LOGIN_SUCCESS','LOGIN_FAILURE','LOGOUT'];
 function dateValue(s:string|null,end=false){
@@ -13,6 +21,7 @@ export async function GET(req:NextRequest){
  try{
   const auth=await securityAdmin();
   if('error' in auth)return NextResponse.json({error:auth.error},{status:auth.status});
+  const companyId=await companyScope();if(!companyId)return denied();
   const p=req.nextUrl.searchParams;
   const start=dateValue(p.get('start')),end=dateValue(p.get('end'),true);
   if(start===undefined||end===undefined||(start&&end&&start>end))
@@ -21,22 +30,22 @@ export async function GET(req:NextRequest){
   const branchId=(p.get('branchId')||'').trim();
   const department=(p.get('department')||'').trim();
   const [users,roles,branches]=await Promise.all([
-   db.user.findMany({select:{id:true,name:true,email:true,active:true,employee:{select:{branchId:true,department:true}},roles:{select:{role:{select:{id:true,name:true,active:true,permissions:{select:{permission:{select:{key:true}}}}}}}}},orderBy:{name:'asc'}}),
-   db.role.findMany({select:{id:true,name:true,active:true,_count:{select:{users:true}}},orderBy:{name:'asc'}}),
-   db.branch.findMany({select:{id:true,name:true},orderBy:{name:'asc'}})
+   db.user.findMany({where:{platformAdmin:false,companyMemberships:{some:{companyId,active:true}}},select:{id:true,name:true,email:true,active:true,employee:{select:{branchId:true,department:true}},roles:{select:{role:{select:{id:true,name:true,active:true,permissions:{select:{permission:{select:{key:true}}}}}}}}},orderBy:{name:'asc'}}),
+   db.role.findMany({where:{users:{some:{user:{platformAdmin:false,companyMemberships:{some:{companyId,active:true}}}}}},select:{id:true,name:true,active:true,_count:{select:{users:true}}},orderBy:{name:'asc'}}),
+   db.branch.findMany({where:{companyId},select:{id:true,name:true},orderBy:{name:'asc'}})
   ]);
   const scoped=users.filter(u=>(!userId||u.id===userId)&&(!branchId||u.employee?.branchId===branchId)&&(!department||u.employee?.department===department));
   const ids=scoped.map(u=>u.id);
   const dateWhere:any={};
   if(start)dateWhere.gte=start;
   if(end)dateWhere.lte=end;
-  const auditWhere:any={};
+  const auditWhere:any={companyId};
   if(start||end)auditWhere.createdAt=dateWhere;
-  if(userId||branchId||department)auditWhere.actorId={in:ids};
+  auditWhere.actorId={in:ids};
   const loginWhere:any={...auditWhere,OR:[{entity:'Authentication',action:{in:eventActions}},{entity:'User',action:'LOGIN'}]};
-  const reviewWhere:any={};
+  const reviewWhere:any={companyId};
   if(start||end)reviewWhere.createdAt=dateWhere;
-  if(userId||branchId||department)reviewWhere.userId={in:ids};
+  reviewWhere.userId={in:ids};
   const [auditTotal,loginGroups,auditGroups,reviewGroups,overdue,activity]=await Promise.all([
    db.auditLog.count({where:auditWhere}),
    db.auditLog.groupBy({by:['action'],where:loginWhere,_count:{_all:true}}),

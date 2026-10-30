@@ -1,22 +1,31 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {db} from '../../../../lib/db';
 import {securityAdmin} from '../../../../lib/accessSecurity';
+import {selectedCompany} from '../../../../lib/companyContext';
+
+async function companyScope(){
+ const state=await selectedCompany();
+ return state?.selected?.companyId || null;
+}
+const denied=()=>NextResponse.json({error:'Active company membership required'},{status:403});
+
 
 export const dynamic='force-dynamic';
 export async function GET(req:NextRequest){
  try{
   const auth=await securityAdmin();
   if('error' in auth)return NextResponse.json({error:auth.error},{status:auth.status});
+  const companyId=await companyScope();if(!companyId)return denied();
   const q=req.nextUrl.searchParams;
   if(q.get('mode')==='users'){
-   const users=await db.user.findMany({select:{id:true,name:true,email:true,active:true},orderBy:[{name:'asc'},{email:'asc'}]});
+   const users=await db.user.findMany({where:{platformAdmin:false,companyMemberships:{some:{companyId,active:true}}},select:{id:true,name:true,email:true,active:true},orderBy:[{name:'asc'},{email:'asc'}]});
    return NextResponse.json({users},{headers:{'Cache-Control':'private, no-store'}});
   }
   const page=Math.max(1,Math.min(10000,Number(q.get('page'))||1));
   const search=(q.get('search')||'').trim().slice(0,120);
   const userId=(q.get('userId')||'').trim();
   const entity=(q.get('entity')||'').trim().slice(0,100);
-  const where:any={};
+  const where:any={companyId};
   if(userId)where.actorId=userId;
   if(search)where.OR=[{action:{contains:search,mode:'insensitive'}},{entity:{contains:search,mode:'insensitive'}},{entityId:{contains:search,mode:'insensitive'}}];
   if(entity)where.entity=entity;
@@ -25,7 +34,7 @@ export async function GET(req:NextRequest){
    db.auditLog.count({where})
   ]);
   const ids=[...new Set(items.map(x=>x.actorId).filter((x):x is string=>!!x))];
-  const users=ids.length?await db.user.findMany({where:{id:{in:ids}},select:{id:true,name:true,email:true}}):[];
+  const users=ids.length?await db.user.findMany({where:{id:{in:ids},platformAdmin:false,companyMemberships:{some:{companyId,active:true}}},select:{id:true,name:true,email:true}}):[];
   const names=new Map(users.map(x=>[x.id,x]));
   return NextResponse.json({items:items.map(x=>({...x,actor:x.actorId?names.get(x.actorId)||null:null})),total,page},{headers:{'Cache-Control':'private, no-store'}});
  }catch(error){
