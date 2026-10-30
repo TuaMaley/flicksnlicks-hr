@@ -8,13 +8,13 @@ const cents=(x:number)=>Math.round((x+Number.EPSILON)*100)/100;
 type Line=Record<string,unknown>;
 export async function GET(req:NextRequest){
  try{
-  const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});
+  const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!a.companyId)return NextResponse.json({error:'Select an authorized company'},{status:403});
   if(!a.user.roles.some(r=>r.role.active&&roles.includes(r.role.name)))return NextResponse.json({error:'Payroll reporting access restricted'},{status:403});
   const period=req.nextUrl.searchParams.get('period')||new Date().toISOString().slice(0,7);
   if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return NextResponse.json({error:'Invalid payroll month'},{status:400});
   const [batches,payments]=await Promise.all([
-   db.payrollCalculationBatch.findMany({where:{period,status:'APPROVED'},select:{id:true,createdAt:true,employeeCount:true,lineItems:true,approvals:{select:{action:true}}},orderBy:{createdAt:'desc'}}),
-   db.payrollPayment.findMany({where:{period},select:{id:true,batchId:true,employeeId:true,status:true,netAmount:true,method:true,branch:true,reference:true}})
+   db.payrollCalculationBatch.findMany({where:{period,status:'APPROVED',companyId:a.companyId},select:{id:true,createdAt:true,employeeCount:true,lineItems:true,approvals:{select:{action:true}}},orderBy:{createdAt:'desc'}}),
+   db.payrollPayment.findMany({where:{period,companyId:a.companyId},select:{id:true,batchId:true,employeeId:true,status:true,netAmount:true,method:true,branch:true,reference:true}})
   ]);
   const approved=batches.filter(b=>b.approvals.some(e=>e.action==='finance_approve'));
   const selected=new Map<string,{batchId:string;line:Line}>();let overlaps=0,invalid=0;
