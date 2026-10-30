@@ -17,7 +17,7 @@ const items=[
  {label:'Onboarding & Exit',href:'/onboarding',permission:'onboarding.view',Icon:LogOut},
  {label:'Disciplinary Management',href:'/disciplinary',permission:'disciplinary.view',Icon:ShieldAlert},
  {label:'Rewards & Recognition',href:'/',permission:'rewards.view',Icon:Award},
- {label:'Employee Self-Service',href:'/',permission:'selfservice.view',Icon:UserRound},
+ {label:'Employee Self-Service',href:'/self-service',permission:'selfservice.view',Icon:UserRound},
  {label:'Access & Audit Controls',href:'/access',permission:'access.view',Icon:ShieldCheck},
 ];
 const hiddenPaths=['/login'];
