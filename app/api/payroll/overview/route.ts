@@ -4,14 +4,15 @@ import {fail,ok} from '../../../../lib/http';
 export async function GET(){
  const a=await access();
  if(!a.user)return fail('Unauthorized',401);
+ if(!a.companyId)return fail('Company selection required',403);
  if(!a.can('payroll.view'))return fail('Payroll access required',403);
  const scoped=employeeWhere(a);
  const [employees,runs,byBranch]=await Promise.all([
   db.employee.count({where:{AND:[scoped,{status:'ACTIVE'}]}}),
-  db.payrollRun.findMany({orderBy:{period:'desc'},take:12,select:{id:true,period:true,status:true,grossAmount:true,netAmount:true,createdAt:true}}),
+  db.payrollRun.findMany({where:{companyId:a.companyId},orderBy:{period:'desc'},take:12,select:{id:true,period:true,status:true,grossAmount:true,netAmount:true,createdAt:true}}),
   db.employee.groupBy({by:['branchId'],where:{AND:[scoped,{status:'ACTIVE'}]},_count:{_all:true}})
  ]);
- const branches=await db.branch.findMany({where:{id:{in:byBranch.map(b=>b.branchId)}},select:{id:true,name:true}});
+ const branches=await db.branch.findMany({where:{companyId:a.companyId,id:{in:byBranch.map(b=>b.branchId)}},select:{id:true,name:true}});
  const names=new Map(branches.map(b=>[b.id,b.name]));
  const latest=runs[0]||null;
  // PayrollRun has no branch or employee links in the current schema. Show company-wide payroll
