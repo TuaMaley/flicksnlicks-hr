@@ -1,1 +1,9 @@
-import {access} from '../../../lib/auth';import {fail,ok} from '../../../lib/http';export async function GET(){const a=await access();if(!a.user)return fail('Unauthorized',401);return ok({name:a.user.name,email:a.user.email,employeeId:a.user.employeeId,permissions:[...a.keys],roles:a.user.roles.map(r=>r.role.name)})}
+import {access} from '../../../lib/auth';
+import {db} from '../../../lib/db';
+import {fail,ok} from '../../../lib/http';
+export async function GET(){
+ const a=await access();
+ if(!a.user)return fail('Unauthorized',401);
+ const platform=await db.user.findUnique({where:{id:a.user.id},select:{platformAdmin:true}});
+ return ok({name:a.user.name,email:a.user.email,employeeId:a.user.employeeId,permissions:[...a.keys],roles:a.user.roles.map(r=>r.role.name),platformAdmin:platform?.platformAdmin===true});
+}
