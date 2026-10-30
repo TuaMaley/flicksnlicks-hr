@@ -148,9 +148,6 @@ model Role {
   companyId String?
   company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
   @@index([companyId])
-  companyId String?
-  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  @@index([companyId])
   id          String           @id @default(cuid())
   name        String           @unique
   description String?
@@ -1215,7 +1212,6 @@ model AccessReview {
 model Company {
   branchRecords Branch[]
   employeeRecords Employee[]
-  roleRecords Role[]
   userAccessScopeRecords UserAccessScope[]
   leaveRequestRecords LeaveRequest[]
   leavePolicyRecords LeavePolicy[]
