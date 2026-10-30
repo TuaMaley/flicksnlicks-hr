@@ -1,0 +1,15 @@
+// ESS My Requests: additive model. Employee-owned HR inquiries.
+model EmployeeHRRequest {
+  id         String   @id @default(cuid())
+  employeeId String
+  category   String
+  subject    String
+  details    String
+  status     String   @default("PENDING")
+  response   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([employeeId, createdAt])
+  @@index([status])
+}
