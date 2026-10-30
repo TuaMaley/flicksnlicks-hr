@@ -66,6 +66,9 @@ enum DisciplinaryStatus {
 }
 
 model Branch {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id          String            @id @default(cuid())
   name        String            @unique
   location    String?
@@ -78,6 +81,9 @@ model Branch {
 }
 
 model Employee {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id                          String                       @id @default(cuid())
   employeeNo                  String                       @unique
   firstName                   String
@@ -139,6 +145,12 @@ model User {
 }
 
 model Role {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id          String           @id @default(cuid())
   name        String           @unique
   description String?
@@ -178,6 +190,9 @@ model UserRole {
 }
 
 model UserAccessScope {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id         String  @id @default(cuid())
   userId     String
   user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -190,6 +205,9 @@ model UserAccessScope {
 }
 
 model LeaveRequest {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id              String        @id @default(cuid())
   employeeId      String
   employee        Employee      @relation(fields: [employeeId], references: [id])
@@ -212,6 +230,9 @@ model LeaveRequest {
 }
 
 model LeavePolicy {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id            String   @id @default(cuid())
   type          String   @unique
   annualDays    Int      @default(0)
@@ -220,6 +241,9 @@ model LeavePolicy {
 }
 
 model LeaveEntitlement {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id         String   @id @default(cuid())
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id])
@@ -231,6 +255,9 @@ model LeaveEntitlement {
 }
 
 model Appraisal {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id         String          @id @default(cuid())
   employeeId String
   employee   Employee        @relation(fields: [employeeId], references: [id])
@@ -244,6 +271,9 @@ model Appraisal {
 }
 
 model AuditLog {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id        String   @id @default(cuid())
   actorId   String?
   action    String
@@ -258,6 +288,9 @@ model AuditLog {
 }
 
 model PayrollRun {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id          String        @id @default(cuid())
   period      String        @unique
   status      PayrollStatus @default(DRAFT)
@@ -267,6 +300,9 @@ model PayrollRun {
 }
 
 model Training {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id                  String                       @id @default(cuid())
   title               String
   description         String?
@@ -304,6 +340,9 @@ enum TrainingEnrollmentStatus {
 }
 
 model TrainingEnrollment {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id           String                       @id @default(cuid())
   trainingId   String
   employeeId   String
@@ -329,6 +368,9 @@ enum TrainingAttendanceStatus {
 }
 
 model TrainingAttendanceSession {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id          String               @id @default(cuid())
   trainingId  String
   sessionDate DateTime             @db.Date
@@ -343,6 +385,9 @@ model TrainingAttendanceSession {
 }
 
 model TrainingAttendance {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id           String                    @id @default(cuid())
   sessionId    String
   enrollmentId String
@@ -361,6 +406,9 @@ model TrainingAttendance {
 }
 
 model JobOpening {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id        String           @id @default(cuid())
   title     String
   branchId  String
@@ -373,6 +421,9 @@ model JobOpening {
 }
 
 model OnboardingCase {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id         String           @id @default(cuid())
   employeeId String
   employee   Employee         @relation(fields: [employeeId], references: [id])
@@ -385,6 +436,9 @@ model OnboardingCase {
 }
 
 model OnboardingTask {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id             String         @id @default(cuid())
   caseId         String
   onboardingCase OnboardingCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
@@ -403,6 +457,9 @@ model OnboardingTask {
 }
 
 model DisciplinaryCase {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id         String             @id @default(cuid())
   employeeId String
   employee   Employee           @relation(fields: [employeeId], references: [id])
@@ -430,6 +487,9 @@ model DisciplinaryCase {
 }
 
 model Recognition {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id         String   @id @default(cuid())
   employeeId String
   employee   Employee @relation(fields: [employeeId], references: [id])
@@ -440,6 +500,9 @@ model Recognition {
 }
 
 model AppraisalTemplate {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id            String            @id @default(cuid())
   name          String            @unique
   category      String
@@ -454,6 +517,9 @@ model AppraisalTemplate {
 }
 
 model AppraisalReview {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id             String            @id @default(cuid())
   employeeId     String
   employee       Employee          @relation(fields: [employeeId], references: [id])
@@ -477,6 +543,9 @@ model AppraisalReview {
 }
 
 model AppraisalCycle {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id              String                     @id @default(cuid())
   name            String
   period          String
@@ -493,6 +562,9 @@ model AppraisalCycle {
 }
 
 model AppraisalCycleAssignment {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id                 String         @id @default(cuid())
   cycleId            String
   cycle              AppraisalCycle @relation(fields: [cycleId], references: [id], onDelete: Cascade)
@@ -511,6 +583,9 @@ model AppraisalCycleAssignment {
 }
 
 model PerformanceImprovementPlan {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id          String                          @id @default(cuid())
   employeeId  String
   employee    Employee                        @relation(fields: [employeeId], references: [id])
@@ -534,6 +609,9 @@ model PerformanceImprovementPlan {
 }
 
 model PerformanceImprovementCheckIn {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id              String                     @id @default(cuid())
   planId          String
   plan            PerformanceImprovementPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
@@ -557,6 +635,9 @@ enum CompensationStatus {
 }
 
 model EmployeeCompensation {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id            String             @id @default(cuid())
   employeeId    String
   employee      Employee           @relation(fields: [employeeId], references: [id])
@@ -587,6 +668,9 @@ enum PayrollAttendanceStatus {
 }
 
 model PayrollAttendance {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id              String                  @id @default(cuid())
   employeeId      String
   employee        Employee                @relation(fields: [employeeId], references: [id])
@@ -612,6 +696,9 @@ model PayrollAttendance {
 // Payroll calculation snapshots: intentionally separate from legacy PayrollRun.
 // These are DRAFT estimates, not approved payments or statutory tax calculations.
 model PayrollCalculationBatch {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id                 String                 @id @default(cuid())
   period             String
   status             String                 @default("DRAFT")
@@ -629,6 +716,9 @@ model PayrollCalculationBatch {
 
 // Append-only review decisions. PayrollCalculationBatch.status is the current workflow state.
 model PayrollApprovalEvent {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id         String                  @id @default(cuid())
   batchId    String
   batch      PayrollCalculationBatch @relation(fields: [batchId], references: [id], onDelete: Restrict)
@@ -644,6 +734,9 @@ model PayrollApprovalEvent {
 
 // Effective-dated Ghana payroll settings. A new record is required when rules change.
 model GhanaPayrollPolicy {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id                  String    @id @default(cuid())
   effectiveFrom       DateTime  @unique @db.Date
   taxBands            Json
@@ -663,6 +756,9 @@ model GhanaPayrollPolicy {
 
 // Approved manual attendance / pension adjustments; do not infer absences from missing clock records.
 model GhanaPayrollAdjustment {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id            String    @id @default(cuid())
   employeeId    String
   employee      Employee  @relation(fields: [employeeId], references: [id])
@@ -684,6 +780,9 @@ model GhanaPayrollAdjustment {
 
 // Phase 15H: manual payroll payment register; does not transfer money.
 model PayrollPayment {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id                 String                @id @default(cuid())
   batchId            String
   employeeId         String
@@ -713,6 +812,9 @@ model PayrollPayment {
 }
 
 model PayrollPaymentEvent {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id         String         @id @default(cuid())
   paymentId  String
   payment    PayrollPayment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
@@ -728,6 +830,9 @@ model PayrollPaymentEvent {
 
 // Phase 3: Training evaluation and participant feedback.
 model TrainingEvaluationQuestion {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id         String                     @id @default(cuid())
   trainingId String
   prompt     String
@@ -743,6 +848,9 @@ model TrainingEvaluationQuestion {
 }
 
 model TrainingEvaluationResponse {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id           String                     @id @default(cuid())
   trainingId   String
   enrollmentId String
@@ -760,6 +868,9 @@ model TrainingEvaluationResponse {
 }
 
 model TrainingEvaluationAnswer {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id         String                     @id @default(cuid())
   responseId String
   questionId String
@@ -774,6 +885,9 @@ model TrainingEvaluationAnswer {
 
 // Phase 3: Employee exit and offboarding. Existing onboarding tables are unchanged.
 model EmployeeExitCase {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id              String             @id @default(cuid())
   employeeId      String
   employee        Employee           @relation(fields: [employeeId], references: [id])
@@ -795,6 +909,9 @@ model EmployeeExitCase {
 }
 
 model EmployeeExitTask {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id            String           @id @default(cuid())
   exitCaseId    String
   exitCase      EmployeeExitCase @relation(fields: [exitCaseId], references: [id], onDelete: Cascade)
@@ -811,6 +928,9 @@ model EmployeeExitTask {
 
 // Phase 2: append-only hearing and appeal records linked to existing cases.
 model DisciplinaryHearing {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id String @id @default(cuid())
   caseId String
   case DisciplinaryCase @relation(fields: [caseId], references: [id])
@@ -832,6 +952,9 @@ model DisciplinaryHearing {
 }
 
 model DisciplinaryAppeal {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id String @id @default(cuid())
   caseId String
   case DisciplinaryCase @relation(fields: [caseId], references: [id])
@@ -849,6 +972,9 @@ model DisciplinaryAppeal {
 
 // Phase 4: additive disciplinary workflow records; no changes to existing case data.
 model DisciplinaryApprovalRequest {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id String @id @default(cuid())
   caseId String
   requestedById String
@@ -864,6 +990,9 @@ model DisciplinaryApprovalRequest {
 }
 
 model DisciplinaryLetter {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id String @id @default(cuid())
   caseId String
   letterType String
@@ -878,6 +1007,9 @@ model DisciplinaryLetter {
 }
 
 model DisciplinaryNotice {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id String @id @default(cuid())
   caseId String
   recipientUserId String
@@ -889,6 +1021,9 @@ model DisciplinaryNotice {
 
 // Recruitment Phase 1 — additive staffing request and approval records.
 model RecruitmentRequisition {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id              String   @id @default(cuid())
   title           String
   department      String
@@ -916,6 +1051,9 @@ model RecruitmentRequisition {
 
 // Recruitment Phase 2 — additive; existing JobOpening records remain untouched.
 model RecruitmentVacancy {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id            String @id @default(cuid())
   requisitionId String
   requisition   RecruitmentRequisition @relation(fields: [requisitionId], references: [id], onDelete: Restrict)
@@ -933,6 +1071,9 @@ model RecruitmentVacancy {
 }
 
 model RecruitmentCandidate {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id            String @id @default(cuid())
   firstName     String
   lastName      String
@@ -945,6 +1086,9 @@ model RecruitmentCandidate {
 }
 
 model RecruitmentApplication {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id          String @id @default(cuid())
   vacancyId   String
   vacancy     RecruitmentVacancy @relation(fields: [vacancyId], references: [id], onDelete: Restrict)
@@ -962,6 +1106,9 @@ model RecruitmentApplication {
 
 // Recruitment Phase 3: one scheduled interview per application; multiple interviewer scorecards.
 model RecruitmentInterview {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id            String @id @default(cuid())
   applicationId String @unique
   application   RecruitmentApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
@@ -980,6 +1127,9 @@ model RecruitmentInterview {
 }
 
 model RecruitmentAssessment {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id              String @id @default(cuid())
   interviewId     String
   interview       RecruitmentInterview @relation(fields: [interviewId], references: [id], onDelete: Restrict)
@@ -999,6 +1149,9 @@ model RecruitmentAssessment {
 
 // Recruitment Phase 4: approvals, candidate response and controlled employee conversion.
 model RecruitmentOffer {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id             String @id @default(cuid())
   applicationId  String @unique
   application    RecruitmentApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
@@ -1021,6 +1174,9 @@ model RecruitmentOffer {
 
 // ESS My Requests: additive model. Employee-owned HR inquiries.
 model EmployeeHRRequest {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id         String   @id @default(cuid())
   employeeId String
   category   String
@@ -1037,6 +1193,9 @@ model EmployeeHRRequest {
 
 // Nexora access review workflow (additive; existing tables remain unchanged)
 model AccessReview {
+  companyId String?
+  company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  @@index([companyId])
   id          String   @id @default(cuid())
   userId      String
   user        User     @relation("AccessReviewSubject", fields: [userId], references: [id], onDelete: Restrict)
@@ -1054,6 +1213,59 @@ model AccessReview {
 
 // Nexora multi-company foundation — additive only; no existing records are reassigned here.
 model Company {
+  branchRecords Branch[]
+  employeeRecords Employee[]
+  roleRecords Role[]
+  userAccessScopeRecords UserAccessScope[]
+  leaveRequestRecords LeaveRequest[]
+  leavePolicyRecords LeavePolicy[]
+  leaveEntitlementRecords LeaveEntitlement[]
+  appraisalRecords Appraisal[]
+  auditLogRecords AuditLog[]
+  payrollRunRecords PayrollRun[]
+  trainingRecords Training[]
+  trainingEnrollmentRecords TrainingEnrollment[]
+  trainingAttendanceSessionRecords TrainingAttendanceSession[]
+  trainingAttendanceRecords TrainingAttendance[]
+  jobOpeningRecords JobOpening[]
+  onboardingCaseRecords OnboardingCase[]
+  onboardingTaskRecords OnboardingTask[]
+  disciplinaryCaseRecords DisciplinaryCase[]
+  recognitionRecords Recognition[]
+  appraisalTemplateRecords AppraisalTemplate[]
+  appraisalReviewRecords AppraisalReview[]
+  appraisalCycleRecords AppraisalCycle[]
+  appraisalCycleAssignmentRecords AppraisalCycleAssignment[]
+  performanceImprovementPlanRecords PerformanceImprovementPlan[]
+  performanceImprovementCheckInRecords PerformanceImprovementCheckIn[]
+  employeeCompensationRecords EmployeeCompensation[]
+  payrollAttendanceRecords PayrollAttendance[]
+  payrollCalculationBatchRecords PayrollCalculationBatch[]
+  payrollApprovalEventRecords PayrollApprovalEvent[]
+  ghanaPayrollPolicyRecords GhanaPayrollPolicy[]
+  ghanaPayrollAdjustmentRecords GhanaPayrollAdjustment[]
+  payrollPaymentRecords PayrollPayment[]
+  payrollPaymentEventRecords PayrollPaymentEvent[]
+  trainingEvaluationQuestionRecords TrainingEvaluationQuestion[]
+  trainingEvaluationResponseRecords TrainingEvaluationResponse[]
+  trainingEvaluationAnswerRecords TrainingEvaluationAnswer[]
+  employeeExitCaseRecords EmployeeExitCase[]
+  employeeExitTaskRecords EmployeeExitTask[]
+  disciplinaryHearingRecords DisciplinaryHearing[]
+  disciplinaryAppealRecords DisciplinaryAppeal[]
+  disciplinaryApprovalRequestRecords DisciplinaryApprovalRequest[]
+  disciplinaryLetterRecords DisciplinaryLetter[]
+  disciplinaryNoticeRecords DisciplinaryNotice[]
+  recruitmentRequisitionRecords RecruitmentRequisition[]
+  recruitmentVacancyRecords RecruitmentVacancy[]
+  recruitmentCandidateRecords RecruitmentCandidate[]
+  recruitmentApplicationRecords RecruitmentApplication[]
+  recruitmentInterviewRecords RecruitmentInterview[]
+  recruitmentAssessmentRecords RecruitmentAssessment[]
+  recruitmentOfferRecords RecruitmentOffer[]
+  employeeHRRequestRecords EmployeeHRRequest[]
+  accessReviewRecords AccessReview[]
+  roleRecords Role[]
   id          String   @id @default(cuid())
   name        String
   code        String   @unique
