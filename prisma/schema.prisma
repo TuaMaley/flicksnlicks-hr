@@ -128,6 +128,8 @@ model User {
   active       Boolean           @default(true)
   employeeId   String?           @unique
   employee     Employee?         @relation(fields: [employeeId], references: [id])
+  accessReviews AccessReview[] @relation("AccessReviewSubject")
+  assignedAccessReviews AccessReview[] @relation("AccessReviewReviewer")
   roles        UserRole[]
   scopes       UserAccessScope[]
   createdAt    DateTime          @default(now())
@@ -1028,4 +1030,21 @@ model EmployeeHRRequest {
 
   @@index([employeeId, createdAt])
   @@index([status])
+}
+
+// Nexora access review workflow (additive; existing tables remain unchanged)
+model AccessReview {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation("AccessReviewSubject", fields: [userId], references: [id], onDelete: Restrict)
+  reviewerId  String
+  reviewer    User     @relation("AccessReviewReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  status      String   @default("OPEN")
+  dueDate     DateTime
+  notes       String?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([userId, status])
+  @@index([dueDate, status])
 }
