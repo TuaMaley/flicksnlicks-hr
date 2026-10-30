@@ -11,11 +11,12 @@ async function guard(){
 }
 export async function GET(){
  const a=await guard();if('error'in a)return NextResponse.json({error:a.error},{status:a.status});
- const [companies,users]=await Promise.all([
+ const [companies,users,roles]=await Promise.all([
  db.company.findMany({include:{modules:true,memberships:{include:{user:{select:{id:true,name:true,email:true,active:true}},roles:{include:{role:{select:{id:true,name:true}}}}}}},orderBy:{createdAt:'desc'}}),
- db.user.findMany({select:{id:true,name:true,email:true,active:true},orderBy:{name:'asc'},take:1000})
+ db.user.findMany({select:{id:true,name:true,email:true,active:true},orderBy:{name:'asc'},take:1000}),
+ db.role.findMany({where:{active:true},select:{id:true,name:true},orderBy:{name:'asc'}})
  ]);
- return NextResponse.json({companies,users,moduleCatalog:modules},{headers:{'Cache-Control':'private, no-store'}});
+ return NextResponse.json({companies,users,roles,moduleCatalog:modules},{headers:{'Cache-Control':'private, no-store'}});
 }
 export async function POST(req:NextRequest){
  const a=await guard();if('error'in a)return NextResponse.json({error:a.error},{status:a.status});
