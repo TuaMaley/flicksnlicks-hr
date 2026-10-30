@@ -1,3 +1,4 @@
+import {activeTenant} from './tenant';
 import {cookies} from 'next/headers';
 import {createHmac,timingSafeEqual,scryptSync,randomBytes} from 'node:crypto';
 import {db} from './db';
@@ -21,12 +22,8 @@ export async function access(){
    where:{userId:user.id,active:true,company:{active:true}},
    select:{companyId:true,company:{select:{modules:{select:{moduleKey:true,enabled:true}}}}}
   });
-  const raw=(await cookies()).get('nexora_active_company')?.value||'';
-  const [companyId,sig]=raw.split('.');
-  const expected=companyId?sign(user.id+':'+companyId):'';
-  const signatureValid=!!sig&&sig.length===expected.length&&timingSafeEqual(Buffer.from(sig),Buffer.from(expected));
-  const selected=signatureValid?memberships.find(m=>m.companyId===companyId):undefined;
-  const company=selected||(memberships.length===1?memberships[0]:undefined);
+  const companyId=await activeTenant(user);
+  const company=memberships.find(m=>m.companyId===companyId);
   if(!company)keys.clear();
   else {
    const enabled=new Set(company.company.modules.filter(m=>m.enabled).map(m=>m.moduleKey));
@@ -37,6 +34,7 @@ export async function access(){
    }
   }
  }
- return {user,keys,can:(key:string)=>keys.has(key)};
+ const companyId=user?await activeTenant(user):null;
+ return {user,keys,companyId,can:(key:string)=>keys.has(key)};
 }
-export function employeeWhere(a:Awaited<ReturnType<typeof access>>){if(!a.user)return {id:'__none__'};const isGlobal=a.user.roles.some(r=>r.role.active&&(r.role.name==='Administrator'||r.role.name==='HR Manager'));if(isGlobal)return {};const scopes=a.user.scopes;const OR:any[]=[];for(const s of scopes){if(s.branchId&&s.department)OR.push({branchId:s.branchId,department:s.department});else if(s.branchId)OR.push({branchId:s.branchId});else if(s.department)OR.push({department:s.department})}if(a.user.employeeId)OR.push({id:a.user.employeeId});return OR.length?{OR}:{id:'__none__'}}
+export function employeeWhere(a:Awaited<ReturnType<typeof access>>){if(!a.user||!a.companyId)return {id:'__none__'};const tenant={companyId:a.companyId};const isGlobal=a.user.roles.some(r=>r.role.active&&(r.role.name==='Administrator'||r.role.name==='HR Manager'));if(isGlobal)return tenant;const scopes=a.user.scopes;const OR:any[]=[];for(const s of scopes){if(s.branchId&&s.department)OR.push({branchId:s.branchId,department:s.department});else if(s.branchId)OR.push({branchId:s.branchId});else if(s.department)OR.push({department:s.department})}if(a.user.employeeId)OR.push({id:a.user.employeeId});return OR.length?{AND:[tenant,{OR}]}:{id:'__none__'}}
