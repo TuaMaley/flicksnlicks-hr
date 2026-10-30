@@ -1,11 +1,11 @@
 import {NextRequest,NextResponse} from 'next/server';
-import {db} from '../../../../../lib/db';
-import {securityAdmin} from '../../../../../lib/accessSecurity';
+import {db} from '../../../../lib/db';
+import {securityAdmin} from '../../../../lib/accessSecurity';
 export async function GET(){
  const auth=await securityAdmin();if('error'in auth)return NextResponse.json({error:auth.error},{status:auth.status});
  const reviews=await db.accessReview.findMany({orderBy:{createdAt:'desc'},take:100});
  const ids=[...new Set(reviews.flatMap(r=>[r.userId,r.reviewerId]))];
- const users=await db.user.findMany({where:{id:{in:ids}},select:{id:true,name:true,email:true,active:true,roles:{include:{role:{select:{name:true}}}}}}});
+ const users=await db.user.findMany({where:{id:{in:ids}},select:{id:true,name:true,email:true,active:true,roles:{include:{role:{select:{name:true}}}}}});
  const byId=new Map(users.map(x=>[x.id,x]));
  return NextResponse.json({users:users.map(u=>({id:u.id,name:u.name,email:u.email,active:u.active})),reviews:reviews.map(r=>({...r,subject:byId.get(r.userId)||null,reviewer:byId.get(r.reviewerId)||null}))});
 }
