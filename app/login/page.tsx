@@ -3,7 +3,7 @@
 import './nexora-login.css';
 import { useState } from 'react';
 import Image from 'next/image';
-export default function Login(){const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[error,setError]=useState(''),[loading,setLoading]=useState(false);async function submit(e:React.FormEvent){e.preventDefault();setLoading(true);setError('');try{const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok)throw Error(d.error||'Sign in failed');location.href='/'}catch(e:any){setError(e.message)}finally{setLoading(false)}}return <main className="nexoraLoginPage">
+export default function Login(){const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[error,setError]=useState(''),[loading,setLoading]=useState(false);async function submit(e:React.FormEvent){e.preventDefault();setLoading(true);setError('');try{const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok)throw Error(d.error||'Sign in failed');const meResponse=await fetch('/api/me',{cache:'no-store'});if(!meResponse.ok)throw Error('Signed in, but unable to load account permissions');const me=await meResponse.json();location.replace(me.platformAdmin?'/platform':'/')}catch(e:any){setError(e.message)}finally{setLoading(false)}}return <main className="nexoraLoginPage">
   <div className="nexoraLoginRibbon nexoraLoginRibbonOne" aria-hidden="true" />
   <div className="nexoraLoginRibbon nexoraLoginRibbonTwo" aria-hidden="true" />
   <form className="nexoraLoginCard" onSubmit={submit}>
