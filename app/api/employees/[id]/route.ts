@@ -9,6 +9,7 @@ export async function PATCH(
 ) {
   const a = await access();
   if (!a.user) return fail('Unauthorized', 401);
+  if (!a.companyId) return fail('Select an authorized company', 403);
   if (!a.can('employees.edit')) return fail('Forbidden', 403);
   if (!a.user.roles.some(r =>
     r.role.active && (r.role.name === 'Administrator' || r.role.name === 'HR Manager')
@@ -48,6 +49,11 @@ export async function PATCH(
       return fail('Transfer permission required', 403);
     }
 
+    if (data.branchId) {
+      const branch = await db.branch.findFirst({where:{id:data.branchId as string,companyId:a.companyId}});
+      if (!branch) return fail('Invalid branch for selected company',400);
+    }
+
     if (d.hireDate !== undefined) {
       if (typeof d.hireDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d.hireDate)) {
         return fail('Hire Date must be in YYYY-MM-DD format', 400);
@@ -60,9 +66,12 @@ export async function PATCH(
     }
 
     const result = await db.$transaction(async tx => {
-      const employee = await tx.employee.update({ where: { id }, data });
+      const updated = await tx.employee.updateMany({where:{id,companyId:a.companyId!},data});
+      if(updated.count!==1)throw new Error('Employee no longer belongs to selected company');
+      const employee=await tx.employee.findFirstOrThrow({where:{id,companyId:a.companyId!}});
       await tx.auditLog.create({
         data: {
+          companyId:a.companyId!,
           actorId: a.user!.id,
           action: 'EMPLOYEE_UPDATED',
           entity: 'Employee',
