@@ -1,5 +1,5 @@
 import {NextRequest,NextResponse} from 'next/server';
-import {currentUser} from '../../../lib/auth';
+import {currentUser,hashPassword} from '../../../lib/auth';
 import {db} from '../../../lib/db';
 const modules=['employees','payroll','leave','training','recruitment','appraisals','onboarding','disciplinary','rewards','selfservice','access'];
 async function guard(){
@@ -43,6 +43,27 @@ export async function POST(req:NextRequest){
    await tx.auditLog.create({data:{actorId:a.user.id,action:'PLATFORM_MODULE_CHANGED',entity:'Company',entityId:company.id,detail:{moduleKey:body.moduleKey,enabled:body.enabled}}});
   });
   return NextResponse.json({success:true});
+ }
+ if(action==='createCompanyAdmin'){
+  const companyId=typeof body.companyId==='string'?body.companyId:'';
+  const name=typeof body.name==='string'?body.name.trim():'';
+  const email=typeof body.email==='string'?body.email.trim().toLowerCase():'';
+  const password=typeof body.password==='string'?body.password:'';
+  if(name.length<2||name.length>120||email.length>254||! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||password.length<12||password.length>256)
+   return NextResponse.json({error:'Valid name, email and password (12–256 characters) required'},{status:400});
+  const company=await db.company.findUnique({where:{id:companyId},select:{id:true,active:true}});
+  if(!company?.active)return NextResponse.json({error:'Select an active company'},{status:400});
+  // Existing HRMS operational authorization still uses UserRole, not only CompanyMembershipRole.
+  // Only the platform administrator can perform this bootstrap operation.
+  const adminRole=await db.role.findFirst({where:{name:'Administrator',active:true,OR:[{companyId:null},{companyId}]},select:{id:true,name:true}});
+  if(!adminRole)return NextResponse.json({error:'Active Administrator role not configured'},{status:409});
+  const result=await db.$transaction(async tx=>{
+   const u=await tx.user.create({data:{name,email,passwordHash:hashPassword(password),active:true,platformAdmin:false,roles:{create:{roleId:adminRole.id}}}});
+   const m=await tx.companyMembership.create({data:{companyId,userId:u.id,active:true,roles:{create:{roleId:adminRole.id}}}});
+   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_ADMIN_CREATED',entity:'User',entityId:u.id,detail:{companyId,membershipId:m.id,roleId:adminRole.id}}});
+   return {userId:u.id,membershipId:m.id};
+  });
+  return NextResponse.json({success:true,...result},{status:201});
  }
  if(action==='addMembership'){
   if(typeof body.companyId!=='string'||typeof body.userId!=='string')return NextResponse.json({error:'Select company and user'},{status:400});
