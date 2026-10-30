@@ -114,6 +114,7 @@ model Employee {
   trainingEnrollments         TrainingEnrollment[]
   trainingAttendance          TrainingAttendance[]
   trainingEvaluationResponses TrainingEvaluationResponse[]
+  recruitmentOffers RecruitmentOffer[]
 
   @@index([branchId])
   @@index([status])
@@ -949,6 +950,7 @@ model RecruitmentApplication {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   interview   RecruitmentInterview?
+  offer       RecruitmentOffer?
   @@unique([vacancyId, candidateId])
   @@index([status])
 }
@@ -988,4 +990,25 @@ model RecruitmentAssessment {
   createdAt       DateTime @default(now())
   @@unique([interviewId, reviewerId])
   @@index([interviewId])
+}
+
+// Recruitment Phase 4: approvals, candidate response and controlled employee conversion.
+model RecruitmentOffer {
+  id             String @id @default(cuid())
+  applicationId  String @unique
+  application    RecruitmentApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  salaryGhs      Decimal @db.Decimal(14, 2)
+  startDate      DateTime
+  offerTerms     String
+  status         String @default("PENDING_APPROVAL")
+  createdById    String
+  approvedById   String?
+  approvedAt     DateTime?
+  approvalNote   String?
+  respondedAt    DateTime?
+  employeeId     String? @unique
+  employee       Employee? @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@index([status])
 }
