@@ -1,8 +1,8 @@
 import {NextResponse} from 'next/server';
 import {PDFDocument,StandardFonts,rgb} from 'pdf-lib';
 import {randomUUID} from 'crypto';
-import {access} from '@/lib/auth';
-import {db} from '@/lib/db';
+import {access} from '../../../../lib/auth';
+import {db} from '../../../../lib/db';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 export async function POST(){
