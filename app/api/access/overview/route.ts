@@ -1,6 +1,7 @@
 import {NextResponse} from 'next/server';
 import {access} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
+import {selectedCompany} from '../../../../lib/companyContext';
 
 export const dynamic='force-dynamic';
 export async function GET(){
@@ -8,7 +9,11 @@ export async function GET(){
   const a=await access();
   if(!a.user)return NextResponse.json({error:'Unauthenticated'},{status:401});
   if(!a.can('access.users.manage'))return NextResponse.json({error:'Forbidden'},{status:403});
+  const context=await selectedCompany();
+  const companyId=context?.selected?.companyId;
+  if(!companyId)return NextResponse.json({error:'Select an authorized company'},{status:403});
   const users=await db.user.findMany({
+   where:{platformAdmin:false,companyMemberships:{some:{companyId,active:true,company:{active:true}}}},
    select:{id:true,name:true,email:true,active:true,createdAt:true,updatedAt:true,
     employee:{select:{employeeNo:true,department:true,branch:{select:{name:true}}}},
     roles:{select:{role:{select:{id:true,name:true,active:true,permissions:{select:{permission:{select:{key:true}}}}}}}},
