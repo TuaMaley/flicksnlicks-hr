@@ -5,7 +5,7 @@ export const dynamic='force-dynamic';
 type Action='submit'|'hr_approve'|'finance_approve'|'reject';
 export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}>}){
  try{
-  const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});
+  const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!a.companyId)return NextResponse.json({error:'Select an authorized company'},{status:403});
   const {id}=await params;const body=await req.json();const action:Action=body.action;
   if(!['submit','hr_approve','finance_approve','reject'].includes(action))return NextResponse.json({error:'Invalid action'},{status:400});
   const reason=typeof body.reason==='string'?body.reason.trim():'';
@@ -15,7 +15,7 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
   const isFinance=names.some(n=>['Finance','Finance Officer','Finance Manager','Administrator'].includes(n));
   const result=await db.$transaction(async tx=>{
    const batch=await tx.payrollCalculationBatch.findUnique({where:{id},include:{approvals:{orderBy:{createdAt:'asc'}}}});
-   if(!batch)return {error:'Payroll batch not found',status:404};
+   if(!batch||batch.companyId!==a.companyId)return {error:'Payroll batch not found',status:404};
    const state=batch.status;
    const rules:Record<Action,{from:string;to:string;role:boolean}>={
     submit:{from:'DRAFT',to:'HR_REVIEW',role:isHR},
@@ -31,9 +31,9 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
     const priorHR=batch.approvals.find(e=>e.action==='hr_approve');
     if(state==='FINANCE_REVIEW'&&priorHR?.actorId===a.user!.id)return {error:'Finance approval must be performed by someone other than the HR reviewer',status:403};
    }
-   const changed=await tx.payrollCalculationBatch.updateMany({where:{id,status:state},data:{status:rule.to}});
+   const changed=await tx.payrollCalculationBatch.updateMany({where:{id,companyId:a.companyId,status:state},data:{status:rule.to}});
    if(changed.count!==1)return {error:'Batch changed during review; refresh and try again',status:409};
-   await tx.payrollApprovalEvent.create({data:{batchId:id,actorId:a.user!.id,action,fromStatus:state,toStatus:rule.to,reason:reason||null}});
+   await tx.payrollApprovalEvent.create({data:{companyId:a.companyId,batchId:id,actorId:a.user!.id,action,fromStatus:state,toStatus:rule.to,reason:reason||null}});
    return {status:200,success:true,newStatus:rule.to};
   });
   if('error' in result)return NextResponse.json({error:result.error},{status:result.status});
