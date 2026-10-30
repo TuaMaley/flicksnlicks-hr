@@ -130,6 +130,8 @@ model User {
   employee     Employee?         @relation(fields: [employeeId], references: [id])
   accessReviews AccessReview[] @relation("AccessReviewSubject")
   assignedAccessReviews AccessReview[] @relation("AccessReviewReviewer")
+  companyMemberships CompanyMembership[]
+  platformAdmin Boolean @default(false)
   roles        UserRole[]
   scopes       UserAccessScope[]
   createdAt    DateTime          @default(now())
@@ -145,6 +147,7 @@ model Role {
   active      Boolean          @default(true)
   permissions RolePermission[]
   users       UserRole[]
+  companyMembershipRoles CompanyMembershipRole[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 }
@@ -1047,4 +1050,54 @@ model AccessReview {
   updatedAt   DateTime @updatedAt
   @@index([userId, status])
   @@index([dueDate, status])
+}
+
+// Nexora multi-company foundation — additive only; no existing records are reassigned here.
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  active      Boolean  @default(true)
+  country     String?
+  email       String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  memberships CompanyMembership[]
+  modules     CompanyModule[]
+}
+
+model CompanyMembership {
+  id        String   @id @default(cuid())
+  companyId String
+  userId    String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roles     CompanyMembershipRole[]
+
+  @@unique([companyId, userId])
+  @@index([userId, active])
+}
+
+model CompanyMembershipRole {
+  membershipId String
+  roleId       String
+  membership   CompanyMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  role         Role              @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@id([membershipId, roleId])
+}
+
+model CompanyModule {
+  companyId String
+  moduleKey String
+  enabled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@id([companyId, moduleKey])
 }
