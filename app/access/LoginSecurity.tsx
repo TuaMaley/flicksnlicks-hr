@@ -1,0 +1,8 @@
+'use client';
+import {useEffect,useState} from 'react';
+type Row={id:string;createdAt:string;action:string;actor:{name:string;email:string}|null;detail:unknown};
+export default function LoginSecurity(){
+ const [rows,setRows]=useState<Row[]>([]),[page,setPage]=useState(1),[total,setTotal]=useState(0),[error,setError]=useState('');
+ useEffect(()=>{let cancelled=false;fetch('/api/access/security?page='+page).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error||'Failed to load');if(!cancelled){setRows(d.items);setTotal(d.total)}}).catch(e=>{if(!cancelled)setError(e.message)});return()=>{cancelled=true}},[page]);
+ return <section className="workCard" style={{padding:22}}><h2>Login & Security</h2><p>Authentication activity recorded by the login/logout integration. This view does not automatically capture historical logins.</p>{error&&<p role="alert">{error}</p>}<div className="tableWrap"><table className="dataTable"><thead><tr><th>Time</th><th>Account</th><th>Event</th><th>Context</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{new Date(r.createdAt).toLocaleString()}</td><td>{r.actor?.name||r.actor?.email||'Unknown'}</td><td>{r.action}</td><td><details><summary>View</summary><pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(r.detail,null,2)||'—'}</pre></details></td></tr>)}</tbody></table></div>{rows.length===0&&<p>No authentication events have been recorded yet.</p>}<div style={{display:'flex',gap:12,alignItems:'center',marginTop:16}}><button className="outlineBtn" disabled={page===1} onClick={()=>setPage(x=>x-1)}>Previous</button><span>Page {page} · {total} events</span><button className="outlineBtn" disabled={page*25>=total} onClick={()=>setPage(x=>x+1)}>Next</button></div></section>
+}
