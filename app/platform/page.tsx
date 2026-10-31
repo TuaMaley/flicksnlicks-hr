@@ -16,7 +16,7 @@ export default function PlatformPage(){
  async function changeStatus(c:Company){const reason=window.prompt(`Reason for ${c.active?'suspending':'activating'} ${c.name} (minimum 8 characters):`);if(reason===null)return;if(reason.trim().length<8){setError('Reason must contain at least 8 characters');return;}if(!window.confirm(`${c.active?'Suspend':'Activate'} ${c.name}?`))return;await post({action:'setCompanyStatus',companyId:c.id,active:!c.active,reason:reason.trim()})}
  const chosen=data?.companies.find(c=>c.id===companyId);
  return <main className="workspace" style={{padding:24,maxWidth:1300,margin:'auto'}}><div className="workspaceHeading"><div><h1>Nexora Platform Administration</h1><p>Manage company registrations, memberships and module entitlements</p></div><a className="outlineBtn" href="/">Company HRMS →</a></div>
- <div style={{display:'flex',flexWrap:'wrap',gap:8,margin:'20px 0'}}>{tabs.map(t=><button type="button" key={t} className={tab===t?'primaryBtn':'outlineBtn'} onClick={()=>setTab(t)}>{t}</button>)}</div>
+ <div style={{display:'flex',flexWrap:'wrap',gap:8,margin:'20px 0'}}>{tabs.map(t=><button type="button" key={t} className={tab===t?'primaryBtn':'outlineBtn'} onClick={()=>setTab(t)}>{t}</button>)}<a className="outlineBtn" href="/platform/subscriptions" style={{display:'inline-flex',alignItems:'center',textDecoration:'none'}}>Subscriptions</a></div>
  {error&&<div className="formError" role="alert">{error}</div>}{notice&&<div className="successNotice">{notice}</div>}
  {!data&&!error&&<p>Loading platform…</p>}
  {data&&tab==='Overview'&&<section className="workCard" style={{padding:22}}>
