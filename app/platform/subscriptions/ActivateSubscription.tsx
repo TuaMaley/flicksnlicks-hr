@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 type Item={id:string;name:string};
 type Preview={company:Item;plan:Item;enable:string[];disable:string[];desired:string[]};
-export default function ActivateSubscription({plansRevision=0}:{plansRevision?:number}){
+export default function ActivateSubscription({plansRevision=0,onActivated}:{plansRevision?:number;onActivated?:()=>void}){
  const [companies,setCompanies]=useState<Item[]>([]),[plans,setPlans]=useState<Item[]>([]);
  const [companyId,setCompanyId]=useState(''),[planId,setPlanId]=useState('');
  const [startsAt,setStartsAt]=useState(''),[endsAt,setEndsAt]=useState(''),[reason,setReason]=useState('');
@@ -21,7 +21,7 @@ export default function ActivateSubscription({plansRevision=0}:{plansRevision?:n
 useEffect(()=>{refreshPlans().catch(e=>setError(e.message))},[plansRevision]);
  useEffect(()=>{setPreview(null);setMessage('')},[companyId,planId,startsAt,endsAt]);
  async function check(){setBusy(true);setError('');try{const r=await fetch('/api/platform/activation?companyId='+encodeURIComponent(companyId)+'&planId='+encodeURIComponent(planId),{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Preview failed');setPreview(d)}catch(e:any){setError(e.message)}finally{setBusy(false)}}
- async function activate(){if(!preview||!window.confirm('Activate subscription and APPLY module package? Excluded modules will be disabled.'))return;setBusy(true);setError('');try{const r=await fetch('/api/platform/activation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId,planId,startsAt,endsAt,reason,confirm:true})});const d=await r.json();if(!r.ok)throw Error(d.error||'Activation failed');setPreview(null);setMessage('Subscription activated and modules applied. Refresh the subscription list to see the new record.');setReason('')}catch(e:any){setError(e.message)}finally{setBusy(false)}}
+ async function activate(){if(!preview||!window.confirm('Activate subscription and APPLY module package? Excluded modules will be disabled.'))return;setBusy(true);setError('');try{const r=await fetch('/api/platform/activation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId,planId,startsAt,endsAt,reason,confirm:true})});const d=await r.json();if(!r.ok)throw Error(d.error||'Activation failed');setPreview(null);setMessage('Subscription activated and modules applied. Refresh the subscription list to see the new record.');setReason('');onActivated?.()}catch(e:any){setError(e.message)}finally{setBusy(false)}}
  return <section className="workCard" style={{padding:24,margin:'18px 0'}}><h2>Activate subscription with module licensing</h2><p>Choose an active company and saved plan. Preview the module changes, then explicitly approve activation. This creates the subscription and applies the package together.</p>
  {error&&<p role="alert" style={{color:'#b91c1c'}}>{error}</p>}{message&&<p role="status">{message}</p>}
  <div style={{display:'grid',gap:12,maxWidth:560}}>
