@@ -1,1 +1,8 @@
-import {db} from '../../../../lib/db';import {access} from '../../../../lib/auth';import {fail,ok} from '../../../../lib/http';export async function GET(){const a=await access();if(!a.user)return fail('Unauthorized',401);if(!a.companyId)return fail('Select a company',403);const membership=await db.companyMembership.findFirst({where:{companyId:a.companyId,userId:a.user.id,active:true},include:{roles:{include:{role:true}}}});if(!membership?.roles.some(r=>r.role.active&&(r.role.companyId===a.companyId && (r.role.name==='Administrator'||r.role.name.startsWith('Administrator [')))))return fail('Company administrator access required',403);return ok({branches:await db.branch.findMany({where:{companyId:a.companyId},orderBy:{name:'asc'}})})}
+import {db} from '../../../../lib/db';
+import {ok} from '../../../../lib/http';
+import {branchManagerAccess} from '../../../../lib/branchManagerAccess';
+export async function GET(){
+  const result=await branchManagerAccess();
+  if(result.error)return result.error;
+  return ok({branches:await db.branch.findMany({where:{companyId:result.a!.companyId!},orderBy:{name:'asc'}})});
+}
