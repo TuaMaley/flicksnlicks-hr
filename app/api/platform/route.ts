@@ -53,12 +53,17 @@ export async function POST(req:NextRequest){
    return NextResponse.json({error:'Valid name, email and password (12–256 characters) required'},{status:400});
   const company=await db.company.findUnique({where:{id:companyId},select:{id:true,active:true}});
   if(!company?.active)return NextResponse.json({error:'Select an active company'},{status:400});
-  // Existing HRMS operational authorization still uses UserRole, not only CompanyMembershipRole.
-  // Only the platform administrator can perform this bootstrap operation.
-  const adminRole=await db.role.findFirst({where:{name:'Administrator',active:true,OR:[{companyId:null},{companyId}]},select:{id:true,name:true}});
-  if(!adminRole)return NextResponse.json({error:'Active Administrator role not configured'},{status:409});
+  // The shared Administrator definition is provisioned if missing. Company privileges
+  // are assigned only through membership roles, never through global UserRole.
   const result=await db.$transaction(async tx=>{
-   const u=await tx.user.create({data:{name,email,passwordHash:hashPassword(password),active:true,platformAdmin:false,roles:{create:{roleId:adminRole.id}}}});
+   let adminRole=await tx.role.findUnique({where:{name:'Administrator'}});
+   if(adminRole && (!adminRole.active || adminRole.companyId))throw new Error('ADMIN_ROLE_CONFIGURATION');
+   if(!adminRole){
+    const permissions=await tx.permission.findMany({select:{id:true}});
+    if(!permissions.length)throw new Error('PERMISSION_CATALOG_MISSING');
+    adminRole=await tx.role.create({data:{name:'Administrator',description:'Shared HRMS Administrator role definition',system:true,protected:true,active:true,permissions:{create:permissions.map(p=>({permissionId:p.id}))}}});
+   }
+   const u=await tx.user.create({data:{name,email,passwordHash:hashPassword(password),active:true,platformAdmin:false}});
    const m=await tx.companyMembership.create({data:{companyId,userId:u.id,active:true,roles:{create:{roleId:adminRole.id}}}});
    await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_ADMIN_CREATED',entity:'User',entityId:u.id,detail:{companyId,membershipId:m.id,roleId:adminRole.id}}});
    return {userId:u.id,membershipId:m.id};
@@ -86,5 +91,5 @@ export async function POST(req:NextRequest){
   return NextResponse.json({success:true});
  }
  return NextResponse.json({error:'Unsupported action'},{status:400});
- }catch(e:any){console.error('Platform action failed',e);return NextResponse.json({error:e?.code==='P2002'?'Company code already exists':'Unable to complete platform action'},{status:e?.code==='P2002'?409:500})}
+ }catch(e:any){console.error('Platform action failed',e);const duplicate=e?.code==='P2002';const configuration=e?.message==='ADMIN_ROLE_CONFIGURATION'||e?.message==='PERMISSION_CATALOG_MISSING';return NextResponse.json({error:duplicate?'Company code or user email already exists':e?.message==='ADMIN_ROLE_CONFIGURATION'?'Administrator role is inactive or assigned to another company':e?.message==='PERMISSION_CATALOG_MISSING'?'Permission catalog is empty; run the existing bootstrap script':'Unable to complete platform action'},{status:duplicate||configuration?409:500})}
 }
