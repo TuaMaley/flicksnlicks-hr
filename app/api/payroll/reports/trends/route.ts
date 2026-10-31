@@ -8,12 +8,13 @@ const round=(x:number)=>Math.round((x+Number.EPSILON)*100)/100;
 export async function GET(req:NextRequest){
  try{
   const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});
+  if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});
   if(!a.user.roles.some(r=>r.role.active&&allowed.includes(r.role.name)))return NextResponse.json({error:'Reporting access restricted'},{status:403});
   const period=req.nextUrl.searchParams.get('period')||'';
   if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return NextResponse.json({error:'Invalid period'},{status:400});
   const [year,month]=period.split('-').map(Number);
   const months=Array.from({length:6},(_,i)=>{const d=new Date(Date.UTC(year,month-1-(5-i),1));return d.toISOString().slice(0,7)});
-  const batches=await db.payrollCalculationBatch.findMany({where:{period:{in:months},status:'APPROVED'},select:{id:true,period:true,createdAt:true,lineItems:true,approvals:{select:{action:true}}},orderBy:{createdAt:'desc'}});
+  const batches=await db.payrollCalculationBatch.findMany({where:{period:{in:months},status:'APPROVED',companyId:a.companyId},select:{id:true,period:true,createdAt:true,lineItems:true,approvals:{select:{action:true}}},orderBy:{createdAt:'desc'}});
   const result=months.map(p=>{
    const seen=new Set<string>();let gross=0,net=0,employerCost=0,paye=0,ssnit=0,complete=0,overlaps=0;
    for(const b of batches){if(b.period!==p||!b.approvals.some(e=>e.action==='finance_approve')||!Array.isArray(b.lineItems))continue;

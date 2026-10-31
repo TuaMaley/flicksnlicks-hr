@@ -3,8 +3,9 @@ import {compensationAccess,db} from '../helpers';
 export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}>}){
  const {a,canEdit,canApprove}=await compensationAccess();
  if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});
+ if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});
  const {id}=await params;
- const row=await db.employeeCompensation.findUnique({where:{id}});
+ const row=await db.employeeCompensation.findFirst({where:{id,companyId:a.companyId,employee:{companyId:a.companyId}}});
  if(!row)return NextResponse.json({error:'Not found'},{status:404});
  const d=await req.json();
  if(d.action==='submit'){

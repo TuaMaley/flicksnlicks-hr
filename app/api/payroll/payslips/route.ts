@@ -8,10 +8,11 @@ const roles=(a:Awaited<ReturnType<typeof access>>)=>a.user?.roles.filter(x=>x.ro
 export async function GET(req:NextRequest){
  try{
  const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});
+ if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});
  if(!roles(a).some(r=>['Administrator','HR Manager','Finance','Finance Officer','Finance Manager'].includes(r)))return NextResponse.json({error:'Payslip access is restricted to HR and Finance'},{status:403});
  const period=req.nextUrl.searchParams.get('period')||new Date().toISOString().slice(0,7);
  if(!periodOK(period))return NextResponse.json({error:'Invalid payroll month'},{status:400});
- const batches=await db.payrollCalculationBatch.findMany({where:{period,status:'APPROVED'},orderBy:{createdAt:'desc'},take:30,select:{id:true,period:true,status:true,createdAt:true,currency:true,lineItems:true,employeeCount:true,approvals:{select:{action:true,createdAt:true},orderBy:{createdAt:'asc'}}}});
+ const batches=await db.payrollCalculationBatch.findMany({where:{period,status:'APPROVED',companyId:a.companyId},orderBy:{createdAt:'desc'},take:30,select:{id:true,period:true,status:true,createdAt:true,currency:true,lineItems:true,employeeCount:true,approvals:{select:{action:true,createdAt:true},orderBy:{createdAt:'asc'}}}});
  const rows=batches.map(b=>{
  const items=Array.isArray(b.lineItems)?b.lineItems:[];
  const finalReview=b.approvals.some(x=>x.action==='finance_approve');
