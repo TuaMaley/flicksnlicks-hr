@@ -7,7 +7,11 @@ import { fail, ok } from '../../../../lib/http';
 export const runtime = 'nodejs';
 const HEADERS = ['First Name','Last Name','Email','Phone','Position','Department','Branch','Employment Type','Hire Date','Emergency Contact'];
 type Input = {row:number;firstName:string;lastName:string;email:string;phone:string;position:string;department:string;branch:string;branchId:string;employmentType:string;hireDate:string;emergencyContact:string};
-function authorized(a:Awaited<ReturnType<typeof access>>) {return !!a.user && !!a.companyId && a.can('employees.create') && a.user.roles.some(r=>r.role.active && ['Administrator','HR Manager'].includes(r.role.name));}
+function authorized(a:Awaited<ReturnType<typeof access>>) {
+ // Company-scoped access() resolves effective permissions from the selected tenant membership.
+ // Do not require a legacy global role name: company-specific HR roles may differ.
+ return !!a.user && !!a.companyId && a.can('employees.create');
+}
 function str(v:ExcelJS.CellValue):string {if(v==null)return '';if(typeof v==='string')return v.trim();if(typeof v==='number'||typeof v==='boolean')return String(v);if(v instanceof Date)return v.toISOString().slice(0,10);if(typeof v==='object'){if('text'in v)return String(v.text).trim();if('result'in v)return str(v.result as ExcelJS.CellValue);if('richText'in v)return v.richText.map(t=>t.text).join('').trim();}return '';}
 function validDate(s:string){if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const d=new Date(s+'T00:00:00.000Z');return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===s;}
 export async function GET(){const a=await access();if(!a.user)return fail('Unauthorized',401);if(!authorized(a))return fail('Forbidden',403);const book=new ExcelJS.Workbook();const sheet=book.addWorksheet('Employees');sheet.addRow(HEADERS);sheet.addRow(['Kofi','Andrew','kofi.andre@example.com','0244558847','Cashier','Operations','T-Junction','FULL_TIME','2026-10-27','0201234567']);sheet.getRow(1).font={bold:true};sheet.columns=HEADERS.map((h,i)=>({width:i===2?32:21}));sheet.getColumn(9).numFmt='@';sheet.getColumn(4).numFmt='@';sheet.getColumn(10).numFmt='@';sheet.views=[{state:'frozen',ySplit:1}];const buffer=await book.xlsx.writeBuffer();return new NextResponse(new Uint8Array(buffer as ArrayBuffer),{headers:{'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Content-Disposition':'attachment; filename="Nexora_Employee_Import_Template.xlsx"','Cache-Control':'no-store'}})}
