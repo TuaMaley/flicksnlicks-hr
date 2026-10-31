@@ -35,6 +35,36 @@ export async function POST(req:NextRequest){
   });
   return NextResponse.json({company},{status:201});
  }
+ if(action==='updateCompany'){
+  const companyId=typeof body.companyId==='string'?body.companyId:'';
+  const name=typeof body.name==='string'?body.name.trim():'';
+  const country=typeof body.country==='string'?body.country.trim():'';
+  const email=typeof body.email==='string'?body.email.trim():'';
+  const phone=typeof body.phone==='string'?body.phone.trim():'';
+  if(!companyId||name.length<2||name.length>120||country.length>80||email.length>254||phone.length>60|| (email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))return NextResponse.json({error:'Invalid company profile'},{status:400});
+  const company=await db.company.findUnique({where:{id:companyId}});
+  if(!company)return NextResponse.json({error:'Company not found'},{status:404});
+  const updated=await db.$transaction(async tx=>{
+   const result=await tx.company.update({where:{id:companyId},data:{name,country:country||null,email:email||null,phone:phone||null}});
+   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_UPDATED',entity:'Company',entityId:companyId,detail:{previous:{name:company.name,country:company.country,email:company.email,phone:company.phone},current:{name,country,email,phone}}}});
+   return result;
+  });
+  return NextResponse.json({company:updated});
+ }
+ if(action==='setCompanyStatus'){
+  const companyId=typeof body.companyId==='string'?body.companyId:'';
+  const active=body.active;
+  const reason=typeof body.reason==='string'?body.reason.trim():'';
+  if(!companyId||typeof active!=='boolean'||reason.length<8||reason.length>500)return NextResponse.json({error:'Company, status and reason (8–500 characters) required'},{status:400});
+  const company=await db.company.findUnique({where:{id:companyId}});
+  if(!company)return NextResponse.json({error:'Company not found'},{status:404});
+  if(company.active===active)return NextResponse.json({error:'Company already has that status'},{status:409});
+  await db.$transaction(async tx=>{
+   await tx.company.update({where:{id:companyId},data:{active}});
+   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:active?'PLATFORM_COMPANY_ACTIVATED':'PLATFORM_COMPANY_SUSPENDED',entity:'Company',entityId:companyId,detail:{previousActive:company.active,active,reason}}});
+  });
+  return NextResponse.json({success:true});
+ }
  if(action==='setModule'){
   if(typeof body.companyId!=='string'||!modules.includes(body.moduleKey)||typeof body.enabled!=='boolean')return NextResponse.json({error:'Invalid module assignment'},{status:400});
   const company=await db.company.findUnique({where:{id:body.companyId}});
