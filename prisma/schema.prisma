@@ -70,8 +70,10 @@ model Branch {
   company Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
   @@index([companyId])
   id          String            @id @default(cuid())
-  name        String            @unique
+  name        String
+  active      Boolean           @default(true)
   location    String?
+  @@unique([companyId, name])
   employees   Employee[]
   scopes      UserAccessScope[]
   jobOpenings JobOpening[]
