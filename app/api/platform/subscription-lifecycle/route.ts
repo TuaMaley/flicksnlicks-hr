@@ -22,7 +22,8 @@ export async function POST(req:NextRequest){
   if(typeof b.planId!=='string')return NextResponse.json({error:'Plan required'},{status:400});
   plan=await db.subscriptionPlan.findUnique({where:{id:b.planId}});
   if(!plan||!plan.active)return NextResponse.json({error:'Active plan not found'},{status:404});
-  const desired=[...new Set(Array.isArray(plan.moduleKeys)?plan.moduleKeys.filter((k):k is string=>typeof k==='string'&&KEYS.includes(k)):[])];
+  const rawKeys: unknown[] = Array.isArray(plan.moduleKeys) ? plan.moduleKeys : [];
+  const desired: string[] = [...new Set<string>(rawKeys.filter((k): k is string => typeof k === 'string' && KEYS.includes(k)))];
   const current=(await db.companyModule.findMany({where:{companyId:sub.companyId,enabled:true},select:{moduleKey:true}})).map(x=>x.moduleKey);
   details={oldPlan:sub.planName,newPlan:plan.name,enable:desired.filter(k=>!current.includes(k)),disable:current.filter(k=>!desired.includes(k)),desired};
  }
