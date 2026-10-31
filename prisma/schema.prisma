@@ -1275,6 +1275,7 @@ model Company {
   updatedAt   DateTime @updatedAt
   memberships CompanyMembership[]
   modules     CompanyModule[]
+  subscriptions PlatformSubscription[]
 }
 
 model CompanyMembership {
@@ -1312,14 +1313,17 @@ model CompanyModule {
   @@id([companyId, moduleKey])
 }
 
-// Company-specific department catalog (Phase 1E.3E)
-model CompanyDepartment {
-  id        String   @id @default(cuid())
+
+model PlatformSubscription {
+  id String @id @default(cuid())
   companyId String
-  name      String
-  active    Boolean  @default(true)
+  planName String
+  startsAt DateTime
+  endsAt DateTime
+  status String @default("ACTIVE")
+  notes String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  @@unique([companyId, name])
-  @@index([companyId])
+  company Company @relation(fields:[companyId], references:[id], onDelete:Restrict)
+  @@index([companyId,endsAt])
 }
