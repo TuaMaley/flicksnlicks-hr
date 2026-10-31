@@ -2,12 +2,23 @@
 import {useEffect,useState} from 'react';
 type Item={id:string;name:string};
 type Preview={company:Item;plan:Item;enable:string[];disable:string[];desired:string[]};
-export default function ActivateSubscription(){
+export default function ActivateSubscription({plansRevision=0}:{plansRevision?:number}){
  const [companies,setCompanies]=useState<Item[]>([]),[plans,setPlans]=useState<Item[]>([]);
  const [companyId,setCompanyId]=useState(''),[planId,setPlanId]=useState('');
  const [startsAt,setStartsAt]=useState(''),[endsAt,setEndsAt]=useState(''),[reason,setReason]=useState('');
  const [preview,setPreview]=useState<Preview|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
- useEffect(()=>{Promise.all([fetch('/api/platform/subscriptions',{cache:'no-store'}).then(r=>r.json()),fetch('/api/platform/plans',{cache:'no-store'}).then(r=>r.json())]).then(([s,p])=>{if(s.error||p.error)throw Error(s.error||p.error);setCompanies(s.companies||[]);setPlans((p.plans||[]).filter((x:{active:boolean})=>x.active));setCompanyId(s.companies?.[0]?.id||'');setPlanId(p.plans?.find((x:{active:boolean})=>x.active)?.id||'')}).catch(e=>setError(e.message))},[]);
+ async function refreshPlans(){
+  const [sr,pr]=await Promise.all([fetch('/api/platform/subscriptions',{cache:'no-store'}),fetch('/api/platform/plans',{cache:'no-store'})]);
+  const [s,p]=await Promise.all([sr.json(),pr.json()]);
+  if(!sr.ok||!pr.ok)throw Error(s.error||p.error||'Unable to refresh plans');
+  const activePlans:Item[]=(p.plans||[]).filter((x:{active:boolean})=>x.active);
+  setCompanies(s.companies||[]);
+  setPlans(activePlans);
+  setCompanyId(prev=>(s.companies||[]).some((c:Item)=>c.id===prev)?prev:(s.companies?.[0]?.id||''));
+  setPlanId(prev=>activePlans.some(x=>x.id===prev)?prev:(activePlans[0]?.id||''));
+  setPreview(null);
+}
+useEffect(()=>{refreshPlans().catch(e=>setError(e.message))},[plansRevision]);
  useEffect(()=>{setPreview(null);setMessage('')},[companyId,planId,startsAt,endsAt]);
  async function check(){setBusy(true);setError('');try{const r=await fetch('/api/platform/activation?companyId='+encodeURIComponent(companyId)+'&planId='+encodeURIComponent(planId),{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Preview failed');setPreview(d)}catch(e:any){setError(e.message)}finally{setBusy(false)}}
  async function activate(){if(!preview||!window.confirm('Activate subscription and APPLY module package? Excluded modules will be disabled.'))return;setBusy(true);setError('');try{const r=await fetch('/api/platform/activation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId,planId,startsAt,endsAt,reason,confirm:true})});const d=await r.json();if(!r.ok)throw Error(d.error||'Activation failed');setPreview(null);setMessage('Subscription activated and modules applied. Refresh the subscription list to see the new record.');setReason('')}catch(e:any){setError(e.message)}finally{setBusy(false)}}
@@ -18,7 +29,7 @@ export default function ActivateSubscription(){
  <label>Subscription plan <select value={planId} onChange={e=>setPlanId(e.target.value)}>{plans.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
  <label>Start date <input type="date" value={startsAt} onChange={e=>setStartsAt(e.target.value)}/></label>
  <label>Expiry date <input type="date" value={endsAt} onChange={e=>setEndsAt(e.target.value)}/></label>
- <button type="button" disabled={busy||!companyId||!planId||!startsAt||!endsAt} onClick={check}>Preview activation</button></div>
+ <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button type="button" disabled={busy} onClick={()=>refreshPlans().then(()=>setMessage("Subscription plans refreshed.")).catch(e=>setError(e.message))}>Refresh plans</button><button type="button" disabled={busy||!companyId||!planId||!startsAt||!endsAt} onClick={check}>Preview activation</button></div></div>
  {preview&&<div style={{border:'1px solid #ddd',borderRadius:8,padding:16,marginTop:16}}>
  <h3>Activation impact — {preview.company.name}</h3>
  <p><strong>Enable:</strong> {preview.enable.join(', ')||'None'}</p>
