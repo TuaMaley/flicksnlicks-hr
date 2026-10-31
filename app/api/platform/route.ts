@@ -56,12 +56,15 @@ export async function POST(req:NextRequest){
   // The shared Administrator definition is provisioned if missing. Company privileges
   // are assigned only through membership roles, never through global UserRole.
   const result=await db.$transaction(async tx=>{
-   let adminRole=await tx.role.findUnique({where:{name:'Administrator'}});
-   if(adminRole && (!adminRole.active || adminRole.companyId))throw new Error('ADMIN_ROLE_CONFIGURATION');
+   // Prefer a dedicated company role. Do not reassign or deactivate another
+   // company's existing Administrator role (legacy roles have globally unique names).
+   const roleName=`Administrator [${company.id}]`;
+   let adminRole=await tx.role.findUnique({where:{name:roleName}});
+   if(adminRole && (adminRole.companyId!==company.id || !adminRole.active))throw new Error('ADMIN_ROLE_CONFIGURATION');
    if(!adminRole){
     const permissions=await tx.permission.findMany({select:{id:true}});
     if(!permissions.length)throw new Error('PERMISSION_CATALOG_MISSING');
-    adminRole=await tx.role.create({data:{name:'Administrator',description:'Shared HRMS Administrator role definition',system:true,protected:true,active:true,permissions:{create:permissions.map(p=>({permissionId:p.id}))}}});
+    adminRole=await tx.role.create({data:{name:roleName,companyId:company.id,description:'Company HRMS Administrator',system:true,protected:true,active:true,permissions:{create:permissions.map(p=>({permissionId:p.id}))}}});
    }
    const u=await tx.user.create({data:{name,email,passwordHash:hashPassword(password),active:true,platformAdmin:false}});
    const m=await tx.companyMembership.create({data:{companyId,userId:u.id,active:true,roles:{create:{roleId:adminRole.id}}}});
@@ -83,7 +86,7 @@ export async function POST(req:NextRequest){
  if(action==='setMembershipRole'){
   if(typeof body.membershipId!=='string'||typeof body.roleId!=='string')return NextResponse.json({error:'Membership and role required'},{status:400});
   const [membership,role]=await Promise.all([db.companyMembership.findUnique({where:{id:body.membershipId}}),db.role.findUnique({where:{id:body.roleId}})]);
-  if(!membership||!role||!role.active)return NextResponse.json({error:'Membership or role not found'},{status:404});
+  if(!membership||!role||!role.active|| (role.companyId && role.companyId!==membership.companyId))return NextResponse.json({error:'Membership or eligible role not found'},{status:404});
   await db.$transaction(async tx=>{
    await tx.companyMembershipRole.upsert({where:{membershipId_roleId:{membershipId:membership.id,roleId:role.id}},create:{membershipId:membership.id,roleId:role.id},update:{}});
    await tx.auditLog.create({data:{actorId:a.user.id,action:'PLATFORM_MEMBERSHIP_ROLE_ASSIGNED',entity:'Company',entityId:membership.companyId,detail:{userId:membership.userId,roleId:role.id}}});
