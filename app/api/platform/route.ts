@@ -29,6 +29,7 @@ export async function POST(req:NextRequest){
   if(name.length<2||name.length>120||! /^[A-Z0-9_-]{2,30}$/.test(code))return NextResponse.json({error:'Valid company name and 2–30 character alphanumeric code required'},{status:400});
   const company=await db.$transaction(async tx=>{
    const c=await tx.company.create({data:{name,code,country:typeof body.country==='string'?body.country.slice(0,80):null}});
+   await tx.branch.create({data:{companyId:c.id,name:'Head Office'}});
    await tx.auditLog.create({data:{actorId:a.user.id,action:'PLATFORM_COMPANY_CREATED',entity:'Company',entityId:c.id,detail:{name,code}}});
    return c;
   });
