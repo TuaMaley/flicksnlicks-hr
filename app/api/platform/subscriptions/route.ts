@@ -1,6 +1,6 @@
 import {NextRequest,NextResponse} from 'next/server';
-import {currentUser} from '../../../lib/auth';
-import {db} from '../../../lib/db';
+import {currentUser} from '../../../../lib/auth';
+import {db} from '../../../../lib/db';
 async function guard(){
  const u=await currentUser();
  if(!u)return null;
