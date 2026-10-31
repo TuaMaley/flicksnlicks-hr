@@ -1311,3 +1311,15 @@ model CompanyModule {
 
   @@id([companyId, moduleKey])
 }
+
+// Company-specific department catalog (Phase 1E.3E)
+model CompanyDepartment {
+  id        String   @id @default(cuid())
+  companyId String
+  name      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([companyId, name])
+  @@index([companyId])
+}
