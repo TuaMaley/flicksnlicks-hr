@@ -1339,3 +1339,16 @@ model CompanyDepartment {
   @@unique([companyId, name])
   @@index([companyId])
 }
+
+// Phase 1E.4D: configurable pricing and module catalog. Additive only.
+model SubscriptionPlan {
+  id String @id @default(cuid())
+  name String @unique
+  monthlyPrice Decimal @default(0) @db.Decimal(12,2)
+  annualPrice Decimal @default(0) @db.Decimal(12,2)
+  currency String @default("GHS")
+  moduleKeys Json
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
