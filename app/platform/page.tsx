@@ -2,10 +2,11 @@
 import {useEffect,useState} from 'react';
 import SubscriptionsPage from './subscriptions/page';
 import PlatformAudit from './PlatformAudit';
+import PrivilegedAccessReviews from './PrivilegedAccessReviews';
 type Member={id:string;userId:string;active:boolean;user:{id:string;name:string;email:string};roles:{role:{id:string;name:string}}[]};
 type Company={id:string;name:string;code:string;active:boolean;country?:string|null;email?:string|null;phone?:string|null;modules:{moduleKey:string;enabled:boolean}[];memberships:Member[]};
 type Data={companies:Company[];users:{id:string;name:string;email:string}[];moduleCatalog:string[];roles:{id:string;name:string}[]};
-const tabs=['Overview','Companies','Modules','Memberships','Subscriptions','Platform Audit'] as const;
+const tabs=['Overview','Companies','Modules','Memberships','Subscriptions','Platform Audit','Access Reviews'] as const;
 export default function PlatformPage(){
  const [data,setData]=useState<Data|null>(null),[tab,setTab]=useState<(typeof tabs)[number]>('Overview'),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
  const [adminName,setAdminName]=useState(''),[adminEmail,setAdminEmail]=useState(''),[adminPassword,setAdminPassword]=useState('');const [roleId,setRoleId]=useState('');const [name,setName]=useState(''),[code,setCode]=useState(''),[country,setCountry]=useState(''),[companyId,setCompanyId]=useState(''),[userId,setUserId]=useState('');
@@ -46,5 +47,6 @@ export default function PlatformPage(){
  </section>}
  {data&&tab==='Subscriptions'&&<SubscriptionsPage embedded/>}
  {data&&tab==='Platform Audit'&&<PlatformAudit companies={data.companies.map(c=>({id:c.id,name:c.name}))}/>}
+ {data&&tab==='Access Reviews'&&<PrivilegedAccessReviews companies={data.companies.map(c=>({id:c.id,name:c.name}))}/>}
  </main>;
 }

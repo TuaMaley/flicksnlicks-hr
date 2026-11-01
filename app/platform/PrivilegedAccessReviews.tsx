@@ -1,0 +1,23 @@
+ 'use client';
+import {useEffect,useState} from 'react';
+type Role={id:string;name:string;active:boolean;protected:boolean;system:boolean};
+type Member={id:string;companyId:string;companyName:string;companyActive:boolean;active:boolean;user:{id:string;name:string;email:string;active:boolean;platformAdmin:boolean};roles:Role[];flags:string[]};
+type Review={id:string;status:string;dueDate:string;overdue:boolean;createdAt:string;companyId:string|null;notes:string|null;user:{name:string;email:string};reviewer:{name:string;email:string}};
+type Data={members:Member[];platformAdmins:{id:string;name:string;email:string;active:boolean}[];reviews:Review[];limited:boolean};
+export default function PrivilegedAccessReviews({companies}:{companies:{id:string;name:string}[]}){
+ const [companyId,setCompanyId]=useState(''),[data,setData]=useState<Data|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState('');
+ async function load(id:string){setLoading(true);setError('');try{const params=new URLSearchParams();if(id)params.set('companyId',id);const r=await fetch('/api/platform/access-reviews?'+params,{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to load reviews');setData(d)}catch(e){setError(e instanceof Error?e.message:'Unexpected error')}finally{setLoading(false)}}
+ useEffect(()=>{void load('')},[]);
+ const flagged=data?.members.filter(m=>m.flags.length)||[];
+ const open=data?.reviews.filter(r=>r.status==='OPEN')||[];
+ return <section className="workCard" style={{padding:22}}><h2>Privileged Access Review</h2><p>Read-only inventory of company memberships, platform administrators and existing access-review records. Flags are indicators for investigation, not proof of misuse.</p>
+ <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'end',margin:'16px 0'}}><label>Company<br/><select value={companyId} onChange={e=>{setCompanyId(e.target.value);void load(e.target.value)}}><option value="">All companies</option>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><button type="button" className="outlineBtn" disabled={loading} onClick={()=>void load(companyId)}>Refresh</button></div>
+ {error&&<p className="formError" role="alert">{error}</p>}{loading&&<p>Loading access review…</p>}
+ {data&&<><div style={{display:'flex',flexWrap:'wrap',gap:12,margin:'16px 0'}}>{[['Company memberships',data.members.length],['Flagged memberships',flagged.length],['Open reviews',open.length],['Overdue reviews',open.filter(r=>r.overdue).length],['Platform administrators',data.platformAdmins.length]].map(([label,count])=><div key={String(label)} style={{border:'1px solid #ddd',padding:14,borderRadius:10,minWidth:140}}><div style={{fontSize:23,fontWeight:700}}>{count}</div><div>{label}</div></div>)}</div>
+ {data.limited&&<p className="formError">Results have reached the safety limit. Filter by company for a narrower view; counts are not complete.</p>}
+ <h3>Company Memberships</h3><div className="tableWrap"><table className="dataTable"><thead><tr><th>User</th><th>Company</th><th>Status</th><th>Assigned roles</th><th>Review indicators</th></tr></thead><tbody>{data.members.map(m=><tr key={m.id}><td>{m.user.name}<div style={{fontSize:12}}>{m.user.email}</div></td><td>{m.companyName}</td><td>{m.active?'Active':'Inactive'}</td><td>{m.roles.map(r=>r.name).join(', ')||'None'}</td><td>{m.flags.length?m.flags.join('; '):'—'}</td></tr>)}</tbody></table></div>{!data.members.length&&<p>No company memberships found.</p>}
+ <h3 style={{marginTop:24}}>Existing Access Reviews</h3><div className="tableWrap"><table className="dataTable"><thead><tr><th>Subject</th><th>Status</th><th>Due date</th><th>Reviewer</th><th>Notes</th></tr></thead><tbody>{data.reviews.map(r=><tr key={r.id}><td>{r.user.name}</td><td>{r.status}{r.overdue?' (Overdue)':''}</td><td>{new Date(r.dueDate).toLocaleDateString()}</td><td>{r.reviewer.name}</td><td>{r.notes||'—'}</td></tr>)}</tbody></table></div>{!data.reviews.length&&<p>No access reviews recorded for this selection.</p>}
+ <h3 style={{marginTop:24}}>Platform Administrators</h3><div className="tableWrap"><table className="dataTable"><thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody>{data.platformAdmins.map(u=><tr key={u.id}><td>{u.name}</td><td>{u.email}</td><td>{u.active?'Active':'Inactive'}</td></tr>)}</tbody></table></div>
+ <p style={{fontSize:12,marginTop:18,color:'#64748b'}}>No access is granted, revoked or approved on this screen. Review decisions and alerts will be implemented in a subsequent security-controlled phase. Company filtering does not filter platform-wide administrators.</p></>}
+ </section>;
+}
