@@ -20,17 +20,19 @@ export async function access(){
  if(user&&!user.platformAdmin){
   const memberships=await db.companyMembership.findMany({
    where:{userId:user.id,active:true,company:{active:true}},
-   select:{companyId:true,roles:{select:{role:{select:{active:true,permissions:{select:{permission:{select:{key:true}}}}}}}},company:{select:{modules:{select:{moduleKey:true,enabled:true}}}}}
+   select:{companyId:true,roles:{select:{role:{select:{active:true,companyId:true,permissions:{select:{permission:{select:{key:true}}}}}}}},company:{select:{modules:{select:{moduleKey:true,enabled:true}}}}}
   });
   const companyId=await activeTenant(user);
   const company=memberships.find(m=>m.companyId===companyId);
   if(!company)keys.clear();
   else {
-   // Tenant membership permissions are scoped to the selected company.
-   // A user with a company role receives only that membership's permissions.
-   if(company.roles.length){
-    keys.clear();
-    for(const entry of company.roles)if(entry.role.active)for(const p of entry.role.permissions)keys.add(p.permission.key);
+   // Fail closed: global legacy roles must never grant company permissions.
+   // A membership without a role grants no operational permissions.
+   keys.clear();
+   for(const entry of company.roles){
+    const role=entry.role;
+    if(!role.active || (role.companyId && role.companyId!==companyId))continue;
+    for(const p of role.permissions)keys.add(p.permission.key);
    }
    const enabled=new Set(company.company.modules.filter(m=>m.enabled).map(m=>m.moduleKey));
    const prefixes=['employees','payroll','leave','training','recruitment','appraisals','onboarding','disciplinary','rewards','selfservice','access'];
