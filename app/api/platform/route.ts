@@ -107,20 +107,22 @@ export async function POST(req:NextRequest){
  if(action==='addMembership'){
   if(typeof body.companyId!=='string'||typeof body.userId!=='string')return NextResponse.json({error:'Select company and user'},{status:400});
   const [company,user]=await Promise.all([db.company.findUnique({where:{id:body.companyId}}),db.user.findUnique({where:{id:body.userId}})]);
-  if(!company||!user||user.platformAdmin)return NextResponse.json({error:'Invalid company or user'},{status:400});
+  if(!company?.active||!user?.active||user.platformAdmin)return NextResponse.json({error:'Company and user must be active, and platform administrators cannot be assigned company memberships'},{status:400});
   await db.$transaction(async tx=>{
    await tx.companyMembership.upsert({where:{companyId_userId:{companyId:company.id,userId:user.id}},create:{companyId:company.id,userId:user.id},update:{active:true}});
-   await tx.auditLog.create({data:{actorId:a.user.id,action:'PLATFORM_MEMBERSHIP_ASSIGNED',entity:'Company',entityId:company.id,detail:{userId:user.id}}});
+   await tx.auditLog.create({data:{actorId:a.user.id,companyId:company.id,action:'PLATFORM_MEMBERSHIP_ASSIGNED',entity:'Company',entityId:company.id,detail:{userId:user.id}}});
   });
   return NextResponse.json({success:true});
  }
  if(action==='setMembershipRole'){
   if(typeof body.membershipId!=='string'||typeof body.roleId!=='string')return NextResponse.json({error:'Membership and role required'},{status:400});
   const [membership,role]=await Promise.all([db.companyMembership.findUnique({where:{id:body.membershipId}}),db.role.findUnique({where:{id:body.roleId}})]);
-  if(!membership||!role||!role.active|| (role.companyId && role.companyId!==membership.companyId))return NextResponse.json({error:'Membership or eligible role not found'},{status:404});
+  if(!membership?.active||!role?.active|| (role.companyId && role.companyId!==membership.companyId))return NextResponse.json({error:'Active membership and eligible role required'},{status:404});
+  const [memberUser,memberCompany]=await Promise.all([db.user.findUnique({where:{id:membership.userId},select:{active:true,platformAdmin:true}}),db.company.findUnique({where:{id:membership.companyId},select:{active:true}})]);
+  if(!memberUser?.active||memberUser.platformAdmin||!memberCompany?.active)return NextResponse.json({error:'User and company must be active, and platform administrators cannot receive company roles'},{status:403});
   await db.$transaction(async tx=>{
    await tx.companyMembershipRole.upsert({where:{membershipId_roleId:{membershipId:membership.id,roleId:role.id}},create:{membershipId:membership.id,roleId:role.id},update:{}});
-   await tx.auditLog.create({data:{actorId:a.user.id,action:'PLATFORM_MEMBERSHIP_ROLE_ASSIGNED',entity:'Company',entityId:membership.companyId,detail:{userId:membership.userId,roleId:role.id}}});
+   await tx.auditLog.create({data:{actorId:a.user.id,companyId:membership.companyId,action:'PLATFORM_MEMBERSHIP_ROLE_ASSIGNED',entity:'Company',entityId:membership.companyId,detail:{userId:membership.userId,roleId:role.id}}});
   });
   return NextResponse.json({success:true});
  }
