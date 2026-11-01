@@ -1,10 +1,11 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {access,employeeWhere} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
-const manager=(a:Awaited<ReturnType<typeof access>>)=>Boolean(a.user?.roles.some(r=>r.role.active&&['Administrator','HR Manager','Branch Manager'].includes(r.role.name)));
+const manager=(a:Awaited<ReturnType<typeof access>>)=>Boolean(a.user && a.companyId && a.can('employees.edit'));
 export async function GET(req:NextRequest){
  try{
  const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});
+ if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});
  if(!manager(a)&&!a.can('employees.view'))return NextResponse.json({error:'Attendance access required'},{status:403});
  const month=req.nextUrl.searchParams.get('month')||new Date().toISOString().slice(0,7);
  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))return NextResponse.json({error:'Invalid month'},{status:400});
@@ -19,6 +20,7 @@ export async function GET(req:NextRequest){
 export async function POST(req:NextRequest){
  try{
  const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});
+ if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});
  if(!manager(a))return NextResponse.json({error:'Manager role required'},{status:403});
  const d=await req.json();if(typeof d.employeeId!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(d.workDate||''))return NextResponse.json({error:'Employee and date are required'},{status:400});
  const employee=await db.employee.findFirst({where:{AND:[employeeWhere(a),{id:d.employeeId}]}});if(!employee)return NextResponse.json({error:'Employee outside your scope'},{status:403});
