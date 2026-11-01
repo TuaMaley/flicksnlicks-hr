@@ -3,8 +3,8 @@ import {db} from '../../../lib/db';
 import {access,employeeWhere} from '../../../lib/auth';
 import {fail,ok} from '../../../lib/http';
 
-const manager=(a:Awaited<ReturnType<typeof access>>)=>Boolean(a.user?.roles.some(r=>r.role.active&&['HR Manager','Administrator','Branch Manager'].includes(r.role.name)));
-const hr=(a:Awaited<ReturnType<typeof access>>)=>Boolean(a.user?.roles.some(r=>r.role.active&&['HR Manager','Administrator'].includes(r.role.name)));
+const manager=(a:Awaited<ReturnType<typeof access>>)=>a.can('appraisals.edit');
+const hr=(a:Awaited<ReturnType<typeof access>>)=>a.can('appraisals.approve');
 const validGoals=(g:unknown)=>Array.isArray(g)&&g.length>0&&g.length<=12&&g.every(x=>x&&typeof x==='object'&&typeof x.objective==='string'&&x.objective.trim().length>=5&&x.objective.length<=500&&typeof x.measure==='string'&&x.measure.trim().length>=5&&x.measure.length<=500);
 
 export async function GET(){

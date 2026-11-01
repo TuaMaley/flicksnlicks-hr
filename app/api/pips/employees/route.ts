@@ -5,7 +5,7 @@ import {fail,ok} from '../../../../lib/http';
 export async function GET(){
  const a=await access();
  if(!a.user)return fail('Unauthorized',401);
- const canManage=a.user.roles.some(r=>r.role.active&&['HR Manager','Administrator','Branch Manager'].includes(r.role.name));
+ const canManage=a.can('appraisals.edit');
  if(!canManage||!a.can('appraisals.edit'))return fail('Forbidden',403);
  const employees=await db.employee.findMany({
   where:{AND:[employeeWhere(a),{id:{not:a.user.employeeId||'__none__'}}]},

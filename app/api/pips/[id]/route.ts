@@ -3,8 +3,8 @@ import {db} from '../../../../lib/db';
 import {access,employeeWhere} from '../../../../lib/auth';
 import {fail,ok} from '../../../../lib/http';
 
-const hr=(a:Awaited<ReturnType<typeof access>>)=>Boolean(a.user?.roles.some(r=>r.role.active&&['HR Manager','Administrator'].includes(r.role.name)));
-const manager=(a:Awaited<ReturnType<typeof access>>)=>Boolean(a.user?.roles.some(r=>r.role.active&&['HR Manager','Administrator','Branch Manager'].includes(r.role.name)));
+const hr=(a:Awaited<ReturnType<typeof access>>)=>a.can('appraisals.approve');
+const manager=(a:Awaited<ReturnType<typeof access>>)=>a.can('appraisals.edit');
 export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}>}){
  const a=await access();if(!a.user)return fail('Unauthorized',401);
  if(!manager(a)||!a.can('appraisals.edit'))return fail('Forbidden',403);
