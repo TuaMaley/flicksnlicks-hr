@@ -9,8 +9,16 @@ type Member={id:string;userId:string;active:boolean;user:{id:string;name:string;
 type Company={id:string;name:string;code:string;active:boolean;country?:string|null;email?:string|null;phone?:string|null;modules:{moduleKey:string;enabled:boolean}[];memberships:Member[]};
 type Data={companies:Company[];users:{id:string;name:string;email:string}[];moduleCatalog:string[];roles:{id:string;name:string}[]};
 const tabs=['Overview','Companies','Modules','Memberships','Subscriptions','Platform Audit','Access Reviews','Billing','Analytics'] as const;
+const navGroups=[
+ {label:'OVERVIEW',items:[['Overview','Dashboard','▦']]},
+ {label:'TENANT MANAGEMENT',items:[['Companies','Companies','▤'],['Modules','Module Entitlements','◫'],['Memberships','Memberships','♙']]},
+ {label:'COMMERCIAL',items:[['Subscriptions','Subscriptions','▣'],['Billing','Billing & Collections','▥']]},
+ {label:'INTELLIGENCE',items:[['Analytics','Analytics & Reports','▥']]},
+ {label:'GOVERNANCE',items:[['Platform Audit','Platform Audit','◉'],['Access Reviews','Access Reviews','◇']]}
+] as const;
+
 export default function PlatformPage(){
- const [data,setData]=useState<Data|null>(null),[tab,setTab]=useState<(typeof tabs)[number]>('Overview'),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
+ const [data,setData]=useState<Data|null>(null),[navOpen,setNavOpen]=useState(false),[tab,setTab]=useState<(typeof tabs)[number]>('Overview'),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
  const [adminName,setAdminName]=useState(''),[adminEmail,setAdminEmail]=useState(''),[adminPassword,setAdminPassword]=useState('');const [roleId,setRoleId]=useState('');const [name,setName]=useState(''),[code,setCode]=useState(''),[country,setCountry]=useState(''),[companyId,setCompanyId]=useState(''),[userId,setUserId]=useState('');
  async function load(){const r=await fetch('/api/platform',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to load platform');setData(d);setCompanyId(v=>v||d.companies[0]?.id||'')}
  useEffect(()=>{load().catch(e=>setError(e.message))},[]);
@@ -20,8 +28,15 @@ export default function PlatformPage(){
  function beginEdit(c:Company){setEditingCompany(c.id);setProfile({name:c.name,country:c.country||'',email:c.email||'',phone:c.phone||''});setError('');setNotice('')}
  async function changeStatus(c:Company){const reason=window.prompt(`Reason for ${c.active?'suspending':'activating'} ${c.name} (minimum 8 characters):`);if(reason===null)return;if(reason.trim().length<8){setError('Reason must contain at least 8 characters');return;}if(!window.confirm(`${c.active?'Suspend':'Activate'} ${c.name}?`))return;await post({action:'setCompanyStatus',companyId:c.id,active:!c.active,reason:reason.trim()})}
  const chosen=data?.companies.find(c=>c.id===companyId);
- return <main className="workspace" style={{padding:24,maxWidth:1300,margin:'auto'}}><div className="workspaceHeading"><div><h1>Nexora Platform Administration</h1><p>Manage company registrations, memberships and module entitlements</p></div><a className="outlineBtn" href="/">Company HRMS →</a></div>
- <div style={{display:'flex',flexWrap:'wrap',gap:8,margin:'20px 0'}}>{tabs.map(t=><button type="button" key={t} className={tab===t?'primaryBtn':'outlineBtn'} onClick={()=>setTab(t)}>{t}</button>)}</div>
+ return <main className="nexoraPlatformShell">
+ <style>{` .nexoraPlatformShell{display:flex;min-height:100vh;background:#f7f8fb;color:#172033}.nexoraSidebar{width:254px;flex-shrink:0;background:#111827;color:#e5e7eb;padding:24px 12px;position:sticky;top:0;height:100vh;overflow-y:auto}.nexoraBrand{padding:0 14px 22px;border-bottom:1px solid #334155;margin-bottom:20px}.nexoraBrand strong{font-size:23px;letter-spacing:1px;color:white}.nexoraNavGroup{margin:22px 0}.nexoraNavLabel{font-size:10px;letter-spacing:1.6px;color:#94a3b8;padding:0 14px;margin-bottom:9px}.nexoraNavItem{width:100%;display:flex;align-items:center;gap:12px;text-align:left;background:transparent;border:0;border-radius:9px;padding:11px 13px;color:#cbd5e1;cursor:pointer;font-size:13px}.nexoraNavItem:hover{background:#263245;color:white}.nexoraNavItem.active{background:#b91c1c;color:white;font-weight:700}.nexoraMain{min-width:0;flex:1;padding:24px 30px 48px;max-width:1600px}.nexoraTopbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;padding-bottom:17px;border-bottom:1px solid #e5e7eb}.nexoraTopbar h1{margin:0;font-size:24px}.nexoraTopbar p{margin:5px 0 0;color:#64748b;font-size:13px}.nexoraMobileToggle{display:none}.nexoraNavBackdrop{display:none}@media(max-width:850px){.nexoraSidebar{position:fixed;z-index:51;left:0;top:0;transform:translateX(-100%);transition:transform .2s}.nexoraSidebar.open{transform:translateX(0)}.nexoraNavBackdrop.open{display:block;position:fixed;inset:0;background:#0008;z-index:50}.nexoraMobileToggle{display:inline-flex}.nexoraMain{padding:18px 14px;width:100%}.nexoraTopbar h1{font-size:19px}}`}</style>
+ <div className={'nexoraNavBackdrop '+(navOpen?'open':'')} onClick={()=>setNavOpen(false)} aria-hidden="true"/>
+ <aside className={'nexoraSidebar '+(navOpen?'open':'')} aria-label="Platform navigation">
+  <div className="nexoraBrand"><strong>NEXORA</strong><div style={{fontSize:11,color:'#94a3b8',marginTop:4}}>PLATFORM ADMINISTRATION</div></div>
+  {navGroups.map(group=><div key={group.label} className="nexoraNavGroup"><div className="nexoraNavLabel">{group.label}</div>{group.items.map(([id,label,symbol])=><button key={id} type="button" className={'nexoraNavItem '+(tab===id?'active':'')} aria-current={tab===id?'page':undefined} onClick={()=>{setTab(id);setNavOpen(false);window.scrollTo({top:0,behavior:'smooth'})}}><span aria-hidden="true" style={{fontSize:17,width:20,textAlign:'center'}}>{symbol}</span>{label}</button>)}</div>)}
+  <a href="/" style={{display:'block',padding:'14px',color:'#cbd5e1',borderTop:'1px solid #334155',fontSize:13}}>← Company HRMS</a>
+ </aside>
+ <div className="nexoraMain"><div className="nexoraTopbar"><div style={{display:'flex',alignItems:'center',gap:12}}><button className="outlineBtn nexoraMobileToggle" type="button" aria-label="Open navigation" onClick={()=>setNavOpen(true)}>☰</button><div><h1>{tab==='Overview'?'Platform Dashboard':tab}</h1><p>Nexora · Platform Super Administrator</p></div></div><a className="outlineBtn" href="/">Company HRMS →</a></div>
  {error&&<div className="formError" role="alert">{error}</div>}{notice&&<div className="successNotice">{notice}</div>}
  {!data&&!error&&<p>Loading platform…</p>}
  {data&&tab==='Overview'&&<section className="workCard" style={{padding:22}}>
@@ -52,5 +67,5 @@ export default function PlatformPage(){
  {data&&tab==='Analytics'&&<PlatformAnalytics/>}
  {data&&tab==='Platform Audit'&&<PlatformAudit companies={data.companies.map(c=>({id:c.id,name:c.name}))}/>}
  {data&&tab==='Access Reviews'&&<PrivilegedAccessReviews companies={data.companies.map(c=>({id:c.id,name:c.name}))}/>}
- </main>;
+ </div></main>;
 }
