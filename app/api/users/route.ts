@@ -15,7 +15,7 @@ export async function GET(){
  const companyId=await authorizedCompany(a.user.id);if(!companyId)return fail('Select an authorized company',403);
  const memberships=await db.companyMembership.findMany({where:{companyId,active:true},select:{userId:true}});
  const ids=memberships.map(m=>m.userId);
- return ok({users:await db.user.findMany({where:{id:{in:ids}},select:{id:true,name:true,email:true,active:true,roles:{select:{role:{select:{id:true,name:true}}}},scopes:true},orderBy:{createdAt:'desc'},take:200})});
+ return ok({users:await db.user.findMany({where:{id:{in:ids}},select:{id:true,name:true,email:true,active:true,employeeId:true,roles:{select:{role:{select:{id:true,name:true}}}},scopes:true},orderBy:{createdAt:'desc'},take:200})});
 }
 export async function POST(req:NextRequest){
  const a=await access();if(!a.user)return fail('Unauthorized',401);

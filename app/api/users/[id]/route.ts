@@ -56,7 +56,7 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
    await tx.userAccessScope.deleteMany({where:{userId:id}});
    if(scopes.length)await tx.userAccessScope.createMany({data:scopes.map((s:any)=>({...s,userId:id,companyId}))});
    await tx.user.update({where:{id},data:{name:d.name.trim(),active:d.active,...(d.employeeId!==undefined?{employeeId:d.employeeId||null}:{}),...(d.password?{passwordHash:hashPassword(d.password)}:{})}});
-   await tx.auditLog.create({data:{companyId,actorId:a.user!.id,action:'USER_ACCESS_UPDATED',entity:'User',entityId:id,detail:{roles:roles.map(r=>r.name),scopes,active:d.active,passwordReset:!!d.password}}});
+   await tx.auditLog.create({data:{companyId,actorId:a.user!.id,action:'USER_ACCESS_UPDATED',entity:'User',entityId:id,detail:{roles:roles.map(r=>r.name),scopes,active:d.active,passwordReset:!!d.password,employeeLinkChanged:d.employeeId!==undefined&&d.employeeId!==target.employeeId,employeeId:d.employeeId!==undefined?(d.employeeId||null):target.employeeId}}});
   });
   return ok({success:true});
  }catch(e:any){
