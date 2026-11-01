@@ -1403,3 +1403,11 @@ model NexoraPayment {
   @@unique([companyId,method,reference])
   @@index([invoiceId,createdAt])
 }
+
+// Global Nexora platform configuration (never tenant-specific).
+model PlatformSetting {
+  key String @id
+  value Json
+  updatedById String?
+  updatedAt DateTime @updatedAt
+}
