@@ -31,6 +31,7 @@ const platformItems=[
  {label:'Analytics & Reports',section:'Analytics',Icon:BarChart3,group:'INTELLIGENCE'},
  {label:'Platform Audit',section:'Platform Audit',Icon:ShieldCheck,group:'GOVERNANCE'},
  {label:'Access Reviews',section:'Access Reviews',Icon:ShieldAlert,group:'GOVERNANCE'},
+ {label:'Global Settings',section:'Global Settings',Icon:Settings,group:'SYSTEM'},
 ];
 const hiddenPaths=['/login'];
 export default function ModuleShell({children}:{children:React.ReactNode}){
