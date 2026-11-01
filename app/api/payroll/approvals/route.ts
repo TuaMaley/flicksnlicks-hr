@@ -7,7 +7,7 @@ const allowed=(a:Awaited<ReturnType<typeof access>>)=>roles(a).some(r=>['Adminis
 export async function GET(req:NextRequest){
  try{
   const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!a.companyId)return NextResponse.json({error:'Select an authorized company'},{status:403});
-  if(!allowed(a))return NextResponse.json({error:'Payroll approvals access restricted to HR and Finance'},{status:403});
+  if(!a.can('payroll.view'))return NextResponse.json({error:'Payroll approvals access restricted to HR and Finance'},{status:403});
   const period=req.nextUrl.searchParams.get('period')||new Date().toISOString().slice(0,7);
   if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return NextResponse.json({error:'Invalid period'},{status:400});
   const batches=await db.payrollCalculationBatch.findMany({where:{period,companyId:a.companyId},orderBy:{createdAt:'desc'},take:100,include:{approvals:{orderBy:{createdAt:'asc'}}}});

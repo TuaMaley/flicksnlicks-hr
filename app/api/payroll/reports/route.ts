@@ -9,7 +9,7 @@ type Line=Record<string,unknown>;
 export async function GET(req:NextRequest){
  try{
   const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!a.companyId)return NextResponse.json({error:'Select an authorized company'},{status:403});
-  if(!a.user.roles.some(r=>r.role.active&&roles.includes(r.role.name)))return NextResponse.json({error:'Payroll reporting access restricted'},{status:403});
+  if(!a.can('payroll.view'))return NextResponse.json({error:'Payroll reporting access restricted'},{status:403});
   const period=req.nextUrl.searchParams.get('period')||new Date().toISOString().slice(0,7);
   if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return NextResponse.json({error:'Invalid payroll month'},{status:400});
   const [batches,payments]=await Promise.all([

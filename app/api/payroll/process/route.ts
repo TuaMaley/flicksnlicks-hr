@@ -3,7 +3,7 @@ import {access} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
 import {computeGhanaPayroll,TaxBand,roundMoney} from '../../../../lib/ghana-payroll';
 export const dynamic='force-dynamic';
-function authorized(a:Awaited<ReturnType<typeof access>>){return Boolean(a.user?.roles.some(r=>r.role.active&&['Administrator','HR Manager'].includes(r.role.name)))}
+function authorized(a:Awaited<ReturnType<typeof access>>){return a.can('payroll.create')}
 function validPeriod(s:string){return /^\d{4}-(0[1-9]|1[0-2])$/.test(s)}
 function parts(x:unknown):number {if(!Array.isArray(x))return 0;return x.reduce((t:number,i:any)=>t+(typeof i?.amount==='number'&&Number.isFinite(i.amount)?i.amount:0),0)}
 function category(position:string,department:string,rates:Record<string,number>){const p=position.toLowerCase(),d=department.toLowerCase();const candidates=[position,/branch manager/i.test(p)?'Branch Managers':'',/supervisor|team lead/i.test(p)?'Supervisors':'',/senior/i.test(p)?'Senior Staff':'',/head office/i.test(d)?'Head Office Staff':'','Junior Staff'];return candidates.find(c=>c&&Object.prototype.hasOwnProperty.call(rates,c))||''}

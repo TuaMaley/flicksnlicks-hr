@@ -9,7 +9,7 @@ export async function GET(req:NextRequest){
  try{
   const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});
   if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});
-  if(!a.user.roles.some(r=>r.role.active&&allowed.includes(r.role.name)))return NextResponse.json({error:'Reporting access restricted'},{status:403});
+  if(!a.can('payroll.view'))return NextResponse.json({error:'Reporting access restricted'},{status:403});
   const period=req.nextUrl.searchParams.get('period')||'';
   if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return NextResponse.json({error:'Invalid period'},{status:400});
   const [year,month]=period.split('-').map(Number);
