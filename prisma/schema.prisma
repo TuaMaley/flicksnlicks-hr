@@ -1276,6 +1276,9 @@ model Company {
   memberships CompanyMembership[]
   modules     CompanyModule[]
   subscriptions PlatformSubscription[]
+  billingProfile NexoraBillingProfile?
+  billingInvoices NexoraInvoice[]
+  billingPayments NexoraPayment[]
 }
 
 model CompanyMembership {
@@ -1351,4 +1354,52 @@ model SubscriptionPlan {
   active Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Nexora platform manual billing. Money is stored in minor units (integer cents/pesewas).
+model NexoraBillingProfile {
+  id String @id @default(cuid())
+  companyId String @unique
+  company Company @relation(fields:[companyId],references:[id],onDelete:Restrict)
+  billingName String
+  billingEmail String?
+  billingAddress String?
+  currency String @default("GHS")
+  paymentTermsDays Int @default(7)
+  updatedAt DateTime @updatedAt
+}
+model NexoraInvoice {
+  id String @id @default(cuid())
+  companyId String
+  company Company @relation(fields:[companyId],references:[id],onDelete:Restrict)
+  subscriptionId String?
+  invoiceNumber String @unique
+  description String
+  currency String
+  amountMinor Int
+  issuedAt DateTime @default(now())
+  dueAt DateTime
+  status String @default("ISSUED") // ISSUED or VOID; payment status is derived
+  notes String?
+  createdAt DateTime @default(now())
+  payments NexoraPayment[]
+  @@index([companyId,issuedAt])
+  @@index([dueAt,status])
+}
+model NexoraPayment {
+  id String @id @default(cuid())
+  companyId String
+  company Company @relation(fields:[companyId],references:[id],onDelete:Restrict)
+  invoiceId String
+  invoice NexoraInvoice @relation(fields:[invoiceId],references:[id],onDelete:Restrict)
+  amountMinor Int
+  currency String
+  method String
+  reference String
+  paidAt DateTime
+  notes String?
+  recordedById String
+  createdAt DateTime @default(now())
+  @@unique([companyId,method,reference])
+  @@index([invoiceId,createdAt])
 }
