@@ -8,7 +8,7 @@ export async function GET(req:NextRequest){
  try{
   const a=await access();
   if(!a.user)return fail('Unauthorized',401);
-  if(!a.can('training.view')||!a.can('training.edit'))return fail('Forbidden',403);
+  if(!a.can('training.view')||!a.can('training.edit'))return fail('Forbidden',403);if(!a.companyId)return fail('Company context required',403);
   const q=req.nextUrl.searchParams;
   const branch=q.get('branch')||'', department=q.get('department')||'', category=q.get('category')||'';
   const from=q.get('from')||'',to=q.get('to')||'';
@@ -18,12 +18,12 @@ export async function GET(req:NextRequest){
   const employeeFilter:any={AND:[scope]};
   if(branch)employeeFilter.AND.push({branch:{name:branch}});
   if(department)employeeFilter.AND.push({department});
-  const trainingWhere:any={};
+  const trainingWhere:any={companyId:a.companyId};
   if(category)trainingWhere.category=category;
   if(from||to)trainingWhere.startDate={...(from?{gte:new Date(from+'T00:00:00.000Z')}:{}),...(to?{lte:new Date(to+'T23:59:59.999Z')}:{})};
   const trainings=await db.training.findMany({where:trainingWhere,select:{id:true,title:true,category:true,status:true,trainer:true,startDate:true,estimatedCost:true},orderBy:{startDate:'desc'}});
   const ids=trainings.map(t=>t.id);
-  const enrollments=await db.trainingEnrollment.findMany({where:{trainingId:{in:ids},employee:employeeFilter},select:{id:true,trainingId:true,employeeId:true,status:true,employee:{select:{department:true,branch:{select:{name:true}}}}}});
+  const enrollments=await db.trainingEnrollment.findMany({where:{trainingId:{in:ids},companyId:a.companyId,employee:employeeFilter},select:{id:true,trainingId:true,employeeId:true,status:true,employee:{select:{department:true,branch:{select:{name:true}}}}}});
   const enrollmentIds=enrollments.map(e=>e.id);
   const attendance=await db.trainingAttendance.findMany({where:{enrollmentId:{in:enrollmentIds}},select:{enrollmentId:true,status:true,session:{select:{trainingId:true,sessionDate:true}}}});
   const responses=await db.trainingEvaluationResponse.findMany({where:{enrollmentId:{in:enrollmentIds},trainingId:{in:ids}},select:{trainingId:true,enrollmentId:true,answers:{select:{rating:true,question:{select:{category:true}}}}}});
