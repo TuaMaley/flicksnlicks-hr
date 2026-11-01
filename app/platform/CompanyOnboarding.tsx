@@ -1,0 +1,28 @@
+ 'use client';
+import {useEffect,useState} from 'react';
+type Plan={id:string;name:string;currency:string;moduleKeys:unknown};
+type Company={id:string;name:string;code:string;active:boolean;adminConfigured:boolean;subscriptionActive:boolean;enabledModules:number;ready:boolean;status:string};
+const initial={name:'',code:'',country:'Ghana',adminName:'',adminEmail:'',password:'',planId:'',startsAt:'',endsAt:'',reason:''};
+export default function CompanyOnboarding(){
+ const [form,setForm]=useState(initial),[plans,setPlans]=useState<Plan[]>([]),[companies,setCompanies]=useState<Company[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ async function load(){const r=await fetch('/api/platform/onboarding',{cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to load onboarding');setPlans(d.plans||[]);setCompanies(d.companies||[])}
+ useEffect(()=>{load().catch(e=>setError(e.message))},[]);
+ const set=(key:keyof typeof initial,value:string)=>setForm(f=>({...f,[key]:value}));
+ async function submit(e:React.FormEvent){e.preventDefault();setError('');setNotice('');if(!window.confirm('Provision this company, create its administrator, activate the plan and enable the plan modules?'))return;setBusy(true);try{const r=await fetch('/api/platform/onboarding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...form,confirm:true})});const d=await r.json();if(!r.ok)throw Error(d.error||'Provisioning failed');setNotice('Company '+d.code+' successfully provisioned. Share initial credentials securely and require a password change.');setForm(initial);await load()}catch(err:any){setError(err.message)}finally{setBusy(false)}}
+ const selected=plans.find(p=>p.id===form.planId);
+ return <section className="workCard" style={{padding:22}}>
+  <h2>Company Onboarding & Provisioning</h2><p>Provision a new tenant in one audited transaction. Existing companies are listed below for setup review.</p>
+  {error&&<div className="formError" role="alert">{error}</div>}{notice&&<div className="successNotice">{notice}</div>}
+  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(175px,1fr))',gap:12,margin:'18px 0'}}>{[['Registered companies',companies.length],['Ready for use',companies.filter(c=>c.ready&&c.active).length],['Setup incomplete',companies.filter(c=>!c.ready).length]].map(([k,v])=><div key={String(k)} style={{border:'1px solid #dbe2ea',borderRadius:10,padding:14}}><div style={{color:'#64748b',fontSize:13}}>{k}</div><strong style={{fontSize:25}}>{v}</strong></div>)}</div>
+  <h3>Provision a company</h3>
+  <form onSubmit={submit} style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:14,marginTop:14}}>
+  {([['name','Company name'],['code','Company code'],['country','Country'],['adminName','Administrator full name'],['adminEmail','Administrator email'],['password','Initial administrator password'],['startsAt','Subscription start'],['endsAt','Subscription end'],['reason','Onboarding approval reason']] as const).map(([key,label])=><label key={key} style={{display:'block',fontSize:13,fontWeight:600}}>{label}<input style={{width:'100%',marginTop:6}} required type={key==='password'?'password':key==='adminEmail'?'email':key==='startsAt'||key==='endsAt'?'date':'text'} minLength={key==='password'?12:key==='reason'?8:undefined} maxLength={key==='code'?30:key==='reason'?500:undefined} autoComplete={key==='password'?'new-password':'off'} value={form[key]} onChange={e=>set(key,e.target.value)}/></label>)}
+  <label style={{fontSize:13,fontWeight:600}}>Subscription plan<select required style={{display:'block',width:'100%',marginTop:6}} value={form.planId} onChange={e=>set('planId',e.target.value)}><option value="">Select active plan</option>{plans.map(p=><option key={p.id} value={p.id}>{p.name} ({p.currency})</option>)}</select></label>
+  <div style={{gridColumn:'1 / -1',fontSize:13,color:'#475569'}}>Plan entitlements: {selected&&Array.isArray(selected.moduleKeys)?selected.moduleKeys.join(', ')||'No modules':'Select a plan to preview its modules'}. The plan determines enabled modules; this screen does not charge customers or send email.</div>
+  <div style={{gridColumn:'1 / -1'}}><button className="primaryBtn" type="submit" disabled={busy||!plans.length}>{busy?'Provisioning…':'Confirm and provision company'}</button></div>
+  </form>
+  <h3 style={{marginTop:30}}>Company setup status</h3>
+  <div className="tableWrap"><table className="dataTable"><thead><tr><th>Company</th><th>Administrator</th><th>Subscription</th><th>Enabled modules</th><th>Status</th></tr></thead><tbody>{companies.map(c=><tr key={c.id}><td>{c.name}<div style={{fontSize:12,color:'#64748b'}}>{c.code}</div></td><td>{c.adminConfigured?'Configured':'Missing'}</td><td>{c.subscriptionActive?'Current':'Missing / expired'}</td><td>{c.enabledModules}</td><td>{c.status}</td></tr>)}</tbody></table></div>
+  <p style={{fontSize:13,color:'#92400e',marginTop:16}}>Readiness is based on current company records, administrator membership, an in-date active subscription, and enabled modules. It does not certify that all tenant HRMS API isolation and authorization controls have been independently audited.</p>
+ </section>;
+}
