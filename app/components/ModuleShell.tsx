@@ -24,9 +24,7 @@ const items=[
 const platformItems=[
  {label:'Dashboard',section:'Overview',Icon:LayoutDashboard,group:'OVERVIEW'},
  {label:'Companies',section:'Companies',Icon:UsersRound,group:'TENANT MANAGEMENT'},
- {label:'Company Onboarding',section:'Company Onboarding',Icon:UserPlus,group:'TENANT MANAGEMENT'},
  {label:'Module Entitlements',section:'Modules',Icon:Settings,group:'TENANT MANAGEMENT'},
- {label:'Memberships',section:'Memberships',Icon:Users,group:'TENANT MANAGEMENT'},
  {label:'Subscriptions',section:'Subscriptions',Icon:Wallet,group:'COMMERCIAL'},
  {label:'Billing & Collections',section:'Billing',Icon:Wallet,group:'COMMERCIAL'},
  {label:'Analytics & Reports',section:'Analytics',Icon:BarChart3,group:'INTELLIGENCE'},
