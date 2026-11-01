@@ -9,11 +9,12 @@ export async function POST(){
  try{
   const a=await access();
   if(!a.user)return NextResponse.json({error:'Unauthenticated'},{status:401});
+  if(!a.companyId)return NextResponse.json({error:'Company context required'},{status:403});
   if(!a.can('selfservice.view'))return NextResponse.json({error:'Forbidden'},{status:403});
   if(!a.user.employeeId)return NextResponse.json({error:'Account not linked to an employee'},{status:403});
-  const e=await db.employee.findUnique({where:{id:a.user.employeeId},select:{id:true,employeeNo:true,firstName:true,lastName:true,hireDate:true,status:true}});
+  const e=await db.employee.findFirst({where:{id:a.user.employeeId,companyId:a.companyId},select:{id:true,employeeNo:true,firstName:true,lastName:true,hireDate:true,status:true}});
   if(!e||e.status!=='ACTIVE')return NextResponse.json({error:'Only active employees may generate a letter'},{status:403});
-  const c=await db.employeeCompensation.findFirst({where:{employeeId:e.id,status:'APPROVED',effectiveDate:{lte:new Date()}},orderBy:[{effectiveDate:'desc'},{createdAt:'desc'}],select:{basicSalary:true,currency:true}});
+  const c=await db.employeeCompensation.findFirst({where:{employeeId:e.id,companyId:a.companyId,status:'APPROVED',effectiveDate:{lte:new Date()}},orderBy:[{effectiveDate:'desc'},{createdAt:'desc'}],select:{basicSalary:true,currency:true}});
   if(!c)return NextResponse.json({error:'No effective approved basic salary found. Contact HR.'},{status:409});
   const ref='EVL-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+randomUUID().slice(0,8).toUpperCase();
   const date=(d:Date)=>d.toLocaleDateString('en-GB',{timeZone:'UTC',day:'numeric',month:'long',year:'numeric'});
