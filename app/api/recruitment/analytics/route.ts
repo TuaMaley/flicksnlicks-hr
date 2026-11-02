@@ -9,8 +9,9 @@ export async function GET(req:NextRequest){
  try{
   const a=await access();
   if(!a.user)return fail('Unauthorized',401);
+  if(!a.companyId)return fail('Company selection required',403);
   if(!a.can('recruitment.view'))return fail('Forbidden',403);
-  const branchScope={branch:{employees:{some:employeeWhere(a)}}};
+  const branchScope={companyId:a.companyId,branch:{companyId:a.companyId,employees:{some:employeeWhere(a)}}};
   const appScope={vacancy:branchScope};
   const [requisitions,vacancies,applications,interviews,offers]=await Promise.all([
    db.recruitmentRequisition.findMany({where:branchScope,select:{id:true,status:true,createdAt:true}}),
