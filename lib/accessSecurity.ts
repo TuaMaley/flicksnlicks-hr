@@ -4,6 +4,7 @@ import {db} from './db';
 export async function securityAdmin(){
  const a=await access();
  if(!a.user)return {error:'Unauthorized',status:401} as const;
+ if(!a.companyId)return {error:'Active company membership required',status:403} as const;
  if(!a.can('access.users.manage')&&!a.can('access.roles.manage'))return {error:'Forbidden',status:403} as const;
  return {user:a.user} as const;
 }
