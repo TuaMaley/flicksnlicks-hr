@@ -2,10 +2,12 @@ import {access,employeeWhere} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
 export async function compensationAccess(){
  const a=await access();
- const hr=Boolean(a.user?.roles.some(r=>r.role.active&&['Administrator','HR Manager'].includes(r.role.name)));
- const canView=hr||a.can('employees.salary.view');
- const canEdit=hr&&a.can('employees.edit');
- const canApprove=Boolean(a.user?.roles.some(r=>r.role.active&&r.role.name==='Administrator'))&&a.can('employees.salary.view');
+ // Never authorize company payroll from legacy global role names.
+ // Every permission is resolved from the active company's membership.
+ const tenant=Boolean(a.user && a.companyId);
+ const canView=tenant && a.can('employees.salary.view');
+ const canEdit=tenant && a.can('employees.salary.view') && a.can('employees.edit');
+ const canApprove=tenant && a.can('employees.salary.view') && a.can('payroll.approve');
  return {a,canView,canEdit,canApprove};
 }
 export function moneyParts(value:unknown){

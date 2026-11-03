@@ -4,11 +4,17 @@ import {NextResponse} from 'next/server';
 const categories=['GENERAL','DOCUMENT','EMPLOYMENT_VERIFICATION','PAYROLL','OTHER'];
 export async function GET(){
  try{const a=await access();if(!a.user)return NextResponse.json({error:'Unauthenticated'},{status:401});if(!a.can('selfservice.view'))return NextResponse.json({error:'Forbidden'},{status:403});if(!a.user.employeeId)return NextResponse.json({error:'Your account is not linked to an employee record'},{status:403});
+  if(!a.companyId)return NextResponse.json({error:'Select an authorized company'},{status:403});
+  const linkedEmployee=await db.employee.findFirst({where:{id:a.user.employeeId,companyId:a.companyId},select:{id:true}});
+  if(!linkedEmployee)return NextResponse.json({error:'Employee not accessible in this company'},{status:403});
  const requests=await db.employeeHRRequest.findMany({where:{employeeId:a.user.employeeId},select:{id:true,category:true,subject:true,details:true,status:true,response:true,createdAt:true,updatedAt:true},orderBy:{createdAt:'desc'},take:100});
  return NextResponse.json({requests},{headers:{'Cache-Control':'no-store'}});
  }catch(e){console.error('ESS requests GET',e);return NextResponse.json({error:'Unable to load requests'},{status:500})}}
 export async function POST(req:Request){
  try{const a=await access();if(!a.user)return NextResponse.json({error:'Unauthenticated'},{status:401});if(!a.can('selfservice.edit'))return NextResponse.json({error:'Forbidden'},{status:403});if(!a.user.employeeId)return NextResponse.json({error:'Your account is not linked to an employee record'},{status:403});
+  if(!a.companyId)return NextResponse.json({error:'Select an authorized company'},{status:403});
+  const linkedEmployee=await db.employee.findFirst({where:{id:a.user.employeeId,companyId:a.companyId},select:{id:true}});
+  if(!linkedEmployee)return NextResponse.json({error:'Employee not accessible in this company'},{status:403});
  const body=await req.json().catch(()=>null);if(!body||typeof body!=='object')return NextResponse.json({error:'Invalid request body'},{status:400});
  const category=typeof body.category==='string'?body.category:'';
  const subject=typeof body.subject==='string'?body.subject.trim():'';

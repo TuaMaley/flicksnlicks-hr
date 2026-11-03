@@ -8,6 +8,9 @@ export async function GET(){
   if(!a.user)return NextResponse.json({error:'Unauthenticated'},{status:401});
   if(!a.can('selfservice.view'))return NextResponse.json({error:'Forbidden'},{status:403});
   if(!a.user.employeeId)return NextResponse.json({error:'Your account is not linked to an employee record. Contact HR.'},{status:403});
+  if(!a.companyId)return NextResponse.json({error:'Select an authorized company'},{status:403});
+  const linkedEmployee=await db.employee.findFirst({where:{id:a.user.employeeId,companyId:a.companyId},select:{id:true}});
+  if(!linkedEmployee)return NextResponse.json({error:'Employee not accessible in this company'},{status:403});
   const employeeId=a.user.employeeId;
   const [reviews,cycles]=await Promise.all([
    db.appraisalReview.findMany({where:{employeeId},select:{id:true,period:true,status:true,score:true,selfComment:true,managerComment:true,approvedAt:true,template:{select:{name:true,category:true,level:true}}},orderBy:{createdAt:'desc'},take:60}),
