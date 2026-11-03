@@ -11,10 +11,11 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
  if(!d||typeof d.action!=='string')return fail('Invalid action',400);
  const row=await db.appraisalReview.findFirst({where:{id,employee:employeeWhere(a)},include:{template:true}});
  if(!row)return fail('Appraisal not found or outside your scope',404);
- const roles=a.user.roles.filter(x=>x.role.active).map(x=>x.role.name);
- const isHR=roles.includes('HR Manager')||roles.includes('Administrator');
- const isManager=roles.includes('Branch Manager')||a.can('appraisals.edit');
- const mayApproveManager=roles.includes('Branch Manager')||a.can('appraisals.approve');
+ // Company membership permissions, not global role names, authorize review actions.
+ if(!a.companyId || (row.companyId && row.companyId!==a.companyId) || (row.template.companyId && row.template.companyId!==a.companyId))return fail('Appraisal outside selected company',404);
+ const isHR=a.can('appraisals.approve');
+ const isManager=a.can('appraisals.edit');
+ const mayApproveManager=a.can('appraisals.approve');
  const self=row.employeeId===a.user.employeeId;
  const reason=typeof d.comment==='string'?d.comment.trim():'';
  const criteria=row.template.criteria as Criterion[];
@@ -48,9 +49,9 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
  } else return fail('Unknown action',400);
  const result=await db.$transaction(async tx=>{
    // Conditional update prevents concurrent approvals/finalization from changing a stale state.
-   const updated=await tx.appraisalReview.updateMany({where:{id,status:row.status},data});
+   const updated=await tx.appraisalReview.updateMany({where:{id,status:row.status,OR:[{companyId:a.companyId},{companyId:null}]},data});
    if(updated.count!==1)return null;
-   await tx.auditLog.create({data:{actorId:a.user!.id,action:'APPRAISAL_'+d.action.toUpperCase(),entity:'AppraisalReview',entityId:id,detail:{from:row.status,to:data.status,reason:d.action==='reject'?reason.slice(0,2000):undefined}}});
+   await tx.auditLog.create({data:{actorId:a.user!.id,companyId:a.companyId,action:'APPRAISAL_'+d.action.toUpperCase(),entity:'AppraisalReview',entityId:id,detail:{from:row.status,to:data.status,reason:d.action==='reject'?reason.slice(0,2000):undefined}}});
    return tx.appraisalReview.findUnique({where:{id}});
  });
  if(!result)return fail('Appraisal changed. Refresh and try again.',409);
