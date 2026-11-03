@@ -6,7 +6,7 @@ export const dynamic='force-dynamic';
 const validPeriod=(p:string)=>/^\d{4}-(0[1-9]|1[0-2])$/.test(p);
 const validAmount=(v:string)=>/^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/.test(v);
 const toCents=(v:string)=>Math.round(Number(v)*100);
-function finance(a:Awaited<ReturnType<typeof access>>){return !!a.user?.roles.some(r=>r.role.active&&['Administrator','Finance','Finance Officer','Finance Manager'].includes(r.role.name))}
+function finance(a:Awaited<ReturnType<typeof access>>){return Boolean(a.user&&a.companyId&&a.can('payroll.approve'))}
 export async function POST(req:NextRequest){
  try{
   const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!finance(a))return NextResponse.json({error:'Finance access required'},{status:403});
@@ -14,11 +14,11 @@ export async function POST(req:NextRequest){
   if(!validPeriod(period)||!batchId||!['preview','prepare'].includes(mode))return NextResponse.json({error:'Invalid month, batch or action'},{status:400});
   if(!(file instanceof File)||!file.name.toLowerCase().endsWith('.xlsx')||file.size>1_000_000||file.size<100)return NextResponse.json({error:'Upload a valid .xlsx file under 1 MB'},{status:400});
   const rows=readPaymentXlsx(Buffer.from(await file.arrayBuffer()));if(!rows.length)return NextResponse.json({error:'The spreadsheet contains no employees'},{status:400});
-  const batch=await db.payrollCalculationBatch.findUnique({where:{id:batchId},include:{approvals:true}});
+  const batch=await db.payrollCalculationBatch.findUnique({where:{id:batchId,companyId:a.companyId},include:{approvals:true}});
   if(!batch||batch.period!==period||batch.status!=='APPROVED'||!batch.approvals.some(x=>x.action==='finance_approve'))return NextResponse.json({error:'Finance-approved payroll batch required'},{status:409});
-  const snapshots=Array.isArray(batch.lineItems)?batch.lineItems:[];const expected=new Map<string,{employeeNo:string;amount:number}>();
+  const snapshots=Array.isArray(batch.lineItems)?batch.lineItems:[];const batchEmployeeIds=snapshots.filter((x:any)=>x&&typeof x==='object'&&typeof x.employeeId==='string').map((x:any)=>x.employeeId as string);const tenantEmployees=await db.employee.count({where:{companyId:a.companyId,id:{in:batchEmployeeIds}}});if(tenantEmployees!==new Set(batchEmployeeIds).size)return NextResponse.json({error:'Payroll batch contains employees outside the selected company'},{status:403});const expected=new Map<string,{employeeNo:string;amount:number}>();
   for(const raw of snapshots){if(!raw||typeof raw!=='object'||Array.isArray(raw))continue;const x=raw as Record<string,unknown>;if(typeof x.employeeId==='string'&&typeof x.net==='number'&&Number.isFinite(x.net)&&typeof x.incomeTax==='number'&&typeof x.employeeSSNIT==='number'&&typeof x.policyId==='string')expected.set(x.employeeId,{employeeNo:String(x.employeeNo||''),amount:Math.round(x.net*100)});}
-  const existing=await db.payrollPayment.findMany({where:{period,employeeId:{in:rows.map(r=>r.employeeId)}},select:{employeeId:true,status:true}});
+  const existing=await db.payrollPayment.findMany({where:{companyId:a.companyId,period,employeeId:{in:rows.map(r=>r.employeeId)}},select:{employeeId:true,status:true}});
   const occupied=new Set(existing.map(x=>x.employeeId));const seen=new Set<string>();
   const checked=rows.map(r=>{
    const issues:string[]=[];const target=expected.get(r.employeeId);
@@ -38,11 +38,11 @@ export async function POST(req:NextRequest){
   const result=await db.$transaction(async tx=>{
    // Serialize concurrent uploads for the same payroll month within PostgreSQL.
    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${period}))`;
-   const already=await tx.payrollPayment.count({where:{period,employeeId:{in:rows.map(r=>r.employeeId)}}});
+   const already=await tx.payrollPayment.count({where:{companyId:a.companyId,period,employeeId:{in:rows.map(r=>r.employeeId)}}});
    if(already)return {error:'One or more employees already have payment records. Refresh and revalidate.',status:409};
    for(const r of rows){const snapshot=snapshots.find((x:any)=>x?.employeeId===r.employeeId) as Record<string,unknown>;
-    const payment=await tx.payrollPayment.create({data:{batchId,period,employeeId:r.employeeId,employeeNo:r.employeeNo,employeeName:String(snapshot.name||'Employee'),branch:String(snapshot.branch||''),netAmount:Number(r.amount),currency:'GHS',method:r.method,recipientName:r.recipient,paymentDestination:r.destination,preparedById:a.user!.id}});
-    await tx.payrollPaymentEvent.create({data:{paymentId:payment.id,actorId:a.user!.id,action:'IMPORT_PREPARE',toStatus:'PENDING',detail:{source:'XLSX',row:r.row,method:r.method,destinationLast4:r.destination.slice(-4)}}});
+    const payment=await tx.payrollPayment.create({data:{companyId:a.companyId,batchId,period,employeeId:r.employeeId,employeeNo:r.employeeNo,employeeName:String(snapshot.name||'Employee'),branch:String(snapshot.branch||''),netAmount:Number(r.amount),currency:'GHS',method:r.method,recipientName:r.recipient,paymentDestination:r.destination,preparedById:a.user!.id}});
+    await tx.payrollPaymentEvent.create({data:{companyId:a.companyId,paymentId:payment.id,actorId:a.user!.id,action:'IMPORT_PREPARE',toStatus:'PENDING',detail:{source:'XLSX',row:r.row,method:r.method,destinationLast4:r.destination.slice(-4)}}});
    }
    return {created:rows.length};
   });
