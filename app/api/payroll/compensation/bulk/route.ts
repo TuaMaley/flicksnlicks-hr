@@ -101,7 +101,7 @@ export async function POST(req:NextRequest){
         // Verify the employee is still in scope at commit time.
         const inScope=await tx.employee.findFirst({where:{AND:[scopedEmployee(a),{id:employee.id}]},select:{id:true}});
         if(!inScope)throw Error(`Employee ${r.employeeNo} is no longer available`);
-        await tx.employeeCompensation.create({data:{employeeId:employee.id,basicSalary:r.basicSalary.toFixed(2),effectiveDate:new Date(`${r.effectiveDate}T00:00:00.000Z`),allowances:r.allowances,deductions:r.deductions,benefits:r.benefits,reason:r.reason,createdById:a.user!.id}});
+        await tx.employeeCompensation.create({data:{companyId:a.companyId!,employeeId:employee.id,basicSalary:r.basicSalary.toFixed(2),effectiveDate:new Date(`${r.effectiveDate}T00:00:00.000Z`),allowances:r.allowances,deductions:r.deductions,benefits:r.benefits,reason:r.reason,createdById:a.user!.id}});
       }
     },{timeout:30000});
     return json({valid:true,mode,created:records.length,count:records.length});
