@@ -31,7 +31,7 @@ for(const route of [...paths,...dynamic]){
  const file=fileFor(route);
  if(!fs.existsSync(file)){add(route,'FAIL','Route source missing');continue;}
  const source=fs.readFileSync(file,'utf8');
- const hasAuth=/\b(access|currentUser|securityAdmin|branchManagerAccess|selectedCompany|guard|auth)\s*\(/.test(source)||/from ['"][^'"]*auth/.test(source);
+ const hasAuth=/\b(access|currentUser|securityAdmin|branchManagerAccess|selectedCompany|compensationAccess|guard|auth)\s*\(/.test(source)||/from ['"][^'"]*auth/.test(source);
  add(route,hasAuth?'REVIEW':'FAIL',hasAuth?'Authentication reference found; authorization and tenant scope still require inspection':'No recognizable authentication reference');
 }
 async function get(url,cookie){const controller=new AbortController();const t=setTimeout(()=>controller.abort(),12000);try{const r=await fetch(url,{method:'GET',headers:cookie?{Cookie:cookie}:{},redirect:'manual',signal:controller.signal});return {status:r.status,body:await r.text()};}finally{clearTimeout(t);}}
