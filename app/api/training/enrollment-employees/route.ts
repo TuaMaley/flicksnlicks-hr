@@ -4,7 +4,7 @@ import {access,employeeWhere} from '../../../../lib/auth';
 import {fail,ok} from '../../../../lib/http';
 export async function GET(req:NextRequest){
  const a=await access();if(!a.user)return fail('Unauthorized',401);
- if(!a.can('training.view'))return fail('Forbidden',403);
+ if(!a.can('training.view'))return fail('Forbidden',403);if(!a.companyId)return fail('Select an authorized company',403);
  const q=(req.nextUrl.searchParams.get('q')||'').trim().slice(0,80);
  const branchId=req.nextUrl.searchParams.get('branchId')||undefined;
  const department=req.nextUrl.searchParams.get('department')||undefined;

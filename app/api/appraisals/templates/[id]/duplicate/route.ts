@@ -5,7 +5,7 @@ import {fail,ok} from '../../../../../../lib/http';
 
 export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){
  const a=await access();
- if(!a.user)return fail('Unauthorized',401);
+ if(!a.user)return fail('Unauthorized',401);if(!a.companyId)return fail('Select an authorized company',403);
  if(!a.can('appraisals.create')||!a.user.roles.some(r=>r.role.active&&['Administrator','HR Manager'].includes(r.role.name)))return fail('HR Manager or Administrator required',403);
  const {id}=await params;
  const body=await req.json().catch(()=>null);
@@ -13,12 +13,12 @@ export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>
  const name=body.name.trim();
  if(name.length<3||name.length>120)return fail('Template name must be 3–120 characters',400);
  const original=await db.appraisalTemplate.findUnique({where:{id}});
- if(!original||original.deletedAt)return fail('Original template not found',404);
+ if(!original||original.companyId!==a.companyId||original.deletedAt)return fail('Original template not found',404);
  if(!original.active)return fail('Inactive templates cannot be duplicated',409);
  if(original.name.toLowerCase()===name.toLowerCase())return fail('Use a different name for the new version',400);
  try{
   const copy=await db.$transaction(async tx=>{
-   const created=await tx.appraisalTemplate.create({data:{name,category:original.category,level:original.level,description:original.description,criteria:original.criteria as any,active:true}});
+   const created=await tx.appraisalTemplate.create({data:{companyId:a.companyId,name,category:original.category,level:original.level,description:original.description,criteria:original.criteria as any,active:true}});
    await tx.auditLog.create({data:{actorId:a.user!.id,action:'APPRAISAL_TEMPLATE_DUPLICATE',entity:'AppraisalTemplate',entityId:created.id,detail:{sourceTemplateId:original.id,sourceTemplateName:original.name,newTemplateName:name}}});
    return created;
   });
