@@ -4,7 +4,7 @@ import {usePathname,useRouter} from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import AccountMenu from './AccountMenu';
-import CompanySwitcher from './CompanySwitcher';
+import WorkspaceSwitcher from './WorkspaceSwitcher';
 import {LayoutDashboard,Users,Wallet,CalendarDays,GraduationCap,UserPlus,ClipboardCheck,LogOut,ShieldAlert,Award,UserRound,ShieldCheck,BarChart3,Settings,Menu,X,Search,UsersRound,Bell,ChevronDown,ArrowLeft} from 'lucide-react';
 
 const items=[
@@ -38,12 +38,13 @@ export default function ModuleShell({children}:{children:React.ReactNode}){
  const router=useRouter();
  const [permissions,setPermissions]=useState<string[]>([]);
  const [ready,setReady]=useState(false);
+ const [platformAdmin,setPlatformAdmin]=useState(false);
  const [open,setOpen]=useState(false);
  const [search,setSearch]=useState('');
  const isPlatform=pathname==='/platform'||pathname.startsWith('/platform/');
  const [platformSection,setPlatformSection]=useState('Overview');
  useEffect(()=>{if(!isPlatform)return;const sync=()=>setPlatformSection(new URLSearchParams(window.location.search).get('section')||'Overview');sync();window.addEventListener('nexora-platform-section',sync);window.addEventListener('popstate',sync);return()=>{window.removeEventListener('nexora-platform-section',sync);window.removeEventListener('popstate',sync)}},[isPlatform]);
- useEffect(()=>{let active=true;fetch('/api/me',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(active){setPermissions(d?.permissions||[]);setReady(Boolean(d))}}).catch(()=>{if(active)setReady(false)});return()=>{active=false}},[pathname]);
+ useEffect(()=>{let active=true;fetch('/api/me',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(active){setPermissions(d?.permissions||[]);setPlatformAdmin(d?.platformAdmin===true);setReady(Boolean(d))}}).catch(()=>{if(active)setReady(false)});return()=>{active=false}},[pathname]);
  useEffect(()=>setOpen(false),[pathname]);
  // Dashboard already owns its full sidebar. Do not render two sidebars there.
  if(hiddenPaths.some(p=>pathname===p||pathname.startsWith(p+'/'))||pathname.startsWith('/api/'))return children;
@@ -53,9 +54,10 @@ export default function ModuleShell({children}:{children:React.ReactNode}){
  <Link href="/" className="nexoraBrand" aria-label="Nexora HRMS — Dashboard"><Image src="/nexora-sidebar-brand.png" alt="Nexora — People, Performance, Growth" width={224} height={76} priority className="nexoraBrandImage"/></Link>
  {isPlatform?<>
   {platformItems.map((item,i)=>{const Icon=item.Icon;return <div key={item.section}>{(i===0||platformItems[i-1].group!==item.group)&&<div className="navSection">{item.group}</div>}<a className={'nav '+(platformSection===item.section?'selected':'')} href={item.section==='Overview'?'/platform':'/platform?section='+encodeURIComponent(item.section)} aria-current={platformSection===item.section?'page':undefined} onClick={e=>{e.preventDefault();const url=item.section==='Overview'?'/platform':'/platform?section='+encodeURIComponent(item.section);window.history.pushState(null,'',url);window.dispatchEvent(new Event('nexora-platform-section'));setOpen(false)}}><Icon size={19}/><span>{item.label}</span></a></div>})}
-  <div className="navSection">WORKSPACE</div><Link className="nav" href="/"><ArrowLeft size={19}/>Company HRMS</Link>
+  <div className="navSection">WORKSPACE</div><WorkspaceSwitcher isPlatform={true} platformAdmin={platformAdmin}/>
  </>:<>
  {items.slice(0,1).map(({label,href,Icon})=><Link key={label} className={'nav '+(activeHref===href?'selected':'')} href={href} aria-current={activeHref===href?'page':undefined}><Icon size={19}/><span>{label}</span></Link>)}
+ <div className="navSection">WORKSPACE</div><WorkspaceSwitcher isPlatform={false} platformAdmin={platformAdmin}/>
  <div className="navSection">MAIN MODULES</div>
  {ready&&items.slice(1).filter(i=>!i.permission||permissions.includes(i.permission)).map(({label,href,Icon})=><Link key={label} className={'nav '+(href!=='/'&&activeHref===href?'selected':'')} href={href} aria-current={href!=='/'&&activeHref===href?'page':undefined}><Icon size={19}/><span>{label}</span></Link>)}
  <div className="navSection">REPORTS</div>
@@ -72,7 +74,7 @@ export default function ModuleShell({children}:{children:React.ReactNode}){
  <header className="persistentTopbar" aria-label="Page toolbar">
   <button type="button" className="persistentTopbarBack" aria-label="Go back" title="Go back" onClick={()=>{if(window.history.length>1)router.back();else router.push('/')}}><ArrowLeft size={21}/></button>
   <div className="persistentTopbarSearch"><Search size={19}/><input type="search" aria-label="Search" placeholder="Search employees, modules, reports..." value={search} onChange={e=>setSearch(e.target.value)}/></div>
-  <div className="persistentTopbarRight">{!isPlatform&&<CompanySwitcher/>}{!isPlatform&&<div className="persistentBranchLabel"><UsersRound size={18}/> All Branches <ChevronDown size={15}/></div>}<span className="persistentBell" aria-label="Notifications"><Bell size={21}/></span><AccountMenu/></div>
+  <div className="persistentTopbarRight">{!isPlatform&&<div className="persistentBranchLabel"><UsersRound size={18}/> All Branches <ChevronDown size={15}/></div>}<span className="persistentBell" aria-label="Notifications"><Bell size={21}/></span><AccountMenu/></div>
  </header>
  <div className="persistentPageScroll" id="module-page-scroll">{children}</div>
  </div>
