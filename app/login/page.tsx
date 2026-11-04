@@ -18,6 +18,7 @@ export default function Login(){const [email,setEmail]=useState(''),[password,se
     <label className="nexoraLoginLabel">Password
       <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password" />
     </label>
+    <div style={{textAlign:"right",marginTop:-12,marginBottom:18}}><a href="/forgot-password">Forgot password?</a></div>
     {error&&<div className="formError nexoraLoginError" role="alert">{error}</div>}
     <button type="submit" className="nexoraLoginButton" disabled={loading}>{loading?'Signing in…':'Sign in'}</button>
     <small className="nexoraLoginNotice">Authorized personnel only <span aria-hidden="true">•</span> Your access is recorded</small>

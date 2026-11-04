@@ -21,6 +21,5 @@
 @media(max-width:600px){.nexoraLoginPage{padding:20px 14px;}.nexoraLoginCard{padding:27px 23px 31px;border-radius:22px;}.nexoraLoginBrands{gap:12px;margin-bottom:25px;min-height:75px;}.nexoraLoginFlicks{width:72px;height:72px;flex-basis:72px;border-radius:10px;}.nexoraLoginDivider{height:66px;}.nexoraLoginSubtitle{font-size:15px;margin-bottom:25px;}.nexoraLoginLabel{font-size:15px;}.nexoraLoginLabel input{height:54px;font-size:16px;}.nexoraLoginButton{min-height:56px;font-size:21px;}.nexoraLoginNotice{font-size:12px;}}
 @media(prefers-reduced-motion:reduce){.nexoraLoginButton{transition:none;}}
 
-/* Single Nexora brand on the shared sign-in page. */
-.nexoraLoginBrands{min-height:106px;justify-content:center;}
-.nexoraLoginNexora{flex:0 1 370px;width:100%;max-width:370px;}
+/* Center Nexora as the sole sign-in brand. */
+.nexoraLoginBrands .nexoraLoginNexora{flex:0 1 370px;margin-inline:auto;}
