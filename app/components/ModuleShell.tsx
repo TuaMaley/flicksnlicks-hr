@@ -32,7 +32,7 @@ const platformItems=[
  {label:'Access Reviews',section:'Access Reviews',Icon:ShieldAlert,group:'GOVERNANCE'},
  {label:'Global Settings',section:'Global Settings',Icon:Settings,group:'SYSTEM'},
 ];
-const hiddenPaths=['/login'];
+const hiddenPaths=['/login','/forgot-password','/reset-password'];
 export default function ModuleShell({children}:{children:React.ReactNode}){
  const pathname=usePathname()||'/';
  const router=useRouter();
