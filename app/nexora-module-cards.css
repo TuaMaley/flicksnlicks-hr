@@ -1,0 +1,410 @@
+/* Nexora Phase 12 — module-wide card system. Scoped to existing module classes. */
+:root{--nx-card-radius:18px;--nx-card-border:#e0e8f3;--nx-card-shadow:0 10px 30px rgba(24,43,78,.065);}
+.leaveStats > .leaveStat,
+.leaveBalanceGrid > .leaveBalance,
+.recruitStats > article,
+.trainingMetrics > div,
+.discStats > div,
+.discAnalyticsStats > *,
+.onboardStats > div,
+.oeCards > .oeCard,
+.payrollCards > .payrollCard,
+.apCards > *,
+.attCards > *,
+.compCards > *,
+.pmStats > *,
+.psStats > *,
+.processCards > *,
+.prCards > *,
+.prMetrics > *,
+.analyticsMetrics > *,
+.attendanceSummary > *,
+.pt-metrics > .pt-metric,
+.phase4Stats > *{box-sizing:border-box;position:relative;min-width:0;min-height:116px;border:1px solid var(--nx-card-border)!important;border-radius:var(--nx-card-radius)!important;background:linear-gradient(145deg,#fff 70%,#f8faff 100%)!important;box-shadow:var(--nx-card-shadow)!important;padding:18px 18px 16px!important;transition:box-shadow .18s ease,transform .18s ease,border-color .18s ease;overflow:hidden;}
+.leaveStats > .leaveStat,
+.leaveBalanceGrid > .leaveBalance,
+.recruitStats > article,
+.trainingMetrics > div,
+.discStats > div,
+.discAnalyticsStats > *,
+.onboardStats > div,
+.oeCards > .oeCard,
+.payrollCards > .payrollCard,
+.apCards > *,
+.attCards > *,
+.compCards > *,
+.pmStats > *,
+.psStats > *,
+.processCards > *,
+.prCards > *,
+.prMetrics > *,
+.analyticsMetrics > *,
+.attendanceSummary > *,
+.pt-metrics > .pt-metric,
+.phase4Stats > *{border-left:4px solid var(--nx-accent,#4777ef)!important;padding-left:16px!important;}
+.leaveStats > .leaveStat,
+.leaveBalanceGrid > .leaveBalance,
+.recruitStats > article,
+.trainingMetrics > div,
+.discStats > div,
+.discAnalyticsStats > *,
+.onboardStats > div,
+.oeCards > .oeCard,
+.payrollCards > .payrollCard,
+.apCards > *,
+.attCards > *,
+.compCards > *,
+.pmStats > *,
+.psStats > *,
+.processCards > *,
+.prCards > *,
+.prMetrics > *,
+.analyticsMetrics > *,
+.attendanceSummary > *,
+.pt-metrics > .pt-metric,
+.phase4Stats > *:hover{transform:translateY(-2px);box-shadow:0 16px 36px rgba(24,43,78,.11)!important;border-color:#c8d7ef!important;}
+.leaveStats > .leaveStat,
+.leaveBalanceGrid > .leaveBalance,
+.recruitStats > article,
+.trainingMetrics > div,
+.discStats > div,
+.discAnalyticsStats > *,
+.onboardStats > div,
+.oeCards > .oeCard,
+.payrollCards > .payrollCard,
+.apCards > *,
+.attCards > *,
+.compCards > *,
+.pmStats > *,
+.psStats > *,
+.processCards > *,
+.prCards > *,
+.prMetrics > *,
+.analyticsMetrics > *,
+.attendanceSummary > *,
+.pt-metrics > .pt-metric,
+.phase4Stats > * :is(small,span,p):first-child{color:#526581;font-size:12px;font-weight:600;line-height:1.5;}
+.leaveStats > .leaveStat,
+.leaveBalanceGrid > .leaveBalance,
+.recruitStats > article,
+.trainingMetrics > div,
+.discStats > div,
+.discAnalyticsStats > *,
+.onboardStats > div,
+.oeCards > .oeCard,
+.payrollCards > .payrollCard,
+.apCards > *,
+.attCards > *,
+.compCards > *,
+.pmStats > *,
+.psStats > *,
+.processCards > *,
+.prCards > *,
+.prMetrics > *,
+.analyticsMetrics > *,
+.attendanceSummary > *,
+.pt-metrics > .pt-metric,
+.phase4Stats > * > strong{display:block;color:#102345;font-size:clamp(24px,2.1vw,32px);font-weight:750;letter-spacing:-.045em;line-height:1.25;margin-top:12px;overflow-wrap:anywhere;}
+
+/* The icon is a real SVG mask; colors follow each card accent. */
+.leaveStats > .leaveStat::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M16%203v4M8%203v4M3%2010h18%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M16%203v4M8%203v4M3%2010h18%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.leaveStats > .leaveStat::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.leaveStats > .leaveStat::before{z-index:1;}
+.leaveBalanceGrid > .leaveBalance::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M16%203v4M8%203v4M3%2010h18%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M16%203v4M8%203v4M3%2010h18%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.leaveBalanceGrid > .leaveBalance::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.leaveBalanceGrid > .leaveBalance::before{z-index:1;}
+.recruitStats > article::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%227%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M8%207V5a2%202%200%200%201%202-2h4a2%202%200%200%201%202%202v2M3%2012h18%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%227%22%20width%3D%2218%22%20height%3D%2214%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M8%207V5a2%202%200%200%201%202-2h4a2%202%200%200%201%202%202v2M3%2012h18%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.recruitStats > article::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.recruitStats > article::before{z-index:1;}
+.trainingMetrics > div::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2019.5A2.5%202.5%200%200%201%206.5%2017H20M6.5%202H20v20H6.5A2.5%202.5%200%200%201%204%2019.5v-15A2.5%202.5%200%200%201%206.5%202Z%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%2019.5A2.5%202.5%200%200%201%206.5%2017H20M6.5%202H20v20H6.5A2.5%202.5%200%200%201%204%2019.5v-15A2.5%202.5%200%200%201%206.5%202Z%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.trainingMetrics > div::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.trainingMetrics > div::before{z-index:1;}
+.discStats > div::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2022s8-4%208-10V5l-8-3-8%203v7c0%206%208%2010%208%2010Z%22%2F%3E%3Cpath%20d%3D%22m9%2012%202%202%204-4%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2022s8-4%208-10V5l-8-3-8%203v7c0%206%208%2010%208%2010Z%22%2F%3E%3Cpath%20d%3D%22m9%2012%202%202%204-4%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.discStats > div::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.discStats > div::before{z-index:1;}
+.discAnalyticsStats > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2022s8-4%208-10V5l-8-3-8%203v7c0%206%208%2010%208%2010Z%22%2F%3E%3Cpath%20d%3D%22m9%2012%202%202%204-4%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2022s8-4%208-10V5l-8-3-8%203v7c0%206%208%2010%208%2010Z%22%2F%3E%3Cpath%20d%3D%22m9%2012%202%202%204-4%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.discAnalyticsStats > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.discAnalyticsStats > *::before{z-index:1;}
+.onboardStats > div::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%225%22%20y%3D%224%22%20width%3D%2214%22%20height%3D%2218%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M9%204.5h6M9%2010h6M9%2014h6M9%2018h4%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%225%22%20y%3D%224%22%20width%3D%2214%22%20height%3D%2218%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M9%204.5h6M9%2010h6M9%2014h6M9%2018h4%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.onboardStats > div::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.onboardStats > div::before{z-index:1;}
+.oeCards > .oeCard::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M16%2021v-2a4%204%200%200%200-4-4H6a4%204%200%200%200-4%204v2%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%227%22%20r%3D%224%22%2F%3E%3Cpath%20d%3D%22M22%2021v-2a4%204%200%200%200-3-3.87M16%203.13a4%204%200%200%201%200%207.75%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M16%2021v-2a4%204%200%200%200-4-4H6a4%204%200%200%200-4%204v2%22%2F%3E%3Ccircle%20cx%3D%229%22%20cy%3D%227%22%20r%3D%224%22%2F%3E%3Cpath%20d%3D%22M22%2021v-2a4%204%200%200%200-3-3.87M16%203.13a4%204%200%200%201%200%207.75%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.oeCards > .oeCard::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.oeCards > .oeCard::before{z-index:1;}
+.apCards > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m20%206-11%2011-5-5%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%2210%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m20%206-11%2011-5-5%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%2210%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.apCards > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.apCards > *::before{z-index:1;}
+.attCards > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%2210%22%2F%3E%3Cpath%20d%3D%22M12%206v6l4%202%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%2210%22%2F%3E%3Cpath%20d%3D%22M12%206v6l4%202%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.attCards > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.attCards > *::before{z-index:1;}
+.compCards > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%209h18M16%2015h2%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%209h18M16%2015h2%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.compCards > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.compCards > *::before{z-index:1;}
+.pmStats > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%209h18M16%2015h2%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%209h18M16%2015h2%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.pmStats > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.pmStats > *::before{z-index:1;}
+.psStats > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%202H6a2%202%200%200%200-2%202v16a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V8Z%22%2F%3E%3Cpath%20d%3D%22M14%202v6h6M8%2013h8M8%2017h8%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M14%202H6a2%202%200%200%200-2%202v16a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V8Z%22%2F%3E%3Cpath%20d%3D%22M14%202v6h6M8%2013h8M8%2017h8%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.psStats > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.psStats > *::before{z-index:1;}
+.processCards > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%209h18M16%2015h2%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%209h18M16%2015h2%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.processCards > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.processCards > *::before{z-index:1;}
+.prCards > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203v18h18M7%2015l4-4%203%202%205-7%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203v18h18M7%2015l4-4%203%202%205-7%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.prCards > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.prCards > *::before{z-index:1;}
+.prMetrics > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203v18h18M7%2015l4-4%203%202%205-7%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203v18h18M7%2015l4-4%203%202%205-7%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.prMetrics > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.prMetrics > *::before{z-index:1;}
+.analyticsMetrics > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203v18h18M7%2015l4-4%203%202%205-7%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203v18h18M7%2015l4-4%203%202%205-7%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.analyticsMetrics > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.analyticsMetrics > *::before{z-index:1;}
+.attendanceSummary > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M16%203v4M8%203v4M3%2010h18%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2216%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M16%203v4M8%203v4M3%2010h18%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.attendanceSummary > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.attendanceSummary > *::before{z-index:1;}
+.phase4Stats > *::before{content:"";position:absolute;top:15px;right:15px;width:20px;height:20px;background-color:var(--nx-accent,#4777ef);-webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203v18h18M7%2015l4-4%203%202%205-7%22%2F%3E%3C%2Fsvg%3E");mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%203v18h18M7%2015l4-4%203%202%205-7%22%2F%3E%3C%2Fsvg%3E");-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;pointer-events:none;}
+.phase4Stats > *::after{content:"";position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:11px;background:var(--nx-tint,#eaf0ff);z-index:0;pointer-events:none;}
+.phase4Stats > *::before{z-index:1;}
+.leaveStats > .leaveStat:nth-child(6n+1),
+.leaveBalanceGrid > .leaveBalance:nth-child(6n+1),
+.recruitStats > article:nth-child(6n+1),
+.trainingMetrics > div:nth-child(6n+1),
+.discStats > div:nth-child(6n+1),
+.discAnalyticsStats > *:nth-child(6n+1),
+.onboardStats > div:nth-child(6n+1),
+.oeCards > .oeCard:nth-child(6n+1),
+.payrollCards > .payrollCard:nth-child(6n+1),
+.apCards > *:nth-child(6n+1),
+.attCards > *:nth-child(6n+1),
+.compCards > *:nth-child(6n+1),
+.pmStats > *:nth-child(6n+1),
+.psStats > *:nth-child(6n+1),
+.processCards > *:nth-child(6n+1),
+.prCards > *:nth-child(6n+1),
+.prMetrics > *:nth-child(6n+1),
+.analyticsMetrics > *:nth-child(6n+1),
+.attendanceSummary > *:nth-child(6n+1),
+.pt-metrics > .pt-metric:nth-child(6n+1),
+.phase4Stats > *:nth-child(6n+1){--nx-accent:#d4263e;--nx-tint:#fff0f2;}
+.leaveStats > .leaveStat:nth-child(6n+2),
+.leaveBalanceGrid > .leaveBalance:nth-child(6n+2),
+.recruitStats > article:nth-child(6n+2),
+.trainingMetrics > div:nth-child(6n+2),
+.discStats > div:nth-child(6n+2),
+.discAnalyticsStats > *:nth-child(6n+2),
+.onboardStats > div:nth-child(6n+2),
+.oeCards > .oeCard:nth-child(6n+2),
+.payrollCards > .payrollCard:nth-child(6n+2),
+.apCards > *:nth-child(6n+2),
+.attCards > *:nth-child(6n+2),
+.compCards > *:nth-child(6n+2),
+.pmStats > *:nth-child(6n+2),
+.psStats > *:nth-child(6n+2),
+.processCards > *:nth-child(6n+2),
+.prCards > *:nth-child(6n+2),
+.prMetrics > *:nth-child(6n+2),
+.analyticsMetrics > *:nth-child(6n+2),
+.attendanceSummary > *:nth-child(6n+2),
+.pt-metrics > .pt-metric:nth-child(6n+2),
+.phase4Stats > *:nth-child(6n+2){--nx-accent:#0d9c79;--nx-tint:#e7f8f1;}
+.leaveStats > .leaveStat:nth-child(6n+3),
+.leaveBalanceGrid > .leaveBalance:nth-child(6n+3),
+.recruitStats > article:nth-child(6n+3),
+.trainingMetrics > div:nth-child(6n+3),
+.discStats > div:nth-child(6n+3),
+.discAnalyticsStats > *:nth-child(6n+3),
+.onboardStats > div:nth-child(6n+3),
+.oeCards > .oeCard:nth-child(6n+3),
+.payrollCards > .payrollCard:nth-child(6n+3),
+.apCards > *:nth-child(6n+3),
+.attCards > *:nth-child(6n+3),
+.compCards > *:nth-child(6n+3),
+.pmStats > *:nth-child(6n+3),
+.psStats > *:nth-child(6n+3),
+.processCards > *:nth-child(6n+3),
+.prCards > *:nth-child(6n+3),
+.prMetrics > *:nth-child(6n+3),
+.analyticsMetrics > *:nth-child(6n+3),
+.attendanceSummary > *:nth-child(6n+3),
+.pt-metrics > .pt-metric:nth-child(6n+3),
+.phase4Stats > *:nth-child(6n+3){--nx-accent:#3d6cf5;--nx-tint:#edf2ff;}
+.leaveStats > .leaveStat:nth-child(6n+4),
+.leaveBalanceGrid > .leaveBalance:nth-child(6n+4),
+.recruitStats > article:nth-child(6n+4),
+.trainingMetrics > div:nth-child(6n+4),
+.discStats > div:nth-child(6n+4),
+.discAnalyticsStats > *:nth-child(6n+4),
+.onboardStats > div:nth-child(6n+4),
+.oeCards > .oeCard:nth-child(6n+4),
+.payrollCards > .payrollCard:nth-child(6n+4),
+.apCards > *:nth-child(6n+4),
+.attCards > *:nth-child(6n+4),
+.compCards > *:nth-child(6n+4),
+.pmStats > *:nth-child(6n+4),
+.psStats > *:nth-child(6n+4),
+.processCards > *:nth-child(6n+4),
+.prCards > *:nth-child(6n+4),
+.prMetrics > *:nth-child(6n+4),
+.analyticsMetrics > *:nth-child(6n+4),
+.attendanceSummary > *:nth-child(6n+4),
+.pt-metrics > .pt-metric:nth-child(6n+4),
+.phase4Stats > *:nth-child(6n+4){--nx-accent:#8b4dd5;--nx-tint:#f4ebff;}
+.leaveStats > .leaveStat:nth-child(6n+5),
+.leaveBalanceGrid > .leaveBalance:nth-child(6n+5),
+.recruitStats > article:nth-child(6n+5),
+.trainingMetrics > div:nth-child(6n+5),
+.discStats > div:nth-child(6n+5),
+.discAnalyticsStats > *:nth-child(6n+5),
+.onboardStats > div:nth-child(6n+5),
+.oeCards > .oeCard:nth-child(6n+5),
+.payrollCards > .payrollCard:nth-child(6n+5),
+.apCards > *:nth-child(6n+5),
+.attCards > *:nth-child(6n+5),
+.compCards > *:nth-child(6n+5),
+.pmStats > *:nth-child(6n+5),
+.psStats > *:nth-child(6n+5),
+.processCards > *:nth-child(6n+5),
+.prCards > *:nth-child(6n+5),
+.prMetrics > *:nth-child(6n+5),
+.analyticsMetrics > *:nth-child(6n+5),
+.attendanceSummary > *:nth-child(6n+5),
+.pt-metrics > .pt-metric:nth-child(6n+5),
+.phase4Stats > *:nth-child(6n+5){--nx-accent:#f59e0b;--nx-tint:#fff5e3;}
+.leaveStats > .leaveStat:nth-child(6n+6),
+.leaveBalanceGrid > .leaveBalance:nth-child(6n+6),
+.recruitStats > article:nth-child(6n+6),
+.trainingMetrics > div:nth-child(6n+6),
+.discStats > div:nth-child(6n+6),
+.discAnalyticsStats > *:nth-child(6n+6),
+.onboardStats > div:nth-child(6n+6),
+.oeCards > .oeCard:nth-child(6n+6),
+.payrollCards > .payrollCard:nth-child(6n+6),
+.apCards > *:nth-child(6n+6),
+.attCards > *:nth-child(6n+6),
+.compCards > *:nth-child(6n+6),
+.pmStats > *:nth-child(6n+6),
+.psStats > *:nth-child(6n+6),
+.processCards > *:nth-child(6n+6),
+.prCards > *:nth-child(6n+6),
+.prMetrics > *:nth-child(6n+6),
+.analyticsMetrics > *:nth-child(6n+6),
+.attendanceSummary > *:nth-child(6n+6),
+.pt-metrics > .pt-metric:nth-child(6n+6),
+.phase4Stats > *:nth-child(6n+6){--nx-accent:#657a99;--nx-tint:#eef2f7;}
+.leaveStats > .leaveStat > :first-child:not(strong){padding-right:35px;}
+.leaveBalanceGrid > .leaveBalance > :first-child:not(strong){padding-right:35px;}
+.recruitStats > article > :first-child:not(strong){padding-right:35px;}
+.trainingMetrics > div > :first-child:not(strong){padding-right:35px;}
+.discStats > div > :first-child:not(strong){padding-right:35px;}
+.discAnalyticsStats > * > :first-child:not(strong){padding-right:35px;}
+.onboardStats > div > :first-child:not(strong){padding-right:35px;}
+.oeCards > .oeCard > :first-child:not(strong){padding-right:35px;}
+.apCards > * > :first-child:not(strong){padding-right:35px;}
+.attCards > * > :first-child:not(strong){padding-right:35px;}
+.compCards > * > :first-child:not(strong){padding-right:35px;}
+.pmStats > * > :first-child:not(strong){padding-right:35px;}
+.psStats > * > :first-child:not(strong){padding-right:35px;}
+.processCards > * > :first-child:not(strong){padding-right:35px;}
+.prCards > * > :first-child:not(strong){padding-right:35px;}
+.prMetrics > * > :first-child:not(strong){padding-right:35px;}
+.analyticsMetrics > * > :first-child:not(strong){padding-right:35px;}
+.attendanceSummary > * > :first-child:not(strong){padding-right:35px;}
+.phase4Stats > * > :first-child:not(strong){padding-right:35px;}
+.workCard,
+.recruitPanel,
+.trainingPanel,
+.discCard,
+.onboardCard,
+.oePanel,
+.payrollPanel,
+.apPanel,
+.attPanel,
+.compPanel,
+.compBulkPanel,
+.pmPanel,
+.psPanel,
+.processPanel,
+.prPanel,
+.discAnalyticsPanel,
+.fnlSettingsCard{box-sizing:border-box;border:1px solid #e0e8f3!important;border-radius:20px!important;background:#fff!important;box-shadow:0 9px 30px rgba(24,43,78,.05)!important;}
+@media(max-width:650px){.leaveStats > .leaveStat,
+.leaveBalanceGrid > .leaveBalance,
+.recruitStats > article,
+.trainingMetrics > div,
+.discStats > div,
+.discAnalyticsStats > *,
+.onboardStats > div,
+.oeCards > .oeCard,
+.payrollCards > .payrollCard,
+.apCards > *,
+.attCards > *,
+.compCards > *,
+.pmStats > *,
+.psStats > *,
+.processCards > *,
+.prCards > *,
+.prMetrics > *,
+.analyticsMetrics > *,
+.attendanceSummary > *,
+.pt-metrics > .pt-metric,
+.phase4Stats > *{min-height:102px;padding:15px!important;}.leaveStats > .leaveStat,
+.leaveBalanceGrid > .leaveBalance,
+.recruitStats > article,
+.trainingMetrics > div,
+.discStats > div,
+.discAnalyticsStats > *,
+.onboardStats > div,
+.oeCards > .oeCard,
+.payrollCards > .payrollCard,
+.apCards > *,
+.attCards > *,
+.compCards > *,
+.pmStats > *,
+.psStats > *,
+.processCards > *,
+.prCards > *,
+.prMetrics > *,
+.analyticsMetrics > *,
+.attendanceSummary > *,
+.pt-metrics > .pt-metric,
+.phase4Stats > * > strong{font-size:25px;}}
+@media(prefers-reduced-motion:reduce){.leaveStats > .leaveStat,
+.leaveBalanceGrid > .leaveBalance,
+.recruitStats > article,
+.trainingMetrics > div,
+.discStats > div,
+.discAnalyticsStats > *,
+.onboardStats > div,
+.oeCards > .oeCard,
+.payrollCards > .payrollCard,
+.apCards > *,
+.attCards > *,
+.compCards > *,
+.pmStats > *,
+.psStats > *,
+.processCards > *,
+.prCards > *,
+.prMetrics > *,
+.analyticsMetrics > *,
+.attendanceSummary > *,
+.pt-metrics > .pt-metric,
+.phase4Stats > *{transition:none!important;}.leaveStats > .leaveStat,
+.leaveBalanceGrid > .leaveBalance,
+.recruitStats > article,
+.trainingMetrics > div,
+.discStats > div,
+.discAnalyticsStats > *,
+.onboardStats > div,
+.oeCards > .oeCard,
+.payrollCards > .payrollCard,
+.apCards > *,
+.attCards > *,
+.compCards > *,
+.pmStats > *,
+.psStats > *,
+.processCards > *,
+.prCards > *,
+.prMetrics > *,
+.analyticsMetrics > *,
+.attendanceSummary > *,
+.pt-metrics > .pt-metric,
+.phase4Stats > *:hover{transform:none!important;}}

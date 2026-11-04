@@ -1,3 +1,4 @@
+import './nexora-module-cards.css';
 import './styles.css';
 import './phase4.css';
 import './account-menu.css';
