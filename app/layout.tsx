@@ -1,3 +1,6 @@
+import './nexora-modern-cards.css';
+import './nexora-module-cards.css';
+import './nexora-card-consistency.css';
 import './styles.css';
 import './phase4.css';
 import './account-menu.css';
