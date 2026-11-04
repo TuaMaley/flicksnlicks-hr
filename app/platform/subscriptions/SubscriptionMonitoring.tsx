@@ -1,5 +1,5 @@
-import {PlatformKpiCard} from '../../../components/PlatformKpiCard';
 'use client';
+import {PlatformKpiCard} from '../../../components/PlatformKpiCard';
 import {useMemo,useState} from 'react';
 type Subscription={id:string;companyId:string;planName:string;startsAt:string;endsAt:string;status:string;company:{name:string}};
 const day=86400000;
