@@ -145,6 +145,7 @@ model User {
   scopes       UserAccessScope[]
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
+passwordResets PasswordResetToken[]
 }
 
 model Role {
