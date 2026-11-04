@@ -1,0 +1,33 @@
+/* Nexora Phase 12 — unified card system; presentation only, no business logic. */
+:root{--nx-surface:#fff;--nx-border:#e6eaf2;--nx-ink:#17223b;--nx-muted:#697891;--nx-shadow:0 3px 8px rgba(21,35,65,.025),0 14px 36px rgba(21,35,65,.045);--nx-shadow-hover:0 12px 36px rgba(21,35,65,.11);--nx-radius:18px}
+body{background:#f6f8fc;color:var(--nx-ink)}
+/* Existing shared panels, summaries and operational cards */
+:where(.card,.kpi,.workCard,.leaveStat,.leaveBalance,.recruitPanel,.recruitStats,.fnlSettingsCard,.processPanel,.pt-metric){border:1px solid var(--nx-border);border-radius:var(--nx-radius);background:var(--nx-surface);box-shadow:var(--nx-shadow);transition:box-shadow .2s ease,border-color .2s ease,transform .2s ease}
+:where(.card,.kpi,.workCard,.leaveStat,.leaveBalance,.recruitPanel,.recruitStats,.fnlSettingsCard,.processPanel,.pt-metric):hover{border-color:#d7dfed;box-shadow:var(--nx-shadow-hover)}
+:where(.kpi,.leaveStat,.leaveBalance,.recruitStats,.pt-metric){position:relative;overflow:hidden}
+:where(.kpi,.leaveStat,.leaveBalance,.recruitStats,.pt-metric)::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#d52b31,#ef7774 65%,transparent);opacity:.85;pointer-events:none}
+:where(.kpi,.leaveStat,.leaveBalance,.recruitStats,.pt-metric):hover{transform:translateY(-2px)}
+:where(.kpiValue,.leaveStat strong,.leaveBalance strong){font-variant-numeric:tabular-nums;letter-spacing:-.035em}
+:where(.workCard,.card) :where(h2,h3){letter-spacing:-.025em;color:#15213a}
+:where(.outlineBtn,.primaryBtn,.actionPrimary){border-radius:10px;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+:where(.outlineBtn,.primaryBtn,.actionPrimary):focus-visible{outline:3px solid #9bbcff;outline-offset:2px}
+:where(.outlineBtn,.primaryBtn,.actionPrimary):not(:disabled):active{transform:translateY(1px)}
+:where(.dataTable,.recruitTable) th{background:#f7f9fc;color:#64728b;font-weight:700;letter-spacing:.055em}
+:where(.dataTable,.recruitTable) tbody tr{transition:background-color .15s ease}
+:where(.dataTable,.recruitTable) tbody tr:hover{background:#fafbfe}
+/* Platform overview cards have inline styles: intentionally override visual properties only. */
+.nexoraPlatformContent .nexoraMetricCard{position:relative;overflow:hidden;border:1px solid var(--nx-border)!important;border-radius:16px!important;background:linear-gradient(145deg,#fff 60%,#fafbff)!important;box-shadow:var(--nx-shadow);min-height:118px;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.nexoraPlatformContent .nexoraMetricCard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#d52b31}
+.nexoraPlatformContent .nexoraMetricCard:nth-child(2)::before{background:#159c74}
+.nexoraPlatformContent .nexoraMetricCard:nth-child(3)::before{background:#5377df}
+.nexoraPlatformContent .nexoraMetricCard:nth-child(4)::before{background:#8657cf}
+.nexoraPlatformContent .nexoraMetricCard:nth-child(5)::before{background:#e5a23d}
+.nexoraPlatformContent .nexoraMetricCard:nth-child(6)::before{background:#8390a6}
+.nexoraPlatformContent .nexoraMetricCard:hover{transform:translateY(-3px);border-color:#d4dceb!important;box-shadow:var(--nx-shadow-hover)}
+.nexoraPlatformContent .nexoraMetricCard>div{color:var(--nx-muted)!important;font-size:12px!important;font-weight:600;line-height:1.4}
+.nexoraPlatformContent .nexoraMetricCard>strong{color:#15213a;font-size:32px!important;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.nexoraPlatformContent .nexoraAdoptionCard{border:1px solid var(--nx-border)!important;border-radius:14px!important;background:#fff;box-shadow:0 4px 18px rgba(20,35,65,.035);transition:box-shadow .2s ease,transform .2s ease}
+.nexoraPlatformContent .nexoraAdoptionCard:hover{box-shadow:var(--nx-shadow-hover);transform:translateY(-2px)}
+.nexoraPlatformContent>.workCard{border-radius:20px}
+@media(max-width:760px){.nexoraPlatformContent{padding:18px!important}.nexoraPlatformContent .nexoraMetricCard{min-height:105px}:where(.card,.workCard){border-radius:14px}}
+@media(prefers-reduced-motion:reduce){:where(.card,.kpi,.workCard,.leaveStat,.leaveBalance,.recruitPanel,.recruitStats,.fnlSettingsCard,.processPanel,.pt-metric,.nexoraMetricCard,.nexoraAdoptionCard){transition:none!important;transform:none!important}}
