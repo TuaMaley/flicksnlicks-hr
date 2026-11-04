@@ -1,0 +1,28 @@
+/* Nexora consolidated mobile usability layer. Loaded last to override legacy page CSS. */
+@media (max-width: 850px) {
+  .shell.persistentShell, .shell.persistentShell > .persistentContent,
+  .shell.persistentShell .persistentPageScroll { min-width:0 !important; max-width:100%; }
+  .shell.persistentShell .persistentPageScroll { overflow-x:clip; }
+  .shell.persistentShell .persistentMobileToggle { min-height:44px; min-width:72px; align-items:center; justify-content:center; }
+  .shell.persistentShell .persistentBackdrop { cursor:pointer; }
+  .shell.persistentShell .persistentContent :is(.content,.dashboardInnerContent,.nexoraPlatformContent) { max-width:100%; min-width:0; }
+  .shell.persistentShell .persistentContent :is(input,select,textarea) { max-width:100%; }
+  .shell.persistentShell .persistentContent img { max-width:100%; height:auto; }
+  .shell.persistentShell .persistentContent :is(.middleGrid,.bottomGrid) { grid-template-columns:minmax(0,1fr); }
+  .shell.persistentShell .persistentContent .kpiGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .shell.persistentShell .persistentContent .welcome { flex-wrap:wrap; align-items:flex-start; }
+  .shell.persistentShell .persistentContent .periods { flex-wrap:wrap; }
+  .shell.persistentShell .persistentContent :is(.tableWrap,.tableWrapper,.tableContainer,.table-responsive,.overflow-x-auto) { max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .shell.persistentShell .persistentContent :is(.modal,.dialog,[role="dialog"]) { max-width:calc(100vw - 24px); }
+}
+@media (max-width: 540px) {
+  .shell.persistentShell .persistentContent :is(.content,.dashboardInnerContent,.nexoraPlatformContent) { padding-left:12px !important; padding-right:12px !important; }
+  .shell.persistentShell .persistentContent .kpiGrid { grid-template-columns:minmax(0,1fr); }
+  .shell.persistentShell .persistentContent :is(.phase4Stats,.leaveStats) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .shell.persistentShell .persistentContent :is(.card,.workCard) { max-width:100%; min-width:0; }
+  .shell.persistentShell .persistentContent :is(button,input,select,textarea) { font-size:max(16px,1em); }
+  .shell.persistentShell .persistentContent .welcome h1 { font-size:clamp(23px,7vw,30px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shell.persistentShell > aside.sidebar.persistentSidebar { transition:none !important; }
+}
