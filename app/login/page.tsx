@@ -8,12 +8,10 @@ export default function Login(){const [email,setEmail]=useState(''),[password,se
   <div className="nexoraLoginRibbon nexoraLoginRibbonTwo" aria-hidden="true" />
   <form className="nexoraLoginCard" onSubmit={submit}>
     <div className="nexoraLoginBrands">
-      <div className="nexoraLoginFlicks"><Image src="/nexora-login-flicks.png" alt="Flicks & Licks" width={110} height={110} priority /></div>
-      <span className="nexoraLoginDivider" aria-hidden="true" />
       <div className="nexoraLoginNexora"><Image src="/nexora-login-brand.png" alt="Nexora — People, Performance, Growth" width={380} height={190} priority /></div>
     </div>
     <h1>Welcome back</h1>
-    <p className="nexoraLoginSubtitle">Sign in to Flicks &amp; Licks HR Management (Nexora)</p>
+    <p className="nexoraLoginSubtitle">Sign in to Nexora HR Management</p>
     <label className="nexoraLoginLabel">Email address
       <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username" />
     </label>
