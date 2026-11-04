@@ -1,0 +1,10 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const root=path.resolve(__dirname,'..');
+const src=fs.readFileSync(path.join(root,'app/api/platform/readiness/route.ts'),'utf8');
+test('readiness endpoint checks active platform administrator',()=>{assert.match(src,/currentUser\(/);assert.match(src,/platformAdmin/);assert.match(src,/actor\?\.active/)});
+test('readiness endpoint checks active subscription date window',()=>{assert.match(src,/startsAt<=now/);assert.match(src,/endsAt>now/)});
+test('readiness endpoint checks membership, modules, and overlapping subscriptions',()=>{assert.match(src,/memberships:/);assert.match(src,/modules:/);assert.match(src,/overlappingSubscriptions/)});
+test('readiness endpoint prevents shared caching',()=>assert.match(src,/private, no-store/));
