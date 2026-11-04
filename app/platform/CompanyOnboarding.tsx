@@ -1,3 +1,4 @@
+import {PlatformKpiCard} from '../../components/PlatformKpiCard';
  'use client';
 import {useEffect,useState} from 'react';
 type Plan={id:string;name:string;currency:string;moduleKeys:unknown};
@@ -13,7 +14,7 @@ export default function CompanyOnboarding({mode='all',onProvisioned}:{mode?:'all
  return <section className="workCard" style={{padding:22}}>
   <h2>{mode==='status'?'Company Onboarding Status':'Company Onboarding & Provisioning'}</h2><p>{mode==='status'?'Review provisioning readiness for registered companies.':'Provision a new tenant in one audited transaction.'}</p>
   {error&&<div className="formError" role="alert">{error}</div>}{notice&&<div className="successNotice">{notice}</div>}
-  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(175px,1fr))',gap:12,margin:'18px 0'}}>{[['Registered companies',companies.length],['Ready for use',companies.filter(c=>c.ready&&c.active).length],['Setup incomplete',companies.filter(c=>!c.ready).length]].map(([k,v])=><div key={String(k)} style={{border:'1px solid #dbe2ea',borderRadius:10,padding:14}}><div style={{color:'#64748b',fontSize:13}}>{k}</div><strong style={{fontSize:25}}>{v}</strong></div>)}</div>
+  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(185px,1fr))',gap:14,margin:'18px 0'}}>{([['Registered companies',companies.length],['Ready for use',companies.filter(c=>c.ready&&c.active).length],['Setup incomplete',companies.filter(c=>!c.ready).length]] as const).map(([label,value],i)=><PlatformKpiCard key={label} label={label} value={value} tone={i}/>)}</div>
   {mode!=='status'&&<><h3>Provision a company</h3>
   <form onSubmit={submit} style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:14,marginTop:14}}>
   {([['name','Company name'],['code','Company code'],['country','Country'],['adminName','Administrator full name'],['adminEmail','Administrator email'],['password','Initial administrator password'],['startsAt','Subscription start'],['endsAt','Subscription end'],['reason','Onboarding approval reason']] as const).map(([key,label])=><label key={key} style={{display:'block',fontSize:13,fontWeight:600}}>{label}<input style={{width:'100%',marginTop:6}} required type={key==='password'?'password':key==='adminEmail'?'email':key==='startsAt'||key==='endsAt'?'date':'text'} minLength={key==='password'?12:key==='reason'?8:undefined} maxLength={key==='code'?30:key==='reason'?500:undefined} autoComplete={key==='password'?'new-password':'off'} value={form[key]} onChange={e=>set(key,e.target.value)}/></label>)}
