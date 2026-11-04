@@ -1,5 +1,5 @@
-import {PlatformKpiCard} from '../../components/PlatformKpiCard';
  'use client';
+import {PlatformKpiCard} from '../../components/PlatformKpiCard';
 import {useEffect,useState} from 'react';
 type Currency={invoicedMinor:number;collectedMinor:number;invoiceCount:number;paymentCount:number};
 type Data={generatedAt:string;summary:{companies:number;activeCompanies:number;activeSubscriptions:number;expiring30Days:number;plans:number};companyRows:{id:string;name:string;code:string;active:boolean;memberships:number;enabledModules:number;subscriptionActive:boolean;plan:string|null;createdAt:string}[];expiring:{id:string;companyName:string;planName:string;endsAt:string}[];byCurrency:Record<string,Currency>;receivables:Record<string,{outstandingMinor:number;overdueMinor:number}>;months:string[];monthly:Record<string,Record<string,{invoicedMinor:number;collectedMinor:number}>>;planAdoption:{name:string;count:number}[];moduleAdoption:{moduleKey:string;companies:number}[]};

@@ -1,5 +1,5 @@
-import {PlatformKpiCard} from '../../components/PlatformKpiCard';
  'use client';
+import {PlatformKpiCard} from '../../components/PlatformKpiCard';
 import {useEffect,useState} from 'react';
 type Plan={id:string;name:string;currency:string;moduleKeys:unknown};
 type Company={id:string;name:string;code:string;active:boolean;adminConfigured:boolean;subscriptionActive:boolean;enabledModules:number;ready:boolean;status:string};
