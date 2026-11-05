@@ -5,7 +5,7 @@ import {recordSecurityEvent} from '../../../../lib/accessSecurity';
 export async function POST(){
  // Capture the account before removing the session.
  const user=await currentUser();
- await clearSession();
  if(user)await recordSecurityEvent('LOGOUT',user.id,{});
+ await clearSession();
  return ok({success:true});
 }

@@ -3,6 +3,7 @@ import {db} from '../../../../lib/db';
 import {verifyPassword,setSession} from '../../../../lib/auth';
 import {fail,ok} from '../../../../lib/http';
 import {recordSecurityEvent} from '../../../../lib/accessSecurity';
+import {activeTenant} from '../../../../lib/tenant';
 
 export async function POST(req:NextRequest){
  try{
@@ -19,7 +20,7 @@ export async function POST(req:NextRequest){
   }
   await setSession(user.id);
   // Preserve the existing login audit entry used by other HRMS features.
-  try{await db.auditLog.create({data:{actorId:user.id,action:'LOGIN',entity:'User',entityId:user.id}})}
+  try{const companyId=await activeTenant(user);await db.auditLog.create({data:{actorId:user.id,companyId,action:'LOGIN',entity:'User',entityId:user.id}})}
   catch(error){console.error('Existing login audit write failed',error)}
   await recordSecurityEvent('LOGIN_SUCCESS',user.id,{method:'password'});
   return ok({success:true});
