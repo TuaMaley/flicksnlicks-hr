@@ -10,10 +10,10 @@ export async function securityAdmin(){
  return {user:a.user} as const;
 }
 
-export async function recordSecurityEvent(action:string,actorId:string|null,detail:Record<string,unknown>={}){
+export async function recordSecurityEvent(action:string,actorId:string|null,detail:Record<string,unknown>={},companyIdOverride?:string|null){
  try{
   const user=actorId?await currentUser():null;
-  const companyId=user&&user.id===actorId?await activeTenant(user):null;
+  const companyId=companyIdOverride!==undefined?companyIdOverride:(user&&user.id===actorId?await activeTenant(user):null);
   await db.auditLog.create({
    data:{actorId,companyId,action,entity:'Authentication',detail:JSON.parse(JSON.stringify(detail))}
   });
