@@ -1,5 +1,5 @@
-import './training-dashboard.css';
 'use client';
+import './training-dashboard.css';
 import {useState,useEffect} from 'react';
 import Image from 'next/image';
 import {LayoutDashboard,Users,Wallet,CalendarDays,GraduationCap,UserPlus,ClipboardCheck,LogOut,ShieldAlert,Award,UserRound,ShieldCheck,Search,Bell,ChevronDown,Menu,X,BarChart3,Settings,Clock,CheckCircle2,AlertTriangle,BriefcaseBusiness,ArrowLeft,CalendarCheck,Star,BookOpen,ArrowUpRight} from 'lucide-react';
