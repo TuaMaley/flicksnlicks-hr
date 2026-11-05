@@ -37,7 +37,7 @@ export async function POST(req:NextRequest){
   if(employeeId&&!(await db.employee.findFirst({where:{id:employeeId,companyId},select:{id:true}})))return fail('Employee not in active company',403);
   const user=await db.$transaction(async tx=>{
    const u=await tx.user.create({data:{email:d.email.trim().toLowerCase(),name:d.name.trim(),passwordHash:hashPassword(d.password),employeeId,roles:{create:roles.map(r=>({roleId:r.id}))},scopes:{create:scopes.map((s:any)=>({branchId:s.branchId||null,department:s.department?.trim()||null}))}}});
-   await tx.companyMembership.create({data:{companyId,userId:u.id,active:true}});
+   await tx.companyMembership.create({data:{companyId,userId:u.id,active:true,roles:{create:roles.map(r=>({roleId:r.id}))}}});
    await tx.auditLog.create({data:{companyId,actorId:a.user!.id,action:'USER_CREATED',entity:'User',entityId:u.id,detail:{roles:roles.map(r=>r.name),companyId}}});
    return u;
   });

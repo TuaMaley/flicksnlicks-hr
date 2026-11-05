@@ -53,6 +53,8 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
    if(!valid)throw new Error('MEMBERSHIP_CHANGED');
    await tx.userRole.deleteMany({where:{userId:id}});
    await tx.userRole.createMany({data:roles.map(r=>({userId:id,roleId:r.id}))});
+   await tx.companyMembershipRole.deleteMany({where:{membershipId:valid.id}});
+   await tx.companyMembershipRole.createMany({data:roles.map(r=>({membershipId:valid.id,roleId:r.id}))});
    await tx.userAccessScope.deleteMany({where:{userId:id}});
    if(scopes.length)await tx.userAccessScope.createMany({data:scopes.map((s:any)=>({...s,userId:id,companyId}))});
    await tx.user.update({where:{id},data:{name:d.name.trim(),active:d.active,...(d.employeeId!==undefined?{employeeId:d.employeeId||null}:{}),...(d.password?{passwordHash:hashPassword(d.password)}:{})}});
