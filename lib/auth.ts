@@ -1,5 +1,5 @@
 import {activeTenant} from './tenant';
-import {cookies} from 'next/headers';
+import {cookies,headers} from 'next/headers';
 import {createHmac,timingSafeEqual,scryptSync,randomBytes} from 'node:crypto';
 import {db} from './db';
 const COOKIE='fnl_session';
@@ -10,7 +10,9 @@ function sign(value:string){return createHmac('sha256',secret()).update(value).d
 export function issueToken(id:string){const body=Buffer.from(JSON.stringify({id,exp:Date.now()+8*60*60*1000})).toString('base64url');return `${body}.${sign(body)}`}
 export async function setSession(id:string){(await cookies()).set(COOKIE,issueToken(id),{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',path:'/',maxAge:8*60*60})}
 export async function clearSession(){(await cookies()).delete(COOKIE)}
-export async function currentUser(){try{const raw=(await cookies()).get(COOKIE)?.value;if(!raw)return null;const [body,sig]=raw.split('.');if(!body||!sig)return null;const a=Buffer.from(sig),b=Buffer.from(sign(body));if(a.length!==b.length||!timingSafeEqual(a,b))return null;const payload=JSON.parse(Buffer.from(body,'base64url').toString());if(payload.exp<Date.now())return null;return await db.user.findFirst({where:{id:payload.id,active:true},include:{roles:{include:{role:{include:{permissions:{include:{permission:true}}}}}},scopes:true}})}catch{return null}}
+/** Mobile clients send the same signed session token as `Authorization: Bearer <token>` instead of the cookie. */
+async function rawSessionToken(){const fromCookie=(await cookies()).get(COOKIE)?.value;if(fromCookie)return fromCookie;const auth=(await headers()).get('authorization')||'';return auth.startsWith('Bearer ')?auth.slice(7).trim():null}
+export async function currentUser(){try{const raw=await rawSessionToken();if(!raw)return null;const [body,sig]=raw.split('.');if(!body||!sig)return null;const a=Buffer.from(sig),b=Buffer.from(sign(body));if(a.length!==b.length||!timingSafeEqual(a,b))return null;const payload=JSON.parse(Buffer.from(body,'base64url').toString());if(payload.exp<Date.now())return null;return await db.user.findFirst({where:{id:payload.id,active:true},include:{roles:{include:{role:{include:{permissions:{include:{permission:true}}}}}},scopes:true}})}catch{return null}}
 export async function access(){
  const user=await currentUser();
  const keys=new Set<string>();

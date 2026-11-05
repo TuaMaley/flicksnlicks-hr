@@ -1,4 +1,4 @@
-import {cookies} from 'next/headers';
+import {cookies,headers} from 'next/headers';
 import {createHmac,timingSafeEqual} from 'node:crypto';
 import {db} from './db';
 
@@ -7,6 +7,9 @@ export async function activeTenant(user:{id:string;platformAdmin:boolean}):Promi
  if(user.platformAdmin)return null;
  const memberships=await db.companyMembership.findMany({where:{userId:user.id,active:true,company:{active:true}},select:{companyId:true}});
  if(!memberships.length)return null;
+ // Mobile clients may name a company by plain id; it is only honoured when the user is an active member.
+ const hinted=(await headers()).get('x-nexora-company')||'';
+ if(hinted&&memberships.some(m=>m.companyId===hinted))return hinted;
  const raw=(await cookies()).get('nexora_active_company')?.value||'';
  const [id,sig]=raw.split('.');
  if(id&&sig){
