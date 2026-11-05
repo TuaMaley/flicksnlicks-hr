@@ -1,4 +1,5 @@
-import {access} from './auth';
+import {access,currentUser} from './auth';
+import {activeTenant} from './tenant';
 import {db} from './db';
 
 export async function securityAdmin(){
@@ -11,8 +12,10 @@ export async function securityAdmin(){
 
 export async function recordSecurityEvent(action:string,actorId:string|null,detail:Record<string,unknown>={}){
  try{
+  const user=actorId?await currentUser():null;
+  const companyId=user&&user.id===actorId?await activeTenant(user):null;
   await db.auditLog.create({
-   data:{actorId,action,entity:'Authentication',detail:JSON.parse(JSON.stringify(detail))}
+   data:{actorId,companyId,action,entity:'Authentication',detail:JSON.parse(JSON.stringify(detail))}
   });
  }catch(error){
   // A temporary audit-write problem should not lock staff out of HRMS.
