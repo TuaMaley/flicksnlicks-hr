@@ -9,5 +9,21 @@ import './nexora-module-cards.css';
 import './nexora-card-consistency.css';
 import './mobile-responsive.css';
 import ModuleShell from './components/ModuleShell';
-export const metadata={title:'Flicks & Licks | HR Management',description:'Flicks & Licks HR management system'};
+export const metadata = {
+  metadataBase: new URL('https://app.nexora-hrms.com'),
+  title: 'Nexora | HR Management Platform',
+  description: 'Nexora is a modern HR management platform for managing people, performance, payroll, and organizational growth.',
+  openGraph: {
+    title: 'Nexora | HR Management Platform',
+    description: 'People, performance, growth. Manage your workforce with Nexora.',
+    url: 'https://app.nexora-hrms.com',
+    siteName: 'Nexora',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Nexora | HR Management Platform',
+    description: 'People, performance, growth. Manage your workforce with Nexora.',
+  },
+};
 export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><ModuleShell>{children}</ModuleShell></body></html>};
