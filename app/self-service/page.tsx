@@ -49,7 +49,7 @@ export default function SelfService(){
   }catch(e){setRequestError(e instanceof Error?e.message:'Unable to generate letter')}
   finally{setLetterBusy(false)}
  }
- const money=(n:string,c:string)=>new Intl.NumberFormat('en-GH',{style:'currency',currency:c||'GHS'}).format(Number(n));
+ const money=(n:string|number,c:string)=>new Intl.NumberFormat('en-GH',{style:'currency',currency:c||'GHS'}).format(Number(n));
  const dateLabel=(s:string)=>new Date(s).toLocaleDateString('en-GB',{timeZone:'UTC',year:'numeric',month:'short',day:'numeric'});
  const display=(s:string|null|undefined)=>s?.trim()||'Not provided';
  return <div className="workspace"><div className="workspaceTop"><Link href="/" className="backLink">← Dashboard</Link></div><div className="workspaceHeading"><div><h1>Employee Self-Service</h1><p>Personal information and HR services</p></div></div>
