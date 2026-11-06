@@ -1,5 +1,4 @@
 import {validateCompanyLogo} from '../../../lib/companyLogo';
-import {validateCompanyLogo} from '../../../lib/companyLogo';
 import {NextRequest,NextResponse} from 'next/server';
 import {currentUser,hashPassword} from '../../../lib/auth';
 import {db} from '../../../lib/db';
