@@ -1,4 +1,5 @@
 import {validateCompanyLogo} from '../../../lib/companyLogo';
+import {validateCompanyLogo} from '../../../lib/companyLogo';
 import {NextRequest,NextResponse} from 'next/server';
 import {currentUser,hashPassword} from '../../../lib/auth';
 import {db} from '../../../lib/db';
@@ -44,11 +45,12 @@ export async function POST(req:NextRequest){
   const phone=typeof body.phone==='string'?body.phone.trim():'';
   if(!companyId||name.length<2||name.length>120||country.length>80||email.length>254||phone.length>60|| (email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))return NextResponse.json({error:'Invalid company profile'},{status:400});
   let logoDataUrl:string|null|undefined;try{logoDataUrl=body.logoDataUrl===undefined?undefined:validateCompanyLogo(body.logoDataUrl)}catch(e){return NextResponse.json({error:(e as Error).message},{status:400})}
+  let logoDataUrl:string|undefined; if(body.logoDataUrl!==undefined){try{logoDataUrl=validateCompanyLogo(body.logoDataUrl)||undefined;if(!logoDataUrl)return NextResponse.json({error:'Select a valid logo image'},{status:400});}catch(e){return NextResponse.json({error:(e as Error).message},{status:400})}}
   const company=await db.company.findUnique({where:{id:companyId}});
   if(!company)return NextResponse.json({error:'Company not found'},{status:404});
   const updated=await db.$transaction(async tx=>{
    const result=await tx.company.update({where:{id:companyId},data:{name,country:country||null,email:email||null,phone:phone||null,...(logoDataUrl===undefined?{}:{logoDataUrl})}});
-   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_UPDATED',entity:'Company',entityId:companyId,detail:{previous:{name:company.name,country:company.country,email:company.email,phone:company.phone},current:{name,country,email,phone}}}});
+   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_UPDATED',entity:'Company',entityId:companyId,detail:{previous:{name:company.name,country:company.country,email:company.email,phone:company.phone},current:{name,country,email,phone,logoReplaced:!!logoDataUrl}}}});
    return result;
   });
   return NextResponse.json({company:updated});
