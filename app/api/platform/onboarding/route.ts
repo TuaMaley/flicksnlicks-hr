@@ -1,3 +1,4 @@
+import {validateCompanyLogo} from '../../../../lib/companyLogo';
 import {NextRequest,NextResponse} from 'next/server';
 import {currentUser,hashPassword} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
@@ -21,6 +22,7 @@ export async function GET(){
 export async function POST(req:NextRequest){
  const u=await guard();if(!u)return NextResponse.json({error:'Platform administrator required'},{status:403});
  const b=await req.json().catch(()=>null);
+ let logoDataUrl:string|null;try{logoDataUrl=validateCompanyLogo(b?.logoDataUrl)}catch(e){return NextResponse.json({error:(e as Error).message},{status:400})}
  const name=typeof b?.name==='string'?b.name.trim():'';
  const code=typeof b?.code==='string'?b.code.trim().toUpperCase():'';
  const country=typeof b?.country==='string'?b.country.trim():'';
@@ -39,7 +41,7 @@ export async function POST(req:NextRequest){
   const result=await db.$transaction(async tx=>{
    const permissions=await tx.permission.findMany({select:{id:true}});
    if(!permissions.length)throw Error('PERMISSION_CATALOG_MISSING');
-   const company=await tx.company.create({data:{name,code,country:country||null,active:false}});
+   const company=await tx.company.create({data:{name,code,country:country||null,logoDataUrl,active:false}});
    await tx.branch.create({data:{companyId:company.id,name:'Head Office'}});
    const role=await tx.role.create({data:{name:`Administrator [${company.id}]`,companyId:company.id,description:'Company HRMS Administrator',system:true,protected:true,active:true,permissions:{create:permissions.map(p=>({permissionId:p.id}))}}});
    const user=await tx.user.create({data:{name:adminName,email:adminEmail,passwordHash:hashPassword(password),active:true,platformAdmin:false}});

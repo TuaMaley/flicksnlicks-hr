@@ -1,3 +1,4 @@
+import {addCompanyLogo} from '../../../../lib/companyLogo';
 import {NextResponse} from 'next/server';
 import {PDFDocument,StandardFonts,rgb,PDFFont} from 'pdf-lib';
 import {randomUUID} from 'crypto';
@@ -59,7 +60,7 @@ export async function POST(){
   if(!compensation)return NextResponse.json({error:'No effective approved compensation package is available. Contact HR.'},{status:409});
 
   const company=await db.company.findUnique({
-    where:{id:a.companyId},select:{name:true,email:true,phone:true}
+    where:{id:a.companyId},select:{name:true,email:true,phone:true,logoDataUrl:true}
   });
   if(!company)return NextResponse.json({error:'Company record not found'},{status:409});
 
@@ -100,6 +101,7 @@ export async function POST(){
   };
   const separator=(y:number)=>page.drawLine({start:{x:left,y},end:{x:right,y},thickness:.8,color:rule});
 
+  await addCompanyLogo(pdf,page,company.logoDataUrl,470,753,74,65);
   draw(company.name.toUpperCase(),left,788,18,true);
   let headerY=768;
   if(company.email){draw('Email: '+company.email,left,headerY,9,false,muted);headerY-=14;}

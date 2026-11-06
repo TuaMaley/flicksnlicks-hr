@@ -1,3 +1,4 @@
+import {employeeIdentityFields} from '../../../../lib/employeeIdentityFields';
 import { NextRequest } from 'next/server';
 import { db } from '../../../../lib/db';
 import { access, employeeWhere } from '../../../../lib/auth';
@@ -42,6 +43,7 @@ export async function PATCH(
       }
     }
 
+    try { Object.assign(data,employeeIdentityFields(d)); } catch(e){ return fail((e as Error).message,400); }
     if (data.status && !['ACTIVE', 'ON_LEAVE', 'SUSPENDED', 'EXITED'].includes(data.status as string)) {
       return fail('Invalid status', 400);
     }
