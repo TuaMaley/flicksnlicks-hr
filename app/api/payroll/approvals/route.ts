@@ -11,6 +11,9 @@ export async function GET(req:NextRequest){
   const period=req.nextUrl.searchParams.get('period')||new Date().toISOString().slice(0,7);
   if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))return NextResponse.json({error:'Invalid period'},{status:400});
   const batches=await db.payrollCalculationBatch.findMany({where:{period,companyId:a.companyId},orderBy:{createdAt:'desc'},take:100,include:{approvals:{orderBy:{createdAt:'asc'}}}});
-  return NextResponse.json({batches:batches.map(b=>({id:b.id,period:b.period,status:b.status,employeeCount:b.employeeCount,grossAmount:Number(b.grossAmount),netBeforeStatutory:Number(b.netBeforeStatutory),createdById:b.createdById,createdAt:b.createdAt,events:b.approvals.map(e=>({id:e.id,actorId:e.actorId,action:e.action,fromStatus:e.fromStatus,toStatus:e.toStatus,reason:e.reason,createdAt:e.createdAt}))})),viewerId:a.user.id,roles:roles(a)}, {headers:{'Cache-Control':'private, no-store'}});
+  const actorIds=[...new Set(batches.flatMap(b=>b.approvals.map(e=>e.actorId)).filter(Boolean))];
+  const users=await db.user.findMany({where:{id:{in:actorIds},companyMemberships:{some:{companyId:a.companyId}}},select:{id:true,name:true,email:true}});
+  const actorNames=new Map(users.map(u=>[u.id,u.name?.trim()||u.email]));
+  return NextResponse.json({batches:batches.map(b=>({id:b.id,period:b.period,status:b.status,employeeCount:b.employeeCount,grossAmount:Number(b.grossAmount),netBeforeStatutory:Number(b.netBeforeStatutory),createdById:b.createdById,createdAt:b.createdAt,events:b.approvals.map(e=>({id:e.id,actorId:e.actorId,actorName:actorNames.get(e.actorId)||'Former/unknown user',action:e.action,fromStatus:e.fromStatus,toStatus:e.toStatus,reason:e.reason,createdAt:e.createdAt}))})),viewerId:a.user.id,roles:roles(a)}, {headers:{'Cache-Control':'private, no-store'}});
  }catch(e){console.error('[payroll approvals GET]',e);return NextResponse.json({error:'Unable to load approval batches. Verify PayrollApprovalEvent migration and Railway logs.'},{status:500})}
 }
