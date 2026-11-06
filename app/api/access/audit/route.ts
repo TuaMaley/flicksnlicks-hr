@@ -34,7 +34,7 @@ export async function GET(req:NextRequest){
    db.auditLog.count({where})
   ]);
   const ids=[...new Set(items.map(x=>x.actorId).filter((x):x is string=>!!x))];
-  const users=ids.length?await db.user.findMany({where:{id:{in:ids},platformAdmin:false,companyMemberships:{some:{companyId,active:true}}},select:{id:true,name:true,email:true}}):[];
+  const users=ids.length?await db.user.findMany({where:{id:{in:ids},platformAdmin:false,companyMemberships:{some:{companyId}}},select:{id:true,name:true,email:true}}):[];
   const names=new Map(users.map(x=>[x.id,x]));
   return NextResponse.json({items:items.map(x=>({...x,actor:x.actorId?names.get(x.actorId)||null:null})),total,page},{headers:{'Cache-Control':'private, no-store'}});
  }catch(error){
