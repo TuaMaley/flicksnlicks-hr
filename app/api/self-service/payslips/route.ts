@@ -10,14 +10,14 @@ export async function GET(){
   if(!a.user.employeeId)return NextResponse.json({error:'Your account is not linked to an employee record. Contact HR.'},{status:403});
   // Only confirmed payments for the signed-in employee; never expose other employees or destination details.
   const rows=await db.payrollPayment.findMany({
-   where:{companyId:a.companyId,employeeId:a.user.employeeId,status:'CONFIRMED',confirmedAt:{not:null}},
-   select:{id:true,period:true,netAmount:true,currency:true,method:true,status:true,confirmedAt:true,reference:true},
+   where:{companyId:a.companyId,employeeId:a.user.employeeId,status:'PAID',confirmedAt:{not:null}},
+   select:{id:true,batchId:true,period:true,netAmount:true,currency:true,method:true,status:true,confirmedAt:true,reference:true},
    orderBy:[{confirmedAt:'desc'},{period:'desc'}],take:60
   });
   const batches=await db.payrollCalculationBatch.findMany({where:{companyId:a.companyId,status:'APPROVED'},orderBy:{createdAt:'desc'},take:120,select:{id:true,period:true,currency:true,lineItems:true,approvals:{select:{action:true}}}});
-  const confirmedPeriods=new Set(rows.map(p=>p.period));
+  const confirmedBatchIds=new Set(rows.map(p=>p.batchId));
   const payslips=batches.flatMap(b=>{
-    if(!confirmedPeriods.has(b.period)||!b.approvals.some(x=>x.action==='finance_approve'))return [];
+    if(!confirmedBatchIds.has(b.id)||!b.approvals.some(x=>x.action==='finance_approve'))return [];
     const item=(Array.isArray(b.lineItems)?b.lineItems:[]).find(raw=>!!raw&&typeof raw==='object'&&!Array.isArray(raw)&&(raw as Record<string,unknown>).employeeId===a.user!.employeeId);
     if(!item||typeof item!=='object'||Array.isArray(item))return [];
     const x=item as Record<string,unknown>;

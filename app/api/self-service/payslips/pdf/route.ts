@@ -14,7 +14,7 @@ export async function GET(req:NextRequest){
   if(!batchId)return NextResponse.json({error:'Missing payroll batch'},{status:400});
   const batch=await db.payrollCalculationBatch.findFirst({where:{id:batchId,companyId:a.companyId,status:'APPROVED'},select:{id:true,period:true,currency:true,lineItems:true,approvals:{select:{action:true}}}});
   if(!batch||!batch.approvals.some(x=>x.action==='finance_approve'))return NextResponse.json({error:'Payslip not finalized'},{status:404});
-  const payment=await db.payrollPayment.findFirst({where:{companyId:a.companyId,employeeId:a.user.employeeId,period:batch.period,status:'CONFIRMED',confirmedAt:{not:null}},select:{id:true,reference:true,confirmedAt:true}});
+  const payment=await db.payrollPayment.findFirst({where:{companyId:a.companyId,employeeId:a.user.employeeId,batchId:batch.id,status:'PAID',confirmedAt:{not:null}},select:{id:true,reference:true,confirmedAt:true}});
   if(!payment)return NextResponse.json({error:'Payment not yet confirmed'},{status:404});
   const raw=(Array.isArray(batch.lineItems)?batch.lineItems:[]).find(x=>!!x&&typeof x==='object'&&!Array.isArray(x)&&(x as Record<string,unknown>).employeeId===a.user!.employeeId);
   if(!raw||typeof raw!=='object'||Array.isArray(raw))return NextResponse.json({error:'Payslip not found'},{status:404});
