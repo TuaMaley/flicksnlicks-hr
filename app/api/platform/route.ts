@@ -169,20 +169,26 @@ export async function POST(req:NextRequest){
   if(!companyId||!userId||userId===a.user.id)return NextResponse.json({error:'Invalid account deletion request'},{status:400});
   try{
    await db.$transaction(async tx=>{
-    const user=await tx.user.findUnique({where:{id:userId},select:{id:true,active:true,platformAdmin:true}});
-    if(!user?.active||user.platformAdmin)throw new Error('ACCOUNT_NOT_ELIGIBLE');
-    const memberships=await tx.companyMembership.findMany({where:{userId,active:true},select:{id:true,companyId:true}});
-    if(memberships.length!==1||memberships[0].companyId!==companyId)throw new Error('OTHER_ACTIVE_MEMBERSHIPS');
-    await tx.companyMembership.update({where:{id:memberships[0].id},data:{active:false}});
-    // Retain the immutable user ID for historical references, but release the unique email.
-    // This is a deactivation, not a physical delete of records linked to audits or HRMS.
-    await tx.user.update({where:{id:userId},data:{active:false,email:`deleted-${userId}@invalid.nexora.local`,passwordHash:`disabled-${userId}`}});
-    await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_USER_ACCOUNT_DELETED',entity:'User',entityId:userId,detail:{membershipId:memberships[0].id,emailReleased:true}}});
+    const user=await tx.user.findUnique({where:{id:userId},select:{id:true,active:true,platformAdmin:true,email:true}});
+    if(!user||user.platformAdmin||user.email===`deleted-${userId}@invalid.nexora.local`)throw new Error('ACCOUNT_NOT_ELIGIBLE');
+    // A previously removed member must still be able to have their account deleted.
+    const membership=await tx.companyMembership.findUnique({where:{companyId_userId:{companyId,userId}},select:{id:true,active:true}});
+    if(!membership)throw new Error('ACCOUNT_NOT_ELIGIBLE');
+    const otherActive=await tx.companyMembership.count({where:{userId,active:true,companyId:{not:companyId}}});
+    if(otherActive)throw new Error('OTHER_ACTIVE_MEMBERSHIPS');
+    await tx.companyMembership.update({where:{id:membership.id},data:{active:false}});
+    // Invalidate outstanding password setup/reset links and revoke legacy global grants.
+    await tx.passwordResetToken.updateMany({where:{userId,usedAt:null},data:{usedAt:new Date()}});
+    await tx.userRole.deleteMany({where:{userId}});
+    await tx.userAccessScope.deleteMany({where:{userId}});
+    // Keep historical IDs and audit references, but free the unique email for a new account.
+    await tx.user.update({where:{id:userId},data:{active:false,platformAdmin:false,email:`deleted-${userId}@invalid.nexora.local`,passwordHash:`disabled-${userId}`}});
+    await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_USER_ACCOUNT_DELETED',entity:'User',entityId:userId,detail:{membershipId:membership.id,emailReleased:true}}});
    });
    return NextResponse.json({success:true});
   }catch(e:any){
-   if(e?.message==='OTHER_ACTIVE_MEMBERSHIPS')return NextResponse.json({error:'This user has another active company membership. Remove their other memberships before deleting the account.'},{status:409});
-   if(e?.message==='ACCOUNT_NOT_ELIGIBLE')return NextResponse.json({error:'This account cannot be deleted'},{status:403});
+   if(e?.message==='OTHER_ACTIVE_MEMBERSHIPS')return NextResponse.json({error:'This user still has an active membership in another company. Remove that membership before deleting the account.'},{status:409});
+   if(e?.message==='ACCOUNT_NOT_ELIGIBLE')return NextResponse.json({error:'This account cannot be deleted or has already been deleted.'},{status:403});
    throw e;
   }
  }
