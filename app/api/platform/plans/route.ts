@@ -3,9 +3,23 @@ import {currentUser} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
 async function guard(){const u=await currentUser();if(!u)return null;const a=await db.user.findUnique({where:{id:u.id},select:{active:true,platformAdmin:true}});return a?.active&&a.platformAdmin?u:null;}
 export async function GET(){if(!await guard())return NextResponse.json({error:'Forbidden'},{status:403});const [plans,modules]=await Promise.all([db.subscriptionPlan.findMany({orderBy:{name:'asc'}}),db.companyModule.findMany({select:{moduleKey:true},distinct:['moduleKey']})]);return NextResponse.json({plans:plans.map(p=>({...p,monthlyPrice:Number(p.monthlyPrice),annualPrice:Number(p.annualPrice)})),moduleKeys:modules.map(m=>m.moduleKey).sort()},{headers:{'Cache-Control':'private, no-store'}});}
-export async function POST(req:NextRequest){const u=await guard();if(!u)return NextResponse.json({error:'Forbidden'},{status:403});const b=await req.json().catch(()=>null);const editId=typeof b?.id==='string'&&b.id.trim()?b.id.trim():null;const name=typeof b?.name==='string'?b.name.trim():'';const currency=typeof b?.currency==='string'?b.currency.trim().toUpperCase():'';const monthlyPrice=Number(b?.monthlyPrice),annualPrice=Number(b?.annualPrice);const moduleKeys=b?.moduleKeys;
- if(!name||name.length>80||!['GHS','USD'].includes(currency)||!Number.isFinite(monthlyPrice)||!Number.isFinite(annualPrice)||monthlyPrice<0||annualPrice<0||monthlyPrice>999999999||annualPrice>999999999||!Array.isArray(moduleKeys)||moduleKeys.some(x=>typeof x!=='string'))return NextResponse.json({error:'Invalid plan fields'},{status:400});
- const allowed=(await db.companyModule.findMany({select:{moduleKey:true},distinct:['moduleKey']})).map(m=>m.moduleKey);if(moduleKeys.some(x=>!allowed.includes(x)))return NextResponse.json({error:'Unknown module key'},{status:400});
- const data={name,monthlyPrice:monthlyPrice.toFixed(2),annualPrice:annualPrice.toFixed(2),currency,moduleKeys:[...new Set(moduleKeys)]};
- try{const plan=await db.$transaction(async tx=>{const p=editId?await tx.subscriptionPlan.update({where:{id:editId},data}):await tx.subscriptionPlan.upsert({where:{name},create:data,update:data});await tx.auditLog.create({data:{actorId:u.id,action:'SUBSCRIPTION_PLAN_SAVED',entity:'SubscriptionPlan',entityId:p.id,detail:{name,currency,monthlyPrice,annualPrice,moduleKeys:data.moduleKeys}}});return p});return NextResponse.json({plan:{...plan,monthlyPrice:Number(plan.monthlyPrice),annualPrice:Number(plan.annualPrice)}})}catch(e:any){if(e?.code==='P2002')return NextResponse.json({error:'A plan with that name already exists'},{status:409});if(e?.code==='P2025')return NextResponse.json({error:'Plan not found'},{status:404});return NextResponse.json({error:'Unable to save plan'},{status:500})}
+export async function POST(req:NextRequest){
+ const u=await guard();if(!u)return NextResponse.json({error:'Forbidden'},{status:403});
+ const b=await req.json().catch(()=>null);
+ const id=typeof b?.id==='string'?b.id.trim():'';
+ const currency=typeof b?.currency==='string'?b.currency.trim().toUpperCase():'';
+ const monthlyPrice=Number(b?.monthlyPrice);
+ if(!id||!['GHS','USD'].includes(currency)||!Number.isFinite(monthlyPrice)||monthlyPrice<0||monthlyPrice>999999999)return NextResponse.json({error:'Invalid plan pricing'},{status:400});
+ const annualPrice=Math.round(monthlyPrice*1200)/100;
+ try{
+  const plan=await db.$transaction(async tx=>{
+   const existing=await tx.subscriptionPlan.findUnique({where:{id}});
+   if(!existing)throw Object.assign(new Error('Plan not found'),{code:'P2025'});
+   // Do not accept moduleKeys from pricing requests: only pricing fields may change.
+   const updated=await tx.subscriptionPlan.update({where:{id},data:{currency,monthlyPrice:monthlyPrice.toFixed(2),annualPrice:annualPrice.toFixed(2)}});
+   await tx.auditLog.create({data:{actorId:u.id,action:'SUBSCRIPTION_PLAN_PRICING_UPDATED',entity:'SubscriptionPlan',entityId:id,detail:{name:existing.name,currency,monthlyPrice,annualPrice}}});
+   return updated;
+  });
+  return NextResponse.json({plan:{...plan,monthlyPrice:Number(plan.monthlyPrice),annualPrice:Number(plan.annualPrice)}});
+ }catch(e:any){if(e?.code==='P2025')return NextResponse.json({error:'Plan not found'},{status:404});return NextResponse.json({error:'Unable to update pricing'},{status:500})}
 }
