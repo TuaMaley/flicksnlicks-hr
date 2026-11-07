@@ -104,6 +104,7 @@ model Employee {
   residentialAddress          String?
   location                    String?
   ghanaCardNo                 String?
+  profilePhotoDataUrl         String?
   notes                       String?
   leaveRequests               LeaveRequest[]
   leaveEntitlements           LeaveEntitlement[]
