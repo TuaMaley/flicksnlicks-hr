@@ -2,7 +2,7 @@ import {access} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
 import {NextResponse} from 'next/server';
 
-const fields={id:true,employeeNo:true,firstName:true,lastName:true,email:true,phone:true,position:true,department:true,status:true,employmentType:true,hireDate:true,emergencyContact:true,profilePhotoDataUrl:true,branch:{select:{id:true,name:true}}} as const;
+const fields={id:true,employeeNo:true,firstName:true,lastName:true,email:true,phone:true,position:true,department:true,status:true,employmentType:true,hireDate:true,emergencyContact:true,profilePhotoDataUrl:true,branch:{select:{id:true,name:true}},reportingManager:{select:{id:true,firstName:true,lastName:true,position:true,department:true,email:true,profilePhotoDataUrl:true,branch:{select:{name:true}},companyId:true}}} as const;
 export async function GET(){
  const a=await access();
  if(!a.user)return NextResponse.json({error:'Authentication required'},{status:401});
@@ -11,7 +11,7 @@ export async function GET(){
  if(!a.user.employeeId)return NextResponse.json({error:'Your login is not linked to an employee record. Contact HR.'},{status:404});
  const employee=await db.employee.findFirst({where:{id:a.user.employeeId,companyId:a.companyId},select:fields});
  if(!employee)return NextResponse.json({error:'Linked employee record not found'},{status:404});
- return NextResponse.json({employee});
+ return NextResponse.json({employee:{...employee,reportingManager:employee.reportingManager?.companyId===a.companyId?employee.reportingManager:null}});
 }
 export async function PATCH(request:Request){
  const a=await access();
@@ -35,5 +35,5 @@ export async function PATCH(request:Request){
   await tx.auditLog.create({data:{actorId:a.user!.id,action:'ESS_PROFILE_UPDATED',entity:'Employee',entityId:updated.id,detail:{fields:Object.keys(data)}}});
   return updated;
  });
- return NextResponse.json({employee});
+ return NextResponse.json({employee:{...employee,reportingManager:employee.reportingManager?.companyId===a.companyId?employee.reportingManager:null}});
 }
