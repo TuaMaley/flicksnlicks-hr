@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server';
-import {db} from '../../../../lib/db';
-import {hashPassword} from '../../../../lib/auth';
-import {digestResetToken} from '../../../../lib/passwordReset';
+import {db} from '../../../../../lib/db';
+import {hashPassword} from '../../../../../lib/auth';
+import {digestResetToken} from '../../../../../lib/passwordReset';
 export const runtime='nodejs';
 export async function POST(req:NextRequest){
  const body=await req.json().catch(()=>null);
