@@ -30,9 +30,10 @@ const platformItems=[
  {label:'Analytics & Reports',section:'Analytics',Icon:BarChart3,group:'INTELLIGENCE'},
  {label:'Platform Audit',section:'Platform Audit',Icon:ShieldCheck,group:'GOVERNANCE'},
  {label:'Access Reviews',section:'Access Reviews',Icon:ShieldAlert,group:'GOVERNANCE'},
+ {label:'Platform Administrators',section:'Platform Administrators',Icon:ShieldCheck,group:'SYSTEM'},
  {label:'Global Settings',section:'Global Settings',Icon:Settings,group:'SYSTEM'},
 ];
-const hiddenPaths=['/login','/forgot-password','/reset-password'];
+const hiddenPaths=['/login','/forgot-password','/reset-password','/platform-invite'];
 export default function ModuleShell({children}:{children:React.ReactNode}){
  const pathname=usePathname()||'/';
  const router=useRouter();

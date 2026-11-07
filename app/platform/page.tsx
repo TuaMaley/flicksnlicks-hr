@@ -7,11 +7,12 @@ import PrivilegedAccessReviews from './PrivilegedAccessReviews';
 import ManualBilling from './ManualBilling';
 import PlatformAnalytics from './PlatformAnalytics';
 import PlatformSettings from './PlatformSettings';
+import PlatformAdministrators from './PlatformAdministrators';
 import CompanyOnboarding from './CompanyOnboarding';
 type Member={id:string;userId:string;active:boolean;user:{id:string;name:string;email:string};roles:{role:{id:string;name:string}}[]};
 type Company={id:string;name:string;code:string;active:boolean;country?:string|null;email?:string|null;phone?:string|null;logoDataUrl?:string|null;modules:{moduleKey:string;enabled:boolean}[];memberships:Member[]};
 type Data={companies:Company[];users:{id:string;name:string;email:string}[];moduleCatalog:string[];roles:{id:string;name:string}[]};
-const tabs=['Overview','Companies','Modules','Subscriptions','Platform Audit','Access Reviews','Billing','Analytics','Global Settings'] as const;
+const tabs=['Overview','Companies','Modules','Subscriptions','Platform Audit','Access Reviews','Platform Administrators','Billing','Analytics','Global Settings'] as const;
 
 export default function PlatformPage(){
  const [data,setData]=useState<Data|null>(null),[tab,setTab]=useState<(typeof tabs)[number]>('Overview'),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
@@ -57,6 +58,7 @@ export default function PlatformPage(){
  {data&&tab==='Subscriptions'&&<SubscriptionsPage embedded/>}
  {data&&tab==='Billing'&&<ManualBilling/>}
  {data&&tab==='Analytics'&&<PlatformAnalytics/>}
+ {data&&tab==='Platform Administrators'&&<PlatformAdministrators/>}
  {data&&tab==='Global Settings'&&<PlatformSettings/>}
  {data&&tab==='Platform Audit'&&<PlatformAudit companies={data.companies.map(c=>({id:c.id,name:c.name}))}/>}
  {data&&tab==='Access Reviews'&&<PrivilegedAccessReviews companies={data.companies.map(c=>({id:c.id,name:c.name}))}/>}
