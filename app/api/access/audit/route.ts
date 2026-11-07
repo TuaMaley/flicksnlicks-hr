@@ -1,5 +1,6 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {db} from '../../../../lib/db';
+import {auditDisplay} from '../../../../lib/auditDisplay';
 import {securityAdmin} from '../../../../lib/accessSecurity';
 import {selectedCompany} from '../../../../lib/companyContext';
 
@@ -36,7 +37,8 @@ export async function GET(req:NextRequest){
   const ids=[...new Set(items.map(x=>x.actorId).filter((x):x is string=>!!x))];
   const users=ids.length?await db.user.findMany({where:{id:{in:ids},platformAdmin:false,companyMemberships:{some:{companyId}}},select:{id:true,name:true,email:true}}):[];
   const names=new Map(users.map(x=>[x.id,x]));
-  return NextResponse.json({items:items.map(x=>({...x,actor:x.actorId?names.get(x.actorId)||null:null})),total,page},{headers:{'Cache-Control':'private, no-store'}});
+  const display=await auditDisplay(items,companyId);
+  return NextResponse.json({items:items.map((x,i)=>({...x,actor:x.actorId?names.get(x.actorId)||null:null,...display[i],detail:undefined,entityId:undefined,actorId:undefined})),total,page},{headers:{'Cache-Control':'private, no-store'}});
  }catch(error){
   console.error('Audit log lookup failed',error);
   return NextResponse.json({error:'Unable to load audit logs'},{status:500});

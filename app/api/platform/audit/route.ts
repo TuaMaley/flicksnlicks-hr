@@ -1,6 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {currentUser} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
+import {auditDisplay} from '../../../../lib/auditDisplay';
 
 export async function GET(req:NextRequest){
  const session=await currentUser();
@@ -23,5 +24,6 @@ export async function GET(req:NextRequest){
  const companyIds=[...new Set(rows.map(r=>r.companyId).filter((x):x is string=>!!x))];
  const [users,companies]=await Promise.all([db.user.findMany({where:{id:{in:actorIds}},select:{id:true,name:true,email:true}}),db.company.findMany({where:{id:{in:companyIds}},select:{id:true,name:true,code:true}})]);
  const usersById=new Map(users.map(u=>[u.id,u]));const companiesById=new Map(companies.map(c=>[c.id,c]));
- return NextResponse.json({rows:rows.map(r=>({...r,actor:r.actorId?usersById.get(r.actorId)||null:null,company:r.companyId?companiesById.get(r.companyId)||null:null})),nextCursor:hasMore?rows[rows.length-1]?.id:null},{headers:{'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
+ const display=await auditDisplay(rows);
+ return NextResponse.json({rows:rows.map((r,i)=>({...r,actor:r.actorId?usersById.get(r.actorId)||null:null,company:r.companyId?companiesById.get(r.companyId)||null:null,...display[i],detail:undefined,entityId:undefined,actorId:undefined})),nextCursor:hasMore?rows[rows.length-1]?.id:null},{headers:{'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
 }
