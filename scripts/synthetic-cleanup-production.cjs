@@ -79,7 +79,22 @@ async function main(){
  if(process.env.CONFIRM_SYNTHETIC_DELETE!=='DELETE_40_PERMANENTLY')stop('Set CONFIRM_SYNTHETIC_DELETE=DELETE_40_PERMANENTLY');
  const result=await prisma.$transaction(async tx=>{
    const s=await inspect(tx);
+console.log('TOKEN DEBUG:', {
+  suppliedToken: process.argv[3],
+  calculatedToken: s.token,
+  ready: s.ready,
+  employeeCount: s.counts.employees
+});
    if(!s.ready)stop('Preview checks did not pass. No records deleted.');
+const suppliedToken = process.argv[3];
+
+if (!suppliedToken) {
+  stop('Missing confirmation token. Run preview first.');
+}
+
+if (suppliedToken !== s.token) {
+  stop('Confirmation token mismatch; rerun preview.');
+}
    if(process.env.SYNTHETIC_DELETE_TOKEN!==s.token)stop('Confirmation token mismatch; rerun preview.');
    const where={employeeId:{in:s.ids}};
    const removed={};
