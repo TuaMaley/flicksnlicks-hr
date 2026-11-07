@@ -36,8 +36,8 @@ export async function POST(req:NextRequest){const u=await actor();if(!u)return r
  if(b.action==='invoice'){
   const companyId=String(b.companyId||'');const company=await db.company.findUnique({where:{id:companyId}});if(!company)return reply('Company not found',404);
   const profile=await db.nexoraBillingProfile.findUnique({where:{companyId}});if(!profile)return reply('Set up company billing profile first');
-  const amount=minor(b.amount);const dueAt=date(b.dueAt);const description=String(b.description||'').trim();const number=String(b.invoiceNumber||'').trim().toUpperCase();
-  if(!amount||!dueAt||description.length<3||description.length>250||!/^NX-[A-Z0-9-]{5,45}$/.test(number))return reply('Invoice number (NX-...), description, amount and due date required');
+  const amount=minor(b.amount);const dueAt=date(b.dueAt);const description=String(b.description||'').trim();
+  if(!amount||!dueAt||description.length<3||description.length>250)return reply('Description, amount and due date required');
   const raw=b.installments;
   let installments:{percent:number;dueAt:string;amountMinor:number}[]|null=null;
   if(raw!==undefined&&raw!==null){
@@ -56,7 +56,15 @@ export async function POST(req:NextRequest){const u=await actor();if(!u)return r
   }
   const subId=b.subscriptionId?String(b.subscriptionId):null;
   if(subId){const s=await db.platformSubscription.findFirst({where:{id:subId,companyId}});if(!s)return reply('Subscription does not belong to company');}
-  const invoice=await db.$transaction(async tx=>{const i=await tx.nexoraInvoice.create({data:{companyId,invoiceNumber:number,description,currency:profile.currency,amountMinor:amount,dueAt,subscriptionId:subId,notes:reason(b.notes)||null,billToName:company.name,billToContact:company.contactName?.trim()||null,billToEmail:company.contactEmail?.trim()||profile.billingEmail||null,billToPhone:company.contactPhone?.trim()||null,billToAddress:company.businessAddress?.trim()||profile.billingAddress||null,installments:installments??Prisma.JsonNull}});await tx.auditLog.create({data:{actorId:u.id,companyId,action:'PLATFORM_INVOICE_ISSUED',entity:'NexoraInvoice',entityId:i.id,detail:{invoiceNumber:number,amountMinor:amount,currency:i.currency,subscriptionId:subId}}});return i;});return NextResponse.json({invoice},{status:201});
+  const invoice=await db.$transaction(async tx=>{
+   // Serialize invoice numbering across all Nexora platform companies.
+   await tx.$executeRaw`SELECT pg_advisory_xact_lock(62739841, 1)`;
+   const year=new Date().getUTCFullYear();
+   const prefix=`NX-${year}-`;
+   const existing=await tx.nexoraInvoice.findMany({where:{invoiceNumber:{startsWith:prefix}},select:{invoiceNumber:true}});
+   const next=existing.reduce((max,item)=>{const suffix=item.invoiceNumber.slice(prefix.length);return /^\d+$/.test(suffix)?Math.max(max,Number(suffix)):max;},0)+1;
+   const number=`${prefix}${String(next).padStart(5,'0')}`;
+   const i=await tx.nexoraInvoice.create({data:{companyId,invoiceNumber:number,description,currency:profile.currency,amountMinor:amount,dueAt,subscriptionId:subId,notes:reason(b.notes)||null,billToName:company.name,billToContact:company.contactName?.trim()||null,billToEmail:company.contactEmail?.trim()||profile.billingEmail||null,billToPhone:company.contactPhone?.trim()||null,billToAddress:company.businessAddress?.trim()||profile.billingAddress||null,installments:installments??Prisma.JsonNull}});await tx.auditLog.create({data:{actorId:u.id,companyId,action:'PLATFORM_INVOICE_ISSUED',entity:'NexoraInvoice',entityId:i.id,detail:{invoiceNumber:number,amountMinor:amount,currency:i.currency,subscriptionId:subId}}});return i;});return NextResponse.json({invoice},{status:201});
  }
  if(b.action==='emailInvoice'){
   const invoiceId=String(b.invoiceId||'');
