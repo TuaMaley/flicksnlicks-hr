@@ -27,7 +27,14 @@ export async function POST(req:NextRequest){
   const name=typeof body.name==='string'?body.name.trim():'';
   const email=typeof body.email==='string'?body.email.trim().toLowerCase():'';
   if(name.length<2||name.length>120||email.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return response('Enter a valid name and email',400);
-  if(await db.user.findUnique({where:{email},select:{id:true}}))return response('An account with this email already exists. No permissions were changed.',409);
+  const existing=await db.user.findUnique({where:{email},select:{id:true,active:true,platformAdmin:true,employeeId:true,companyMemberships:{select:{id:true},take:1}}});
+  if(existing){
+   // Reuse only an explicitly soft-deleted platform administrator. Never take over a
+   // regular user or a company-linked account merely because its email matches.
+   const deleted=await db.auditLog.findFirst({where:{entity:'User',entityId:existing.id,action:'PLATFORM_ADMIN_SOFT_DELETED'},select:{id:true}});
+   if(!deleted||existing.active||existing.platformAdmin||existing.employeeId||existing.companyMemberships.length)
+    return response('This email belongs to an existing account and cannot be reused for a platform invitation.',409);
+  }
   // Do not grant platform access unless the invitation email can be sent.
   if(!process.env.RESEND_API_KEY||!process.env.RESEND_FROM_EMAIL)return response('Email delivery is not configured',503);
   let origin:string;
@@ -38,13 +45,25 @@ export async function POST(req:NextRequest){
   let userId:string;
   try{
    const user=await db.$transaction(async tx=>{
-    const created=await tx.user.create({data:{name,email,platformAdmin:true,active:false,passwordHash:hashPassword(randomPassword)}});
+    let created;
+    if(existing){
+     const current=await tx.user.findUnique({where:{id:existing.id},select:{active:true,platformAdmin:true,employeeId:true}});
+     if(!current||current.active||current.platformAdmin||current.employeeId||await tx.companyMembership.count({where:{userId:existing.id}}))throw Error('ACCOUNT_NOT_ELIGIBLE');
+     // Invalidate old links and revoke old tenant privileges before issuing a new invite.
+     await tx.passwordResetToken.updateMany({where:{userId:existing.id,usedAt:null},data:{usedAt:new Date()}});
+     await tx.userRole.deleteMany({where:{userId:existing.id}});
+     await tx.userAccessScope.deleteMany({where:{userId:existing.id}});
+     created=await tx.user.update({where:{id:existing.id},data:{name,platformAdmin:true,active:false,passwordHash:hashPassword(randomPassword)}});
+     await tx.auditLog.create({data:{actorId:actor.id,action:'PLATFORM_ADMIN_REINVITED_AFTER_DELETION',entity:'User',entityId:created.id,detail:{email}}});
+    }else{
+     created=await tx.user.create({data:{name,email,platformAdmin:true,active:false,passwordHash:hashPassword(randomPassword)}});
+    }
     await tx.passwordResetToken.create({data:{userId:created.id,tokenHash:digestResetToken(token),expiresAt:new Date(Date.now()+24*60*60*1000)}});
     await tx.auditLog.create({data:{actorId:actor.id,action:'PLATFORM_ADMIN_INVITED',entity:'User',entityId:created.id,detail:{email}}});
     return created;
-   });
+   },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
    userId=user.id;
-  }catch(e){if(e instanceof Prisma.PrismaClientKnownRequestError&&e.code==='P2002')return response('Email already exists',409);console.error('Platform invitation creation failed',e);return response('Unable to create invitation',500)}
+  }catch(e){if(e instanceof Prisma.PrismaClientKnownRequestError&&e.code==='P2002')return response('Email already exists',409);if(e instanceof Error&&e.message==='ACCOUNT_NOT_ELIGIBLE')return response('This account cannot be reused',409);console.error('Platform invitation creation failed',e);return response('Unable to create invitation',500)}
   try{
    const sent=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${process.env.RESEND_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from:process.env.RESEND_FROM_EMAIL,to:email,subject:'Your Nexora Platform Administrator invitation',text:`You have been invited to become a Nexora Platform Administrator. Set your password using this link within 24 hours: ${link}\n\nIf you did not expect this invitation, contact your platform administrator.`,html:`<p>You have been invited to become a Nexora Platform Administrator.</p><p><a href="${link}">Set your password</a> (expires in 24 hours).</p><p>If unexpected, contact your platform administrator.</p>`})});
    if(!sent.ok)throw Error(`Email provider returned ${sent.status}`);
