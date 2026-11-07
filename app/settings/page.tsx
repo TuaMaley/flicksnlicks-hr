@@ -18,8 +18,8 @@ export default function SettingsPage(){
   }catch(e){setError(e instanceof Error?e.message:'Unable to change password')}finally{setBusy(false)}
  }
  return <main className="fnlSettingsPage">
-  <Link href="/" className="backLink">← Dashboard</Link><h1>My profile & settings</h1><p>Manage your Flicks & Licks HRMS account.</p>
-  <section className="fnlSettingsCard"><h2>Company Administration</h2><p><Link href="/settings/branches">Manage company branches →</Link></p><p><Link href="/settings/departments">Manage company departments →</Link></p></section><section className="fnlSettingsCard"><h2>Profile</h2><dl><dt>Name</dt><dd>{me?.name||'Loading…'}</dd><dt>Email</dt><dd>{me?.email||'—'}</dd><dt>Assigned roles</dt><dd>{me?.roles?.join(', ')||'—'}</dd></dl><p className="fnlMuted">To update your name, email, or assigned roles, contact HR or an Administrator.</p></section>
+  <Link href="/" className="backLink">← Dashboard</Link><h1>Account settings</h1><p>Manage your Nexora account security and administrative settings.</p>
+  <section className="fnlSettingsCard"><h2>Company Administration</h2><p><Link href="/settings/branches">Manage company branches →</Link></p><p><Link href="/settings/departments">Manage company departments →</Link></p></section><section className="fnlSettingsCard"><h2>Account identity</h2><dl><dt>Name</dt><dd>{me?.name||'Loading…'}</dd><dt>Email</dt><dd>{me?.email||'—'}</dd><dt>Assigned roles</dt><dd>{me?.roles?.join(', ')||'—'}</dd></dl><p className="fnlMuted">To update your name, email, or assigned roles, contact HR or an Administrator.</p></section>
   <section className="fnlSettingsCard"><h2>Change password</h2><form onSubmit={changePassword}>
    <label>Current password<PasswordInput autoComplete="current-password" value={current} onChange={e=>setCurrent(e.target.value)} required/></label>
    <label>New password (at least 12 characters)<PasswordInput autoComplete="new-password" minLength={12} value={next} onChange={e=>setNext(e.target.value)} required/></label>
