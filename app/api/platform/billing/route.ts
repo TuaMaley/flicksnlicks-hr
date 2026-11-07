@@ -11,7 +11,7 @@ const date=(v:unknown)=>{const d=new Date(String(v));return Number.isFinite(d.ge
 const allowedCurrency=(v:unknown)=>typeof v==='string'&&/^[A-Z]{3}$/.test(v)?v:null;
 export async function GET(){if(!await actor())return reply('Platform administrator required',403);
  const [companies,profiles,invoices,payments,subscriptions]=await Promise.all([
-  db.company.findMany({select:{id:true,name:true,code:true},orderBy:{name:'asc'}}),
+  db.company.findMany({select:{id:true,name:true,code:true,contactName:true,contactEmail:true,contactPhone:true,businessAddress:true},orderBy:{name:'asc'}}),
   db.nexoraBillingProfile.findMany(),
   db.nexoraInvoice.findMany({orderBy:{issuedAt:'desc'},take:500,include:{payments:{orderBy:{paidAt:'desc'}}}}),
   db.nexoraPayment.findMany({orderBy:{paidAt:'desc'},take:500}),
@@ -36,9 +36,40 @@ export async function POST(req:NextRequest){const u=await actor();if(!u)return r
   const profile=await db.nexoraBillingProfile.findUnique({where:{companyId}});if(!profile)return reply('Set up company billing profile first');
   const amount=minor(b.amount);const dueAt=date(b.dueAt);const description=String(b.description||'').trim();const number=String(b.invoiceNumber||'').trim().toUpperCase();
   if(!amount||!dueAt||description.length<3||description.length>250||!/^NX-[A-Z0-9-]{5,45}$/.test(number))return reply('Invoice number (NX-...), description, amount and due date required');
+  const raw=b.installments;
+  let installments:{percent:number;dueAt:string;amountMinor:number}[]|null=null;
+  if(raw!==undefined&&raw!==null){
+   if(!Array.isArray(raw)||raw.length<1||raw.length>24)return reply('Provide 1–24 installments');
+   let remaining=amount;let totalPercent=0;installments=[];
+   for(let j=0;j<raw.length;j++){
+    const percent=Number(raw[j]?.percent),due=date(raw[j]?.dueAt);
+    if(!Number.isInteger(percent)||percent<1||percent>100||!due||!/^\d{4}-\d{2}-\d{2}$/.test(String(raw[j]?.dueAt)))return reply('Invalid installment percentage or date');
+    if(j&&due.getTime()<new Date(installments[j-1].dueAt).getTime())return reply('Installment dates must be in order');
+    totalPercent+=percent;
+    const portion=j===raw.length-1?remaining:Math.round(amount*percent/100);
+    remaining-=portion;installments.push({percent,dueAt:String(raw[j].dueAt),amountMinor:portion});
+   }
+   if(totalPercent!==100||remaining!==0)return reply('Installment percentages must total 100%');
+   if(dueAt.getTime()<new Date(installments[installments.length-1].dueAt).getTime())return reply('Invoice due date cannot precede final installment');
+  }
   const subId=b.subscriptionId?String(b.subscriptionId):null;
   if(subId){const s=await db.platformSubscription.findFirst({where:{id:subId,companyId}});if(!s)return reply('Subscription does not belong to company');}
-  const invoice=await db.$transaction(async tx=>{const i=await tx.nexoraInvoice.create({data:{companyId,invoiceNumber:number,description,currency:profile.currency,amountMinor:amount,dueAt,subscriptionId:subId,notes:reason(b.notes)||null}});await tx.auditLog.create({data:{actorId:u.id,companyId,action:'PLATFORM_INVOICE_ISSUED',entity:'NexoraInvoice',entityId:i.id,detail:{invoiceNumber:number,amountMinor:amount,currency:i.currency,subscriptionId:subId}}});return i;});return NextResponse.json({invoice},{status:201});
+  const invoice=await db.$transaction(async tx=>{const i=await tx.nexoraInvoice.create({data:{companyId,invoiceNumber:number,description,currency:profile.currency,amountMinor:amount,dueAt,subscriptionId:subId,notes:reason(b.notes)||null,billToName:company.name,billToContact:company.contactName||null,billToEmail:company.contactEmail||null,billToPhone:company.contactPhone||null,billToAddress:company.businessAddress||null,installments:installments??Prisma.JsonNull}});await tx.auditLog.create({data:{actorId:u.id,companyId,action:'PLATFORM_INVOICE_ISSUED',entity:'NexoraInvoice',entityId:i.id,detail:{invoiceNumber:number,amountMinor:amount,currency:i.currency,subscriptionId:subId}}});return i;});return NextResponse.json({invoice},{status:201});
+ }
+ if(b.action==='emailInvoice'){
+  const invoiceId=String(b.invoiceId||'');
+  const i=await db.nexoraInvoice.findUnique({where:{id:invoiceId}});
+  if(!i||i.status==='VOID')return reply('Invoice not found or void',404);
+  if(!i.billToEmail)return reply('Customer contact email missing on issued invoice');
+  const key=process.env.RESEND_API_KEY,from=process.env.RESEND_FROM_EMAIL;
+  if(!key||!from)return reply('Resend configuration missing',503);
+  const schedule=Array.isArray(i.installments)?i.installments as Array<{percent:number;dueAt:string;amountMinor:number}>:[];
+  const rows=schedule.map(x=>`${x.percent}% — ${x.dueAt}: ${i.currency} ${(x.amountMinor/100).toFixed(2)}`).join('\n');
+  const textBody=`NEXORA INVOICE ${i.invoiceNumber}\nBill to: ${i.billToName||''}\nContact: ${i.billToContact||''}\n${i.description}\nTotal: ${i.currency} ${(i.amountMinor/100).toFixed(2)}\nInvoice due: ${i.dueAt.toISOString().slice(0,10)}\n\nAgreed installment schedule:\n${rows||'Full payment on invoice due date'}\n\nPlease contact Nexora for payment instructions.`;
+  const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({from,to:[i.billToEmail],subject:`Nexora invoice ${i.invoiceNumber}`,text:textBody})});
+  if(!response.ok)return reply('Email provider rejected delivery',502);
+  await db.auditLog.create({data:{actorId:u.id,companyId:i.companyId,action:'PLATFORM_INVOICE_EMAILED',entity:'NexoraInvoice',entityId:i.id,detail:{recipient:i.billToEmail}}});
+  return NextResponse.json({sent:true});
  }
  if(b.action==='payment'){
   const invoiceId=String(b.invoiceId||'');const amount=minor(b.amount);const method=String(b.method||'').trim().toUpperCase();const reference=String(b.reference||'').trim().toUpperCase();const paidAt=date(b.paidAt);if(!amount||!['BANK_TRANSFER','MOBILE_MONEY','CASH','OTHER'].includes(method)||reference.length<4||reference.length>100||!paidAt||paidAt.getTime()>Date.now()+86400000)return reply('Valid amount, method, reference and payment date required');
