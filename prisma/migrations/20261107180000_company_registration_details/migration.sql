@@ -1,0 +1,11 @@
+ALTER TABLE "Company" ADD COLUMN "registrationNumber" TEXT;
+ALTER TABLE "Company" ADD COLUMN "companyType" TEXT;
+ALTER TABLE "Company" ADD COLUMN "taxIdentifier" TEXT;
+ALTER TABLE "Company" ADD COLUMN "businessAddress" TEXT;
+ALTER TABLE "Company" ADD COLUMN "digitalAddress" TEXT;
+ALTER TABLE "Company" ADD COLUMN "industry" TEXT;
+ALTER TABLE "Company" ADD COLUMN "contactName" TEXT;
+ALTER TABLE "Company" ADD COLUMN "contactPosition" TEXT;
+ALTER TABLE "Company" ADD COLUMN "contactPhone" TEXT;
+ALTER TABLE "Company" ADD COLUMN "contactEmail" TEXT;
+ALTER TABLE "Company" ADD COLUMN "website" TEXT;
