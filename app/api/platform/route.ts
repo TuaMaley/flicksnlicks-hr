@@ -134,6 +134,54 @@ export async function POST(req:NextRequest){
   });
   return NextResponse.json({success:true});
  }
+ if(action==='updateCompanyMember'){
+  const companyId=typeof body.companyId==='string'?body.companyId:'';
+  const userId=typeof body.userId==='string'?body.userId:'';
+  const name=typeof body.name==='string'?body.name.trim():'';
+  const email=typeof body.email==='string'?body.email.trim().toLowerCase():'';
+  if(name.length<2||name.length>120||email.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return NextResponse.json({error:'Valid name and email required'},{status:400});
+  const membership=await db.companyMembership.findUnique({where:{companyId_userId:{companyId,userId}},include:{user:{select:{name:true,email:true,platformAdmin:true}}}});
+  if(!membership?.active||membership.user.platformAdmin)return NextResponse.json({error:'Active company member not found'},{status:404});
+  await db.$transaction(async tx=>{
+   await tx.user.update({where:{id:userId},data:{name,email}});
+   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_MEMBER_UPDATED',entity:'User',entityId:userId,detail:{previous:{name:membership.user.name,email:membership.user.email},current:{name,email}}}});
+  });
+  return NextResponse.json({success:true});
+ }
+ if(action==='removeCompanyMember'){
+  const companyId=typeof body.companyId==='string'?body.companyId:'';
+  const userId=typeof body.userId==='string'?body.userId:'';
+  const membership=await db.companyMembership.findUnique({where:{companyId_userId:{companyId,userId}},include:{user:{select:{platformAdmin:true}}}});
+  if(!membership?.active||membership.user.platformAdmin)return NextResponse.json({error:'Active company member not found'},{status:404});
+  await db.$transaction(async tx=>{
+   await tx.companyMembership.update({where:{id:membership.id},data:{active:false}});
+   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_MEMBER_REMOVED',entity:'User',entityId:userId,detail:{membershipId:membership.id}}});
+  });
+  return NextResponse.json({success:true});
+ }
+ if(action==='deleteCompanyUserAccount'){
+  const companyId=typeof body.companyId==='string'?body.companyId:'';
+  const userId=typeof body.userId==='string'?body.userId:'';
+  if(!companyId||!userId||userId===a.user.id)return NextResponse.json({error:'Invalid account deletion request'},{status:400});
+  try{
+   await db.$transaction(async tx=>{
+    const user=await tx.user.findUnique({where:{id:userId},select:{id:true,active:true,platformAdmin:true}});
+    if(!user?.active||user.platformAdmin)throw new Error('ACCOUNT_NOT_ELIGIBLE');
+    const memberships=await tx.companyMembership.findMany({where:{userId,active:true},select:{id:true,companyId:true}});
+    if(memberships.length!==1||memberships[0].companyId!==companyId)throw new Error('OTHER_ACTIVE_MEMBERSHIPS');
+    await tx.companyMembership.update({where:{id:memberships[0].id},data:{active:false}});
+    // Retain the immutable user ID for historical references, but release the unique email.
+    // This is a deactivation, not a physical delete of records linked to audits or HRMS.
+    await tx.user.update({where:{id:userId},data:{active:false,email:`deleted-${userId}@invalid.nexora.local`,passwordHash:`disabled-${userId}`}});
+    await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_USER_ACCOUNT_DELETED',entity:'User',entityId:userId,detail:{membershipId:memberships[0].id,emailReleased:true}}});
+   });
+   return NextResponse.json({success:true});
+  }catch(e:any){
+   if(e?.message==='OTHER_ACTIVE_MEMBERSHIPS')return NextResponse.json({error:'This user has another active company membership. Remove their other memberships before deleting the account.'},{status:409});
+   if(e?.message==='ACCOUNT_NOT_ELIGIBLE')return NextResponse.json({error:'This account cannot be deleted'},{status:403});
+   throw e;
+  }
+ }
  if(action==='addMembership'){
   if(typeof body.companyId!=='string'||typeof body.userId!=='string')return NextResponse.json({error:'Select company and user'},{status:400});
   const [company,user]=await Promise.all([db.company.findUnique({where:{id:body.companyId}}),db.user.findUnique({where:{id:body.userId}})]);
