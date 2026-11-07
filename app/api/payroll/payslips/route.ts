@@ -13,6 +13,8 @@ export async function GET(req:NextRequest){
  const period=req.nextUrl.searchParams.get('period')||new Date().toISOString().slice(0,7);
  if(!periodOK(period))return NextResponse.json({error:'Invalid payroll month'},{status:400});
  const batches=await db.payrollCalculationBatch.findMany({where:{period,status:'APPROVED',companyId:a.companyId},orderBy:{createdAt:'desc'},take:30,select:{id:true,period:true,status:true,createdAt:true,currency:true,lineItems:true,employeeCount:true,approvals:{select:{action:true,createdAt:true},orderBy:{createdAt:'asc'}}}});
+ const company=await db.company.findUnique({where:{id:a.companyId},select:{name:true,logoDataUrl:true}});
+ if(!company)return NextResponse.json({error:'Company not found'},{status:404});
  const rows=batches.map(b=>{
  const items=Array.isArray(b.lineItems)?b.lineItems:[];
  const finalReview=b.approvals.some(x=>x.action==='finance_approve');
@@ -27,6 +29,6 @@ export async function GET(req:NextRequest){
  });
  return {id:b.id,period:b.period,createdAt:b.createdAt,currency:b.currency,employeeCount:b.employeeCount,payslips};
  });
- return NextResponse.json({period,batches:rows},{headers:{'Cache-Control':'private, no-store'}});
+ return NextResponse.json({period,batches:rows,company:{name:company.name,logoDataUrl:company.logoDataUrl}},{headers:{'Cache-Control':'private, no-store'}});
  }catch(e){console.error('[payslips GET]',e);return NextResponse.json({error:'Unable to load payslips. Review payroll database and server logs.'},{status:500})}
 }

@@ -15,7 +15,8 @@ export async function GET(){
  const reviews=await db.accessReview.findMany({where:{companyId},orderBy:{createdAt:'desc'},take:100});
  const ids=[...new Set(reviews.flatMap(r=>[r.userId,r.reviewerId]))];
  const users=await db.user.findMany({where:{id:{in:ids},platformAdmin:false,companyMemberships:{some:{companyId,active:true}}},select:{id:true,name:true,email:true,active:true,roles:{include:{role:{select:{name:true}}}}}});
- const byId=new Map(users.map(x=>[x.id,x]));
+ const historical=ids.length?await db.user.findMany({where:{id:{in:ids},platformAdmin:false,companyMemberships:{some:{companyId}}},select:{id:true,name:true,email:true,active:true,roles:{include:{role:{select:{name:true}}}}}}):[];
+ const byId=new Map(historical.map(x=>[x.id,x]));
  return NextResponse.json({users:users.map(u=>({id:u.id,name:u.name,email:u.email,active:u.active})),reviews:reviews.map(r=>({...r,subject:byId.get(r.userId)||null,reviewer:byId.get(r.reviewerId)||null}))});
 }
 export async function POST(req:NextRequest){

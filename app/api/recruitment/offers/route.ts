@@ -5,13 +5,11 @@ import {fail,ok} from '../../../../lib/http';
 const scoped=(a:Awaited<ReturnType<typeof access>>)=>({vacancy:{branch:{employees:{some:employeeWhere(a)}}}});
 export async function GET(){try{const a=await access();if(!a.user)return fail('Unauthorized',401);if(!a.can('recruitment.view'))return fail('Forbidden',403);
  const offers=await db.recruitmentOffer.findMany({where:{application:scoped(a)},include:{application:{include:{candidate:{select:{firstName:true,lastName:true,email:true}},vacancy:{select:{title:true,branch:{select:{name:true}}}}}}},orderBy:{createdAt:'desc'},take:300});
- // Resolve only users who have belonged to the selected company. Historical memberships
- // remain eligible so audit attribution survives account deactivation.
- const actorIds=[...new Set(offers.flatMap(o=>[o.createdById,o.approvedById]).filter((id):id is string=>!!id))];
- const companyId=a.companyId;
- const actors=companyId&&actorIds.length?await db.user.findMany({where:{id:{in:actorIds},companyMemberships:{some:{companyId}}},select:{id:true,name:true}}):[];
- const names=new Map(actors.map(u=>[u.id,u.name]));
- return ok({offers:offers.map(o=>({...o,createdByName:names.get(o.createdById)||'Former or unknown user',approvedByName:o.approvedById?(names.get(o.approvedById)||'Former or unknown user'):null}))});
+ if(!a.companyId)return fail('Select an authorized company',403);
+ const ids=[...new Set(offers.flatMap(o=>[o.createdById,o.approvedById]).filter((id):id is string=>!!id))];
+ const people=ids.length?await db.user.findMany({where:{id:{in:ids},companyMemberships:{some:{companyId:a.companyId}}},select:{id:true,name:true,email:true}}):[];
+ const names=new Map(people.map(p=>[p.id,p.name?.trim()||p.email]));
+ return ok({offers:offers.map(o=>({...o,createdByName:names.get(o.createdById)||'Former/unknown user',approvedByName:o.approvedById?names.get(o.approvedById)||'Former/unknown user':null}))});
  }catch(e){console.error('Recruitment offers GET',e);return fail('Unable to load offers',500)}}
 export async function POST(req:NextRequest){try{const a=await access();if(!a.user)return fail('Unauthorized',401);if(!a.can('recruitment.create'))return fail('Forbidden',403);const b=await req.json();
  const applicationId=String(b.applicationId||''),salary=Number(b.salaryGhs),startDate=new Date(String(b.startDate||'')+'T12:00:00.000Z'),offerTerms=String(b.offerTerms||'').trim();
