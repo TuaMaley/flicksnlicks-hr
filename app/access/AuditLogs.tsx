@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 
-type Row={id:string;createdAt:string;action:string;entity:string;entityId:string|null;actor:{name:string;email:string}|null;detail:unknown};
+type Row={id:string;createdAt:string;action:string;entity:string;entityId:string|null;actor:{name:string;email:string}|null;detail:unknown;recordLabel?:string;recordSubtitle?:string;detailDisplay?:unknown};
 type User={id:string;name:string;email:string;active:boolean};
 async function jsonResponse(r:Response){
  const raw=await r.text();
@@ -58,7 +58,7 @@ export default function AuditLogs(){
   {error&&<p role="alert" style={{color:'#b91c1c'}}>{error}</p>}
   {busy&&<p>Loading…</p>}
   <div className="tableWrap"><table className="dataTable"><thead><tr><th>Date / Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead><tbody>
-   {rows.map(r=><tr key={r.id}><td>{new Date(r.createdAt).toLocaleString()}</td><td>{r.actor?.name||r.actor?.email||'System'}</td><td>{r.action}</td><td>{r.entity}{r.entityId?' · '+r.entityId:''}</td><td><details><summary>View</summary><pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere',maxWidth:400}}>{JSON.stringify(r.detail,null,2)||'—'}</pre></details></td></tr>)}
+   {rows.map(r=><tr key={r.id}><td>{new Date(r.createdAt).toLocaleString()}</td><td>{r.actor?.name||r.actor?.email||'System'}</td><td>{r.action}</td><td>{r.recordLabel||r.entity}{r.recordSubtitle?' · '+r.recordSubtitle:''}</td><td><details><summary>View</summary><pre style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere',maxWidth:400}}>{JSON.stringify(r.detailDisplay??{},null,2)||'—'}</pre></details></td></tr>)}
   </tbody></table></div>
   {!busy&&!error&&!rows.length&&<p>No recorded activity found for the selected filters.</p>}
   <div style={{display:'flex',gap:12,alignItems:'center',marginTop:16}}>
