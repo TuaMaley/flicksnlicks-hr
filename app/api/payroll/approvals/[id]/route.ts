@@ -10,9 +10,8 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
   if(!['submit','hr_approve','finance_approve','reject'].includes(action))return NextResponse.json({error:'Invalid action'},{status:400});
   const reason=typeof body.reason==='string'?body.reason.trim():'';
   if(action==='reject'&&(reason.length<10||reason.length>1000))return NextResponse.json({error:'Rejection reason must be 10–1000 characters'},{status:400});
-  const names=a.user.roles.filter(r=>r.role.active).map(r=>r.role.name);
   const isHR=a.can('payroll.approve');
-  const isFinance=a.can('payroll.approve');
+  const isFinance=a.can('payroll.finance_approve');
   const result=await db.$transaction(async tx=>{
    const batch=await tx.payrollCalculationBatch.findUnique({where:{id},include:{approvals:{orderBy:{createdAt:'asc'}}}});
    if(!batch||batch.companyId!==a.companyId)return {error:'Payroll batch not found',status:404};

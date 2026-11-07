@@ -6,7 +6,7 @@ export const dynamic='force-dynamic';
 const validPeriod=(p:string)=>/^\d{4}-(0[1-9]|1[0-2])$/.test(p);
 const validAmount=(v:string)=>/^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/.test(v);
 const toCents=(v:string)=>Math.round(Number(v)*100);
-function finance(a:Awaited<ReturnType<typeof access>>){return Boolean(a.user&&a.companyId&&a.can('payroll.approve'))}
+function finance(a:Awaited<ReturnType<typeof access>>){return Boolean(a.user&&a.companyId&&a.can('payroll.finance_approve'))}
 export async function POST(req:NextRequest){
  try{
   const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!finance(a))return NextResponse.json({error:'Finance access required'},{status:403});

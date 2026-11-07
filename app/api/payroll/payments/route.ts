@@ -3,7 +3,7 @@ import {access} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
 export const dynamic='force-dynamic';
 type A=Awaited<ReturnType<typeof access>>;
-function finance(a:A){return a.can('payroll.approve')}
+function finance(a:A){return a.can('payroll.finance_approve')}
 function hr(a:A){return a.can('payroll.view')}
 function money(x:unknown):x is number{return typeof x==='number'&&Number.isFinite(x)&&x>=0}
 const validPeriod=(p:string)=>/^\d{4}-(0[1-9]|1[0-2])$/.test(p);
