@@ -4,6 +4,7 @@ import {verifyPassword,issueToken} from '../../../../lib/auth';
 import {fail,ok} from '../../../../lib/http';
 import {recordSecurityEvent} from '../../../../lib/accessSecurity';
 import {activeTenant} from '../../../../lib/tenant';
+import {companyAccessState,SUSPENDED_COMPANY_MESSAGE} from '../../../../lib/companyAccess';
 export const runtime='nodejs';
 /**
  * Mobile sign-in for the Nexora Employee app.
@@ -17,6 +18,7 @@ export async function POST(req:NextRequest){
   if(typeof email!=='string'||typeof password!=='string'){await recordSecurityEvent('LOGIN_FAILURE',null,{reason:'invalid_credentials',client:'mobile'});return fail('Invalid credentials',401)}
   const user=await db.user.findUnique({where:{email:email.trim().toLowerCase()},select:{id:true,active:true,passwordHash:true,name:true,email:true,employeeId:true,platformAdmin:true}});
   if(!user||!user.active||!verifyPassword(password,user.passwordHash)){await recordSecurityEvent('LOGIN_FAILURE',null,{reason:'invalid_credentials',client:'mobile'});return fail('Invalid credentials',401)}
+  if(await companyAccessState(user)==='suspended')return fail(SUSPENDED_COMPANY_MESSAGE,403);
   if(!user.employeeId)return fail('This login is not linked to an employee record. The employee app is for staff accounts only.',403);
   const token=issueToken(user.id);
   const memberships=await db.companyMembership.findMany({where:{userId:user.id,active:true,company:{active:true}},select:{companyId:true,company:{select:{name:true,code:true}}}});

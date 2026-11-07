@@ -4,6 +4,7 @@ import {verifyPassword,setSession} from '../../../../lib/auth';
 import {fail,ok} from '../../../../lib/http';
 import {recordSecurityEvent} from '../../../../lib/accessSecurity';
 import {activeTenant} from '../../../../lib/tenant';
+import {companyAccessState,SUSPENDED_COMPANY_MESSAGE} from '../../../../lib/companyAccess';
 
 export async function POST(req:NextRequest){
  try{
@@ -17,6 +18,10 @@ export async function POST(req:NextRequest){
   if(!user||!user.active||!verifyPassword(password,user.passwordHash)){
    await recordSecurityEvent('LOGIN_FAILURE',null,{reason:'invalid_credentials'});
    return fail('Invalid credentials',401);
+  }
+  if(await companyAccessState(user)==='suspended'){
+   await recordSecurityEvent('LOGIN_FAILURE',user.id,{reason:'company_suspended'});
+   return fail(SUSPENDED_COMPANY_MESSAGE,403);
   }
   await setSession(user.id);
   // Preserve the existing login audit entry used by other HRMS features.
