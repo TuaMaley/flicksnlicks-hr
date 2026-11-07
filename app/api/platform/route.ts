@@ -12,12 +12,15 @@ async function guard(){
 }
 export async function GET(){
  const a=await guard();if('error'in a)return NextResponse.json({error:a.error},{status:a.status});
- const [companies,users,roles]=await Promise.all([
+ const [companies,users,roles,adminCreationLogs]=await Promise.all([
  db.company.findMany({include:{modules:true,memberships:{include:{user:{select:{id:true,name:true,email:true,active:true}},roles:{include:{role:{select:{id:true,name:true}}}}}}},orderBy:{createdAt:'desc'}}),
  db.user.findMany({select:{id:true,name:true,email:true,active:true},orderBy:{name:'asc'},take:1000}),
- db.role.findMany({where:{active:true},select:{id:true,name:true},orderBy:{name:'asc'}})
+ db.role.findMany({where:{active:true},select:{id:true,name:true},orderBy:{name:'asc'}}),
+ db.auditLog.findMany({where:{action:{in:['PLATFORM_COMPANY_ADMIN_INVITED','PLATFORM_COMPANY_ADMIN_CREATED']},entity:'User',entityId:{not:null}},select:{entityId:true}})
  ]);
- return NextResponse.json({companies,users,roles,moduleCatalog:modules},{headers:{'Cache-Control':'private, no-store'}});
+ const adminIds=new Set(adminCreationLogs.map(log=>log.entityId));
+ const companyAdministratorCandidates=users.filter(u=>u.active&&adminIds.has(u.id));
+ return NextResponse.json({companies,users,roles,companyAdministratorCandidates,moduleCatalog:modules},{headers:{'Cache-Control':'private, no-store'}});
 }
 export async function POST(req:NextRequest){
  const a=await guard();if('error'in a)return NextResponse.json({error:a.error},{status:a.status});
@@ -105,6 +108,31 @@ export async function POST(req:NextRequest){
    return {userId:u.id,membershipId:m.id};
   });
   return NextResponse.json({success:true,...result},{status:201});
+ }
+ if(action==='assignCompanyAdministrator'){
+  const companyId=typeof body.companyId==='string'?body.companyId:'';
+  const userId=typeof body.userId==='string'?body.userId:'';
+  if(!companyId||!userId)return NextResponse.json({error:'Select a company and Nexora-created administrator'},{status:400});
+  const [company,user,creationLog]=await Promise.all([
+   db.company.findUnique({where:{id:companyId},select:{id:true,active:true}}),
+   db.user.findUnique({where:{id:userId},select:{id:true,active:true,platformAdmin:true}}),
+   db.auditLog.findFirst({where:{entity:'User',entityId:userId,action:{in:['PLATFORM_COMPANY_ADMIN_INVITED','PLATFORM_COMPANY_ADMIN_CREATED']}},select:{id:true}})
+  ]);
+  if(!company?.active||!user?.active||user.platformAdmin||!creationLog)return NextResponse.json({error:'An active company and a Nexora-created company administrator are required'},{status:400});
+  await db.$transaction(async tx=>{
+   const roleName=`Administrator [${companyId}]`;
+   let role=await tx.role.findUnique({where:{name:roleName}});
+   if(role&&(!role.active||role.companyId!==companyId))throw new Error('ADMIN_ROLE_CONFIGURATION');
+   if(!role){
+    const permissions=await tx.permission.findMany({select:{id:true}});
+    if(!permissions.length)throw new Error('PERMISSION_CATALOG_MISSING');
+    role=await tx.role.create({data:{name:roleName,companyId,description:'Company HRMS Administrator',system:true,protected:true,active:true,permissions:{create:permissions.map(p=>({permissionId:p.id}))}}});
+   }
+   const membership=await tx.companyMembership.upsert({where:{companyId_userId:{companyId,userId}},create:{companyId,userId,active:true},update:{active:true}});
+   await tx.companyMembershipRole.upsert({where:{membershipId_roleId:{membershipId:membership.id,roleId:role.id}},create:{membershipId:membership.id,roleId:role.id},update:{}});
+   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_ADMIN_ASSIGNED',entity:'User',entityId:userId,detail:{membershipId:membership.id,roleId:role.id}}});
+  });
+  return NextResponse.json({success:true});
  }
  if(action==='addMembership'){
   if(typeof body.companyId!=='string'||typeof body.userId!=='string')return NextResponse.json({error:'Select company and user'},{status:400});
