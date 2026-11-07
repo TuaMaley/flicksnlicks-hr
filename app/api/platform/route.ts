@@ -20,7 +20,11 @@ export async function GET(){
  ]);
  const adminIds=new Set(adminCreationLogs.map(log=>log.entityId));
  const companyAdministratorCandidates=users.filter(u=>u.active&&adminIds.has(u.id));
- return NextResponse.json({companies,users,roles,companyAdministratorCandidates,moduleCatalog:modules},{headers:{'Cache-Control':'private, no-store'}});
+ const now=new Date();
+ const subscriptions=await db.platformSubscription.findMany({where:{status:'ACTIVE',startsAt:{lte:now},endsAt:{gt:now}},select:{companyId:true}});
+ const subscribed=new Set(subscriptions.map(s=>s.companyId));
+ const enriched=companies.map(c=>{const admin=c.memberships.some(m=>m.active&&m.user.active&&m.roles.some(r=>r.role.name==='Administrator'||r.role.name.startsWith('Administrator [')));const ready=admin&&subscribed.has(c.id)&&c.modules.some(m=>m.enabled);return {...c,onboardingStatus:!c.active?'Suspended':ready?'Active':'Pending',onboardingReady:ready};});
+ return NextResponse.json({companies:enriched,users,roles,companyAdministratorCandidates,moduleCatalog:modules},{headers:{'Cache-Control':'private, no-store'}});
 }
 export async function POST(req:NextRequest){
  const a=await guard();if('error'in a)return NextResponse.json({error:a.error},{status:a.status});
