@@ -56,6 +56,26 @@ export async function PATCH(
       if (!branch) return fail('Invalid branch for selected company',400);
     }
 
+    if (d.reportingManagerId !== undefined) {
+      if (d.reportingManagerId !== null && typeof d.reportingManagerId !== 'string') return fail('Invalid reporting manager',400);
+      const managerId = typeof d.reportingManagerId === 'string' ? d.reportingManagerId.trim() : '';
+      if (managerId === id) return fail('Employee cannot report to themselves',400);
+      if (managerId) {
+        const manager = await db.employee.findFirst({where:{id:managerId,companyId:a.companyId},select:{id:true,reportingManagerId:true}});
+        if (!manager) return fail('Reporting manager must belong to the same company',400);
+        let ancestor: string | null = manager.reportingManagerId;
+        const visited = new Set<string>([managerId]);
+        while (ancestor) {
+          if (ancestor === id) return fail('Reporting relationship cannot create a cycle',400);
+          if (visited.has(ancestor)) return fail('Invalid existing reporting hierarchy',400);
+          visited.add(ancestor);
+          const parent: {reportingManagerId:string|null}|null = await db.employee.findFirst({where:{id:ancestor,companyId:a.companyId},select:{reportingManagerId:true}});
+          ancestor = parent?.reportingManagerId ?? null;
+        }
+      }
+      data.reportingManagerId = managerId || null;
+    }
+
     if (d.hireDate !== undefined) {
       if (typeof d.hireDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d.hireDate)) {
         return fail('Hire Date must be in YYYY-MM-DD format', 400);
