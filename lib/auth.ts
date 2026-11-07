@@ -1,4 +1,5 @@
 import {activeTenant} from './tenant';
+import {companyAccessState} from './companyAccess';
 import {cookies,headers} from 'next/headers';
 import {createHmac,timingSafeEqual,scryptSync,randomBytes} from 'node:crypto';
 import {db} from './db';
@@ -12,7 +13,7 @@ export async function setSession(id:string){(await cookies()).set(COOKIE,issueTo
 export async function clearSession(){(await cookies()).delete(COOKIE)}
 /** Mobile clients send the same signed session token as `Authorization: Bearer <token>` instead of the cookie. */
 async function rawSessionToken(){const fromCookie=(await cookies()).get(COOKIE)?.value;if(fromCookie)return fromCookie;const auth=(await headers()).get('authorization')||'';return auth.startsWith('Bearer ')?auth.slice(7).trim():null}
-export async function currentUser(){try{const raw=await rawSessionToken();if(!raw)return null;const [body,sig]=raw.split('.');if(!body||!sig)return null;const a=Buffer.from(sig),b=Buffer.from(sign(body));if(a.length!==b.length||!timingSafeEqual(a,b))return null;const payload=JSON.parse(Buffer.from(body,'base64url').toString());if(payload.exp<Date.now())return null;return await db.user.findFirst({where:{id:payload.id,active:true},include:{roles:{include:{role:{include:{permissions:{include:{permission:true}}}}}},scopes:true}})}catch{return null}}
+export async function currentUser(){try{const raw=await rawSessionToken();if(!raw)return null;const [body,sig]=raw.split('.');if(!body||!sig)return null;const a=Buffer.from(sig),b=Buffer.from(sign(body));if(a.length!==b.length||!timingSafeEqual(a,b))return null;const payload=JSON.parse(Buffer.from(body,'base64url').toString());if(payload.exp<Date.now())return null;const user=await db.user.findFirst({where:{id:payload.id,active:true},include:{roles:{include:{role:{include:{permissions:{include:{permission:true}}}}}},scopes:true}});if(!user)return null;if(await companyAccessState(user)==='suspended')return null;return user}catch{return null}}
 export async function access(){
  const user=await currentUser();
  const keys=new Set<string>();
