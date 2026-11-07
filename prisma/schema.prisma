@@ -100,11 +100,8 @@ model Employee {
   branch                      Branch                       @relation(fields: [branchId], references: [id])
   employmentType              String                       @default("FULL_TIME")
   emergencyContact            String?
-  sex                         String?
-  residentialAddress          String?
-  location                    String?
-  ghanaCardNo                 String?
-  profilePhotoDataUrl         String?
+  /// Employee profile photo as a data URL (JPEG/WebP, ≤400 KB), uploaded from self-service.
+  photoData                   String?
   notes                       String?
   leaveRequests               LeaveRequest[]
   leaveEntitlements           LeaveEntitlement[]
@@ -1275,7 +1272,6 @@ model Company {
   code        String   @unique
   active      Boolean  @default(true)
   country     String?
-  logoDataUrl String? @db.Text
   email       String?
   phone       String?
   createdAt   DateTime @default(now())
