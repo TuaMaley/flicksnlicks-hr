@@ -2,7 +2,7 @@ import {access} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
 import {NextResponse} from 'next/server';
 
-const fields={id:true,employeeNo:true,firstName:true,lastName:true,email:true,phone:true,position:true,department:true,status:true,employmentType:true,hireDate:true,emergencyContact:true,photoData:true,branch:{select:{id:true,name:true}}} as const;
+const fields={id:true,employeeNo:true,firstName:true,lastName:true,email:true,phone:true,position:true,department:true,status:true,employmentType:true,hireDate:true,emergencyContact:true,profilePhotoDataUrl:true,branch:{select:{id:true,name:true}}} as const;
 export async function GET(){
  const a=await access();
  if(!a.user)return NextResponse.json({error:'Authentication required'},{status:401});
