@@ -7,8 +7,8 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>;
 export default function PasswordInput(props: Props) {
   const [visible, setVisible] = useState(false);
   return (
-    <span style={{position:'relative',display:'block',width:'100%'}}>
-      <input {...props} type={visible ? 'text' : 'password'} style={{...props.style,width:'100%',paddingRight:46,boxSizing:'border-box'}} />
+    <span style={{position:'relative',display:'block',width:'100%',maxWidth:450}}>
+      <input {...props} type={visible ? 'text' : 'password'} style={{...props.style,width:'100%',maxWidth:'none',paddingRight:46,boxSizing:'border-box'}} />
       <button type="button" aria-label={visible ? 'Hide password' : 'Show password'}
         aria-pressed={visible} title={visible ? 'Hide password' : 'Show password'}
         onClick={() => setVisible(v => !v)}
