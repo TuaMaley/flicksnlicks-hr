@@ -3,7 +3,7 @@ import {db} from '../../../../lib/db';
 import {NextResponse} from 'next/server';
 export const runtime='nodejs';
 /**
- * Employee profile photo (self-service). Stored as a data URL on Employee.photoData.
+ * Employee profile photo (self-service). Stored as a data URL on Employee.profilePhotoDataUrl (the same column HR uses).
  * POST {dataUrl} — JPEG/PNG/WebP, ≤400 KB encoded. DELETE — remove.
  * Requires selfservice.edit; the user may only change their own linked employee record.
  */
@@ -25,7 +25,7 @@ export async function POST(request:Request){
  if(typeof dataUrl!=='string'||!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(dataUrl))return NextResponse.json({error:'Photo must be a JPEG, PNG or WebP image'},{status:400});
  if(dataUrl.length>MAX)return NextResponse.json({error:'Photo is too large (max 400 KB). Please choose a smaller image.'},{status:413});
  await db.$transaction(async tx=>{
-  await tx.employee.update({where:{id:g.id,companyId:g.a.companyId!},data:{photoData:dataUrl}});
+  await tx.employee.update({where:{id:g.id,companyId:g.a.companyId!},data:{profilePhotoDataUrl:dataUrl}});
   await tx.auditLog.create({data:{actorId:g.a.user!.id,companyId:g.a.companyId!,action:'ESS_PHOTO_UPDATED',entity:'Employee',entityId:g.id,detail:{bytes:dataUrl.length}}});
  });
  return NextResponse.json({ok:true});
@@ -33,7 +33,7 @@ export async function POST(request:Request){
 export async function DELETE(){
  const g=await guard();if('err'in g)return g.err;
  await db.$transaction(async tx=>{
-  await tx.employee.update({where:{id:g.id,companyId:g.a.companyId!},data:{photoData:null}});
+  await tx.employee.update({where:{id:g.id,companyId:g.a.companyId!},data:{profilePhotoDataUrl:null}});
   await tx.auditLog.create({data:{actorId:g.a.user!.id,companyId:g.a.companyId!,action:'ESS_PHOTO_REMOVED',entity:'Employee',entityId:g.id,detail:{}}});
  });
  return NextResponse.json({ok:true});
