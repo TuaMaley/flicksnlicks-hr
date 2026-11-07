@@ -39,7 +39,7 @@ export default function AccountMenu(){
   {open&&<div className="fnlAccountDropdown" role="menu">
    <div className="fnlAccountSummary"><strong>{me.name}</strong><small>{me.email}</small><small>{me.roles.join(', ')||'User'}</small></div>
    <Link role="menuitem" href="/settings" onClick={()=>setOpen(false)}><UserRound size={17}/> My profile</Link>
-   <Link role="menuitem" href="/settings" onClick={()=>setOpen(false)}><Settings size={17}/> Account settings</Link>
+   <Link role="menuitem" href="/account/password" onClick={()=>setOpen(false)}><Settings size={17}/> Change password</Link>
    <button type="button" role="menuitem" onClick={signOut} disabled={busy}><LogOut size={17}/>{busy?'Signing out…':'Sign out'}</button>
   </div>}
  </div>
