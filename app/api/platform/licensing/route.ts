@@ -8,6 +8,13 @@ async function guard(){
  const a=await db.user.findUnique({where:{id:u.id},select:{active:true,platformAdmin:true}});
  return a?.active&&a.platformAdmin?u:null;
 }
+async function assignedPlanId(companyId:string){
+ const now=new Date();
+ const subscription=await db.platformSubscription.findFirst({where:{companyId,status:'ACTIVE',startsAt:{lte:now},endsAt:{gt:now}},orderBy:{startsAt:'desc'},select:{planName:true}});
+ if(!subscription)return null;
+ const plans=await db.subscriptionPlan.findMany({where:{active:true},select:{id:true,name:true}});
+ return plans.find(p=>p.name.trim().toLowerCase()===subscription.planName.trim().toLowerCase())?.id||null;
+}
 async function preview(companyId:string,planId:string){
  const [company,plan,assignments]=await Promise.all([
   db.company.findUnique({where:{id:companyId},select:{id:true,name:true}}),
@@ -23,6 +30,7 @@ export async function GET(req:NextRequest){
  if(!await guard())return NextResponse.json({error:'Forbidden'},{status:403});
  const companyId=req.nextUrl.searchParams.get('companyId')||'',planId=req.nextUrl.searchParams.get('planId')||'';
  if(!companyId||!planId)return NextResponse.json({error:'Company and plan required'},{status:400});
+ if(await assignedPlanId(companyId)!==planId)return NextResponse.json({error:'Only the company’s current active subscription plan can be applied'},{status:403});
  const p=await preview(companyId,planId);
  if('error'in p)return NextResponse.json(p,{status:404});
  return NextResponse.json(p,{headers:{'Cache-Control':'private, no-store'}});
@@ -33,6 +41,7 @@ export async function POST(req:NextRequest){
  const companyId=typeof b?.companyId==='string'?b.companyId:'',planId=typeof b?.planId==='string'?b.planId:'';
  const reason=typeof b?.reason==='string'?b.reason.trim():'';
  if(!companyId||!planId||reason.length<8||reason.length>500||b?.confirm!==true)return NextResponse.json({error:'Company, plan, confirmation and reason (8–500 characters) required'},{status:400});
+ if(await assignedPlanId(companyId)!==planId)return NextResponse.json({error:'Only the company’s current active subscription plan can be applied'},{status:403});
  const p=await preview(companyId,planId);if('error'in p)return NextResponse.json(p,{status:404});
  // Explicit confirmation only: never run on subscription save or expiry.
  await db.$transaction(async tx=>{
