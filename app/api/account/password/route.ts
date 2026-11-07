@@ -1,5 +1,5 @@
 import {NextRequest} from 'next/server';
-import {currentUser,hashPassword,verifyPassword} from '../../../../lib/auth';
+import {currentUser,hashPassword,verifyPassword,clearSession} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
 import {fail,ok} from '../../../../lib/http';
 export async function POST(req:NextRequest){
@@ -11,6 +11,10 @@ export async function POST(req:NextRequest){
  const existing=await db.user.findUnique({where:{id:user.id},select:{passwordHash:true}});
  if(!existing||!verifyPassword(body.currentPassword,existing.passwordHash))return fail('Current password is incorrect',400);
  if(body.currentPassword===body.newPassword)return fail('Choose a different password',400);
- await db.user.update({where:{id:user.id},data:{passwordHash:hashPassword(body.newPassword)}});
- return ok({success:true});
+ await db.$transaction(async tx=>{
+  await tx.user.update({where:{id:user.id},data:{passwordHash:hashPassword(body.newPassword)}});
+  await tx.auditLog.create({data:{actorId:user.id,action:'SELF_PASSWORD_CHANGED',entity:'User',entityId:user.id,detail:{method:'authenticated'}}});
+ });
+ await clearSession();
+ return ok({success:true,reauthenticate:true});
 }
