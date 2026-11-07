@@ -14,10 +14,11 @@ export async function POST(req:NextRequest){
   // Atomic conditional claim prevents reusing the same reset token.
   const result=await db.$transaction(async tx=>{
    const row=await tx.passwordResetToken.findUnique({where:{tokenHash:hash},select:{id:true,userId:true,expiresAt:true,usedAt:true,user:{select:{active:true}}}});
-   if(!row||row.usedAt||row.expiresAt<=now||!row.user.active)return false;
+   if(!row||row.usedAt||row.expiresAt<=now)return false;
+   if(!row.user.active){const invited=await tx.auditLog.findFirst({where:{entity:'User',entityId:row.userId,action:'PLATFORM_COMPANY_ADMIN_INVITED'},select:{id:true}});if(!invited)return false;}
    const claim=await tx.passwordResetToken.updateMany({where:{id:row.id,usedAt:null,expiresAt:{gt:now}},data:{usedAt:now}});
    if(claim.count!==1)return false;
-   await tx.user.update({where:{id:row.userId},data:{passwordHash:hashPassword(password)}});
+   await tx.user.update({where:{id:row.userId},data:{passwordHash:hashPassword(password),active:true}});
    await tx.passwordResetToken.updateMany({where:{userId:row.userId,usedAt:null},data:{usedAt:now}});
    return true;
   });
