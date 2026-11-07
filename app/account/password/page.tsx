@@ -1,4 +1,5 @@
 'use client';
+import PasswordInput from '../../components/PasswordInput';
 import {useState,type FormEvent} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
@@ -27,9 +28,9 @@ export default function ChangePasswordPage(){
  return <main style={{maxWidth:580,margin:'40px auto',padding:24}}><section className="workCard" style={{padding:28}}>
   <h1>Change password</h1><p>Protect your Nexora account by using a unique password of at least 12 characters.</p>
   {success?<div role="status"><p>Password changed successfully. For security, you have been signed out.</p><Link href="/login">Sign in with your new password</Link></div>:<form onSubmit={submit} style={{display:'grid',gap:16}}>
-   <label>Current password<input type="password" required autoComplete="current-password" value={currentPassword} onChange={e=>setCurrent(e.target.value)}/></label>
-   <label>New password<input type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={newPassword} onChange={e=>setNext(e.target.value)}/></label>
-   <label>Confirm new password<input type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)}/></label>
+   <label>Current password<PasswordInput required autoComplete="current-password" value={currentPassword} onChange={e=>setCurrent(e.target.value)}/></label>
+   <label>New password<PasswordInput required minLength={12} maxLength={128} autoComplete="new-password" value={newPassword} onChange={e=>setNext(e.target.value)}/></label>
+   <label>Confirm new password<PasswordInput required minLength={12} maxLength={128} autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)}/></label>
    {error&&<p role="alert" style={{color:'#b91c1c'}}>{error}</p>}
    <button className="primaryBtn" type="submit" disabled={busy}>{busy?'Saving…':'Change password'}</button>
    <p><Link href="/forgot-password">Forgot your current password?</Link></p>

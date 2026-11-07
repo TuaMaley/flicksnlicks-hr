@@ -1,4 +1,5 @@
 'use client';
+import PasswordInput from '../components/PasswordInput';
 
 import './nexora-login.css';
 import { useState } from 'react';
@@ -16,7 +17,7 @@ export default function Login(){const [email,setEmail]=useState(''),[password,se
       <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username" />
     </label>
     <label className="nexoraLoginLabel">Password
-      <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password" />
+      <PasswordInput required value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password" />
     </label>
     <div style={{textAlign:"right",marginTop:-12,marginBottom:18}}><a href="/forgot-password">Forgot password?</a></div>
     {error&&<div className="formError nexoraLoginError" role="alert">{error}</div>}
