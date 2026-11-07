@@ -16,7 +16,9 @@ export async function GET(){if(!await actor())return reply('Platform administrat
   db.nexoraInvoice.findMany({orderBy:{issuedAt:'desc'},take:500,include:{payments:{orderBy:{paidAt:'desc'}}}}),
   db.nexoraPayment.findMany({orderBy:{paidAt:'desc'},take:500}),
   db.platformSubscription.findMany({select:{id:true,companyId:true,planName:true,status:true,startsAt:true,endsAt:true},orderBy:{createdAt:'desc'},take:500})]);
- const now=Date.now();const enriched=invoices.map(i=>{const paid=i.payments.reduce((s,p)=>s+p.amountMinor,0);return {...i,paidMinor:paid,balanceMinor:i.status==='VOID'?0:i.amountMinor-paid,paymentStatus:i.status==='VOID'?'VOID':paid>=i.amountMinor?'PAID':i.dueAt.getTime()<now?'OVERDUE':paid>0?'PARTIAL':'UNPAID'};});
+ const companyById=new Map(companies.map(c=>[c.id,c]));
+ const profileByCompany=new Map(profiles.map(p=>[p.companyId,p]));
+ const now=Date.now();const enriched=invoices.map(i=>{const company=companyById.get(i.companyId);const profile=profileByCompany.get(i.companyId);const paid=i.payments.reduce((s,p)=>s+p.amountMinor,0);return {...i,billToName:i.billToName?.trim()||company?.name||profile?.billingName||null,billToContact:i.billToContact?.trim()||company?.contactName||null,billToEmail:i.billToEmail?.trim()||company?.contactEmail||profile?.billingEmail||null,billToPhone:i.billToPhone?.trim()||company?.contactPhone||null,billToAddress:i.billToAddress?.trim()||company?.businessAddress||profile?.billingAddress||null,paidMinor:paid,balanceMinor:i.status==='VOID'?0:i.amountMinor-paid,paymentStatus:i.status==='VOID'?'VOID':paid>=i.amountMinor?'PAID':i.dueAt.getTime()<now?'OVERDUE':paid>0?'PARTIAL':'UNPAID'};});
  const byCurrency:Record<string,{invoicedMinor:number;collectedMinor:number;outstandingMinor:number;overdueMinor:number}>={};
  for(const i of enriched){const m=byCurrency[i.currency]??={invoicedMinor:0,collectedMinor:0,outstandingMinor:0,overdueMinor:0};if(i.status!=='VOID'){m.invoicedMinor+=i.amountMinor;m.outstandingMinor+=i.balanceMinor;if(i.paymentStatus==='OVERDUE')m.overdueMinor+=i.balanceMinor;}}
  for(const p of payments){const m=byCurrency[p.currency]??={invoicedMinor:0,collectedMinor:0,outstandingMinor:0,overdueMinor:0};m.collectedMinor+=p.amountMinor;}
@@ -54,21 +56,23 @@ export async function POST(req:NextRequest){const u=await actor();if(!u)return r
   }
   const subId=b.subscriptionId?String(b.subscriptionId):null;
   if(subId){const s=await db.platformSubscription.findFirst({where:{id:subId,companyId}});if(!s)return reply('Subscription does not belong to company');}
-  const invoice=await db.$transaction(async tx=>{const i=await tx.nexoraInvoice.create({data:{companyId,invoiceNumber:number,description,currency:profile.currency,amountMinor:amount,dueAt,subscriptionId:subId,notes:reason(b.notes)||null,billToName:company.name,billToContact:company.contactName||null,billToEmail:company.contactEmail||null,billToPhone:company.contactPhone||null,billToAddress:company.businessAddress||null,installments:installments??Prisma.JsonNull}});await tx.auditLog.create({data:{actorId:u.id,companyId,action:'PLATFORM_INVOICE_ISSUED',entity:'NexoraInvoice',entityId:i.id,detail:{invoiceNumber:number,amountMinor:amount,currency:i.currency,subscriptionId:subId}}});return i;});return NextResponse.json({invoice},{status:201});
+  const invoice=await db.$transaction(async tx=>{const i=await tx.nexoraInvoice.create({data:{companyId,invoiceNumber:number,description,currency:profile.currency,amountMinor:amount,dueAt,subscriptionId:subId,notes:reason(b.notes)||null,billToName:company.name,billToContact:company.contactName?.trim()||null,billToEmail:company.contactEmail?.trim()||profile.billingEmail||null,billToPhone:company.contactPhone?.trim()||null,billToAddress:company.businessAddress?.trim()||profile.billingAddress||null,installments:installments??Prisma.JsonNull}});await tx.auditLog.create({data:{actorId:u.id,companyId,action:'PLATFORM_INVOICE_ISSUED',entity:'NexoraInvoice',entityId:i.id,detail:{invoiceNumber:number,amountMinor:amount,currency:i.currency,subscriptionId:subId}}});return i;});return NextResponse.json({invoice},{status:201});
  }
  if(b.action==='emailInvoice'){
   const invoiceId=String(b.invoiceId||'');
   const i=await db.nexoraInvoice.findUnique({where:{id:invoiceId}});
   if(!i||i.status==='VOID')return reply('Invoice not found or void',404);
-  if(!i.billToEmail)return reply('Customer contact email missing on issued invoice');
+  const company=await db.company.findUnique({where:{id:i.companyId},select:{name:true,contactName:true,contactEmail:true}});
+  const recipient=i.billToEmail?.trim()||company?.contactEmail?.trim();
+  if(!recipient)return reply('Company onboarding contact email is missing; update Company Registration first');
   const key=process.env.RESEND_API_KEY,from=process.env.RESEND_FROM_EMAIL;
   if(!key||!from)return reply('Resend configuration missing',503);
   const schedule=Array.isArray(i.installments)?i.installments as Array<{percent:number;dueAt:string;amountMinor:number}>:[];
   const rows=schedule.map(x=>`${x.percent}% — ${x.dueAt}: ${i.currency} ${(x.amountMinor/100).toFixed(2)}`).join('\n');
   const textBody=`NEXORA INVOICE ${i.invoiceNumber}\nBill to: ${i.billToName||''}\nContact: ${i.billToContact||''}\n${i.description}\nTotal: ${i.currency} ${(i.amountMinor/100).toFixed(2)}\nInvoice due: ${i.dueAt.toISOString().slice(0,10)}\n\nAgreed installment schedule:\n${rows||'Full payment on invoice due date'}\n\nPlease contact Nexora for payment instructions.`;
-  const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({from,to:[i.billToEmail],subject:`Nexora invoice ${i.invoiceNumber}`,text:textBody})});
+  const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({from,to:[recipient],subject:`Nexora invoice ${i.invoiceNumber}`,text:textBody})});
   if(!response.ok)return reply('Email provider rejected delivery',502);
-  await db.auditLog.create({data:{actorId:u.id,companyId:i.companyId,action:'PLATFORM_INVOICE_EMAILED',entity:'NexoraInvoice',entityId:i.id,detail:{recipient:i.billToEmail}}});
+  await db.auditLog.create({data:{actorId:u.id,companyId:i.companyId,action:'PLATFORM_INVOICE_EMAILED',entity:'NexoraInvoice',entityId:i.id,detail:{recipient}}});
   return NextResponse.json({sent:true});
  }
  if(b.action==='payment'){
