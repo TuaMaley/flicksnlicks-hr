@@ -1276,6 +1276,17 @@ model Company {
   active      Boolean  @default(true)
   country     String?
   logoDataUrl String? @db.Text
+  registrationNumber  String?
+  companyType         String?
+  taxIdentifier       String?
+  businessAddress     String?
+  digitalAddress      String?
+  industry            String?
+  contactName         String?
+  contactPosition     String?
+  contactPhone        String?
+  contactEmail        String?
+  website             String?
   email       String?
   phone       String?
   createdAt   DateTime @default(now())
