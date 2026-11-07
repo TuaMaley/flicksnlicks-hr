@@ -1399,6 +1399,12 @@ model NexoraInvoice {
   dueAt DateTime
   status String @default("ISSUED") // ISSUED or VOID; payment status is derived
   notes String?
+  billToName String?
+  billToContact String?
+  billToEmail String?
+  billToPhone String?
+  billToAddress String?
+  installments Json?
   createdAt DateTime @default(now())
   payments NexoraPayment[]
   @@index([companyId,issuedAt])

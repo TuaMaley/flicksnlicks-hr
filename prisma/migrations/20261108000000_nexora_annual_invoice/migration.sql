@@ -1,0 +1,1 @@
+ALTER TABLE "NexoraInvoice" ADD COLUMN "billToName" TEXT, ADD COLUMN "billToContact" TEXT, ADD COLUMN "billToEmail" TEXT, ADD COLUMN "billToPhone" TEXT, ADD COLUMN "billToAddress" TEXT, ADD COLUMN "installments" JSONB;
