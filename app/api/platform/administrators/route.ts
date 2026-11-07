@@ -16,8 +16,8 @@ async function guard(){
 function response(error:string,status:number){return NextResponse.json({error},{status,headers:noCache})}
 export async function GET(){
  const actor=await guard();if(!actor)return response('Platform administrator access required',403);
- const admins=await db.user.findMany({where:{platformAdmin:true},select:{id:true,name:true,email:true,active:true,createdAt:true,updatedAt:true},orderBy:{createdAt:'asc'}});
- return NextResponse.json({admins,currentUserId:actor.id},{headers:noCache});
+ const admins=await db.user.findMany({where:{platformAdmin:true},select:{id:true,name:true,email:true,active:true,createdAt:true,updatedAt:true,passwordResets:{where:{usedAt:null},select:{expiresAt:true},orderBy:{createdAt:'desc'},take:1}},orderBy:{createdAt:'asc'}});
+ return NextResponse.json({admins:admins.map(({passwordResets,...admin})=>({...admin,invitationStatus:admin.active?'Active':passwordResets.length?(passwordResets[0].expiresAt>new Date()?'Pending':'Expired'):'Not sent'})),currentUserId:actor.id},{headers:noCache});
 }
 export async function POST(req:NextRequest){
  const actor=await guard();if(!actor)return response('Platform administrator access required',403);
@@ -56,6 +56,55 @@ export async function POST(req:NextRequest){
    return response('Invitation email could not be delivered. The account remains inactive. Contact an administrator to retry safely.',502);
   }
   return NextResponse.json({message:'Invitation sent. The account remains inactive until the recipient sets a password.'},{status:201,headers:noCache});
+ }
+ if(body.action==='resendInvite'){
+  const id=typeof body.id==='string'?body.id:'';
+  if(!id)return response('Administrator ID required',400);
+  if(!process.env.RESEND_API_KEY||!process.env.RESEND_FROM_EMAIL)return response('Email delivery is not configured',503);
+  let origin:string;
+  try{origin=appOrigin()}catch{return response('NEXORA_APP_URL must be configured',503)}
+  const token=newResetToken();
+  let target:{id:string;email:string};
+  try{
+   target=await db.$transaction(async tx=>{
+    const user=await tx.user.findUnique({where:{id},select:{id:true,email:true,active:true,platformAdmin:true}});
+    if(!user?.platformAdmin)throw Error('NOT_FOUND');
+    if(user.active)throw Error('ALREADY_ACTIVE');
+    await tx.passwordResetToken.updateMany({where:{userId:id,usedAt:null},data:{usedAt:new Date()}});
+    await tx.passwordResetToken.create({data:{userId:id,tokenHash:digestResetToken(token),expiresAt:new Date(Date.now()+24*60*60*1000)}});
+    await tx.auditLog.create({data:{actorId:actor.id,action:'PLATFORM_ADMIN_INVITATION_REISSUED',entity:'User',entityId:id,detail:{email:user.email}}});
+    return {id:user.id,email:user.email};
+   },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
+  }catch(e){const code=e instanceof Error?e.message:'';if(code==='NOT_FOUND')return response('Administrator not found',404);if(code==='ALREADY_ACTIVE')return response('Active administrators do not need invitations',409);console.error('Invitation renewal failed',e);return response('Unable to renew invitation',500)}
+  const link=`${origin}/platform-invite?token=${token}`;
+  try{
+   const sent=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${process.env.RESEND_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from:process.env.RESEND_FROM_EMAIL,to:target.email,subject:'Your Nexora Platform Administrator invitation',text:`You have been invited to become a Nexora Platform Administrator. Set your password within 24 hours: ${link}\n\nIf you did not expect this invitation, contact your platform administrator.`,html:`<p>You have been invited to become a Nexora Platform Administrator.</p><p><a href="${link}">Set your password</a> (expires in 24 hours).</p><p>If unexpected, contact your platform administrator.</p>`})});
+   if(!sent.ok)throw Error(`Email provider returned ${sent.status}`);
+  }catch(e){
+   await db.passwordResetToken.updateMany({where:{userId:id,tokenHash:digestResetToken(token),usedAt:null},data:{usedAt:new Date()}}).catch(()=>{});
+   await db.auditLog.create({data:{actorId:actor.id,action:'PLATFORM_ADMIN_RESEND_DELIVERY_FAILED',entity:'User',entityId:id}}).catch(()=>{});
+   console.error('Invitation resend delivery failed',e);
+   return response('Invitation email could not be delivered. Please retry after checking email configuration.',502);
+  }
+  return NextResponse.json({message:'A fresh invitation was emailed. Previous invitation links are no longer valid.'},{headers:noCache});
+ }
+ if(body.action==='softDelete'){
+  const id=typeof body.id==='string'?body.id:'';
+  const reason=typeof body.reason==='string'?body.reason.trim():'';
+  if(!id||reason.length<10||reason.length>500)return response('Administrator and deletion reason (10–500 characters) required',400);
+  if(id===actor.id)return response('You cannot delete your own account',400);
+  try{
+   await db.$transaction(async tx=>{
+    const target=await tx.user.findUnique({where:{id},select:{id:true,active:true,platformAdmin:true,email:true}});
+    if(!target?.platformAdmin)throw Error('NOT_FOUND');
+    if(target.active){const count=await tx.user.count({where:{platformAdmin:true,active:true}});if(count<=1)throw Error('LAST_ADMIN')}
+    // Soft deletion retains the User row and audit trail but removes platform privileges.
+    await tx.user.update({where:{id},data:{active:false,platformAdmin:false}});
+    await tx.passwordResetToken.updateMany({where:{userId:id,usedAt:null},data:{usedAt:new Date()}});
+    await tx.auditLog.create({data:{actorId:actor.id,action:'PLATFORM_ADMIN_SOFT_DELETED',entity:'User',entityId:id,detail:{reason,email:target.email}}});
+   },{isolationLevel:Prisma.TransactionIsolationLevel.Serializable});
+   return NextResponse.json({message:'Administrator access removed and account deactivated. Audit history retained.'},{headers:noCache});
+  }catch(e){const code=e instanceof Error?e.message:'';if(code==='NOT_FOUND')return response('Administrator not found',404);if(code==='LAST_ADMIN')return response('Cannot delete the last active platform administrator',409);console.error('Platform admin removal failed',e);return response('Unable to delete administrator',500)}
  }
  if(body.action==='setStatus'){
   const id=typeof body.id==='string'?body.id:'';
