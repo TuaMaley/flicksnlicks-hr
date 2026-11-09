@@ -21,9 +21,15 @@ export async function GET(){
  const adminIds=new Set(adminCreationLogs.map(log=>log.entityId));
  const companyAdministratorCandidates=users.filter(u=>u.active&&adminIds.has(u.id));
  const now=new Date();
- const subscriptions=await db.platformSubscription.findMany({where:{status:'ACTIVE',startsAt:{lte:now},endsAt:{gt:now}},select:{companyId:true}});
+ const [subscriptions,plans]=await Promise.all([
+  db.platformSubscription.findMany({where:{status:'ACTIVE',startsAt:{lte:now},endsAt:{gt:now}},select:{companyId:true,planName:true,startsAt:true},orderBy:{startsAt:'desc'}}),
+  db.subscriptionPlan.findMany({select:{id:true,name:true,moduleKeys:true}})
+ ]);
  const subscribed=new Set(subscriptions.map(s=>s.companyId));
- const enriched=companies.map(c=>{const admin=c.memberships.some(m=>m.active&&m.user.active&&m.roles.some(r=>r.role.name==='Administrator'||r.role.name.startsWith('Administrator [')));const ready=admin&&subscribed.has(c.id)&&c.modules.some(m=>m.enabled);return {...c,onboardingStatus:!c.active?'Suspended':ready?'Active':'Pending',onboardingReady:ready};});
+ const planByName=new Map(plans.map(p=>[p.name.trim().toLowerCase(),p]));
+ const subscriptionByCompany=new Map<string,(typeof subscriptions)[number]>();
+ for(const subscription of subscriptions)if(!subscriptionByCompany.has(subscription.companyId))subscriptionByCompany.set(subscription.companyId,subscription);
+ const enriched=companies.map(c=>{const admin=c.memberships.some(m=>m.active&&m.user.active&&m.roles.some(r=>r.role.name==='Administrator'||r.role.name.startsWith('Administrator [')));const ready=admin&&subscribed.has(c.id)&&c.modules.some(m=>m.enabled);const subscription=subscriptionByCompany.get(c.id);const plan=subscription?planByName.get(subscription.planName.trim().toLowerCase()):null;const planEntitlement=subscription?{planName:subscription.planName,planId:plan?.id||null,matched:Boolean(plan),moduleKeys:Array.isArray(plan?.moduleKeys)?plan.moduleKeys.filter((key):key is string=>typeof key==='string'&&modules.includes(key)):[]}:null;return {...c,planEntitlement,onboardingStatus:!c.active?'Suspended':ready?'Active':'Pending',onboardingReady:ready};});
  return NextResponse.json({companies:enriched,users,roles,companyAdministratorCandidates,moduleCatalog:modules},{headers:{'Cache-Control':'private, no-store'}});
 }
 export async function POST(req:NextRequest){
@@ -45,18 +51,17 @@ export async function POST(req:NextRequest){
  }
  if(action==='updateCompany'){
   const companyId=typeof body.companyId==='string'?body.companyId:'';
-  const keys=['name','country','registrationNumber','companyType','taxIdentifier','businessAddress','digitalAddress','phone','email','industry','contactName','contactPosition','contactPhone','contactEmail','website'] as const;
-  const values=Object.fromEntries(keys.map(key=>[key,typeof body[key]==='string'?body[key].trim():''])) as Record<typeof keys[number],string>;
-  if(!companyId||values.name.length<2||values.name.length>120||keys.some(key=>values[key].length>(key==='businessAddress'?500:254))||values.country.length>80||values.phone.length>60||[values.email,values.contactEmail].some(email=>email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))return NextResponse.json({error:'Invalid company profile details'},{status:400});
-  if(values.website){try{const url=new URL(values.website);if(!['https:','http:'].includes(url.protocol))throw Error('invalid')}catch{return NextResponse.json({error:'Enter a valid website URL'},{status:400})}}
-  let logoDataUrl:string|null|undefined;try{logoDataUrl=body.logoDataUrl?validateCompanyLogo(body.logoDataUrl):undefined}catch(e){return NextResponse.json({error:(e as Error).message},{status:400})}
+  const name=typeof body.name==='string'?body.name.trim():'';
+  const country=typeof body.country==='string'?body.country.trim():'';
+  const email=typeof body.email==='string'?body.email.trim():'';
+  const phone=typeof body.phone==='string'?body.phone.trim():'';
+  if(!companyId||name.length<2||name.length>120||country.length>80||email.length>254||phone.length>60|| (email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))return NextResponse.json({error:'Invalid company profile'},{status:400});
+  let logoDataUrl:string|null|undefined;try{logoDataUrl=body.logoDataUrl===undefined?undefined:validateCompanyLogo(body.logoDataUrl)}catch(e){return NextResponse.json({error:(e as Error).message},{status:400})}
   const company=await db.company.findUnique({where:{id:companyId}});
   if(!company)return NextResponse.json({error:'Company not found'},{status:404});
-  const duplicates=await db.company.findFirst({where:{id:{not:companyId},OR:[...(values.registrationNumber?[{registrationNumber:{equals:values.registrationNumber,mode:'insensitive' as const}}]:[]),...(values.taxIdentifier?[{taxIdentifier:{equals:values.taxIdentifier,mode:'insensitive' as const}}]:[])]},select:{id:true}});
-  if(duplicates)return NextResponse.json({error:'Registration number or tax identifier is already assigned to another company'},{status:409});
   const updated=await db.$transaction(async tx=>{
-   const result=await tx.company.update({where:{id:companyId},data:{...Object.fromEntries(keys.map(key=>[key,values[key]||null])),name:values.name,...(logoDataUrl===undefined?{}:{logoDataUrl})}});
-   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_UPDATED',entity:'Company',entityId:companyId,detail:{changedFields:keys.filter(key=>String(company[key]||'')!==values[key]),logoReplaced:logoDataUrl!==undefined}}});
+   const result=await tx.company.update({where:{id:companyId},data:{name,country:country||null,email:email||null,phone:phone||null,...(logoDataUrl===undefined?{}:{logoDataUrl})}});
+   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_UPDATED',entity:'Company',entityId:companyId,detail:{previous:{name:company.name,country:company.country,email:company.email,phone:company.phone},current:{name,country,email,phone,logoReplaced:!!logoDataUrl}}}});
    return result;
   });
   return NextResponse.json({company:updated});
@@ -72,6 +77,22 @@ export async function POST(req:NextRequest){
   await db.$transaction(async tx=>{
    await tx.company.update({where:{id:companyId},data:{active}});
    await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:active?'PLATFORM_COMPANY_ACTIVATED':'PLATFORM_COMPANY_SUSPENDED',entity:'Company',entityId:companyId,detail:{previousActive:company.active,active,reason}}});
+  });
+  return NextResponse.json({success:true});
+ }
+ if(action==='applyPlanModules'){
+  const companyId=typeof body.companyId==='string'?body.companyId:'';
+  const company=await db.company.findUnique({where:{id:companyId},select:{id:true}});
+  if(!company)return NextResponse.json({error:'Company not found'},{status:404});
+  const now=new Date();
+  const subscription=await db.platformSubscription.findFirst({where:{companyId,status:'ACTIVE',startsAt:{lte:now},endsAt:{gt:now}},orderBy:{startsAt:'desc'},select:{planName:true}});
+  if(!subscription)return NextResponse.json({error:'Company has no active subscription'},{status:409});
+  const plan=await db.subscriptionPlan.findFirst({where:{name:{equals:subscription.planName,mode:'insensitive'}},select:{id:true,name:true,moduleKeys:true}});
+  if(!plan)return NextResponse.json({error:'Active subscription has no matching plan in the plan catalog'},{status:409});
+  const included=new Set(Array.isArray(plan.moduleKeys)?plan.moduleKeys.filter((key):key is string=>typeof key==='string'&&modules.includes(key)):[]);
+  await db.$transaction(async tx=>{
+   for(const moduleKey of modules)await tx.companyModule.upsert({where:{companyId_moduleKey:{companyId,moduleKey}},create:{companyId,moduleKey,enabled:included.has(moduleKey)},update:{enabled:included.has(moduleKey)}});
+   await tx.auditLog.create({data:{actorId:a.user.id,action:'PLATFORM_PLAN_MODULES_APPLIED',entity:'Company',entityId:companyId,detail:{planId:plan.id,planName:plan.name,moduleKeys:[...included]}}});
   });
   return NextResponse.json({success:true});
  }
