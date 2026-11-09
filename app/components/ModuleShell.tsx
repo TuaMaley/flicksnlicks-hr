@@ -4,6 +4,7 @@ import {usePathname,useRouter} from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import AccountMenu from './AccountMenu';
+import NotificationBell from './NotificationBell';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import {LayoutDashboard,Users,Wallet,CalendarDays,GraduationCap,UserPlus,ClipboardCheck,LogOut,ShieldAlert,Award,UserRound,ShieldCheck,BarChart3,Settings,Menu,X,UsersRound,Bell,ChevronDown,ArrowLeft} from 'lucide-react';
 
@@ -74,7 +75,7 @@ export default function ModuleShell({children}:{children:React.ReactNode}){
  <div className="persistentContent">
  <header className="persistentTopbar" aria-label="Page toolbar">
   {pathname!=='/'&&!(pathname==='/platform'&&platformSection==='Overview')&&<button type="button" className="persistentTopbarBack" aria-label="Go back" title="Go back" onClick={()=>{if(window.history.length>1)router.back();else router.push('/')}}><ArrowLeft size={21}/></button>}
-  <div className="persistentTopbarRight">{!isPlatform&&<div className="persistentBranchLabel"><UsersRound size={18}/> All Branches <ChevronDown size={15}/></div>}<span className="persistentBell" aria-label="Notifications"><Bell size={21}/></span><AccountMenu/></div>
+  <div className="persistentTopbarRight">{!isPlatform&&<div className="persistentBranchLabel"><UsersRound size={18}/> All Branches <ChevronDown size={15}/></div>}<NotificationBell/><AccountMenu/></div>
  </header>
  <div className="persistentPageScroll" id="module-page-scroll">{children}</div>
  </div>
