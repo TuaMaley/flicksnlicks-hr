@@ -36,7 +36,19 @@ export async function GET(){
  const planAdoption=Object.entries(activeSubs.reduce<Record<string,number>>((a,s)=>{a[s.planName]=(a[s.planName]??0)+1;return a;},{})).map(([name,count])=>({name,count}));
  // Outstanding balances are computed from all non-void invoices, not from a limited 500-row billing feed.
  const balances=await db.nexoraInvoice.findMany({where:{status:{not:'VOID'}},select:{id:true,companyId:true,currency:true,amountMinor:true,dueAt:true,payments:{select:{amountMinor:true}}}});
+ const companyNames=new Map(companies.map(c=>[c.id,c.name]));
+ const companyBillingMap=new Map<string,{companyId:string;companyName:string;currency:string;invoicedMinor:number;collectedMinor:number;outstandingMinor:number;overdueMinor:number}>();
+ function billingRow(companyId:string,currency:string){const key=JSON.stringify([companyId,currency]);let row=companyBillingMap.get(key);if(!row){row={companyId,companyName:companyNames.get(companyId)??'Unknown company',currency,invoicedMinor:0,collectedMinor:0,outstandingMinor:0,overdueMinor:0};companyBillingMap.set(key,row);}return row;}
+ for(const i of balances){const row=billingRow(i.companyId,i.currency);row.invoicedMinor+=i.amountMinor;const paid=i.payments.reduce((sum,p)=>sum+p.amountMinor,0);const due=Math.max(0,i.amountMinor-paid);row.outstandingMinor+=due;if(i.dueAt<now)row.overdueMinor+=due;}
+ const lifetimePayments=await db.nexoraPayment.groupBy({by:['companyId','currency'],_sum:{amountMinor:true}});
+ for(const p of lifetimePayments)billingRow(p.companyId,p.currency).collectedMinor+=p._sum.amountMinor??0;
+ const companyBilling=Array.from(companyBillingMap.values()).sort((a,b)=>a.companyName.localeCompare(b.companyName)||a.currency.localeCompare(b.currency));
+ const companyMonthlyMap=new Map<string,{companyId:string;companyName:string;month:string;currency:string;invoicedMinor:number;collectedMinor:number}>();
+ function monthlyRow(companyId:string,month:string,currency:string){const key=JSON.stringify([companyId,month,currency]);let row=companyMonthlyMap.get(key);if(!row){row={companyId,companyName:companyNames.get(companyId)??'Unknown company',month,currency,invoicedMinor:0,collectedMinor:0};companyMonthlyMap.set(key,row);}return row;}
+ for(const i of invoicesRecent)if(i.status!=='VOID')monthlyRow(i.companyId,i.issuedAt.toISOString().slice(0,7),i.currency).invoicedMinor+=i.amountMinor;
+ for(const p of paymentsRecent)monthlyRow(p.companyId,p.paidAt.toISOString().slice(0,7),p.currency).collectedMinor+=p.amountMinor;
+ const companyMonthly=Array.from(companyMonthlyMap.values()).sort((a,b)=>b.month.localeCompare(a.month)||a.companyName.localeCompare(b.companyName)||a.currency.localeCompare(b.currency));
  const receivables:Record<string,{outstandingMinor:number;overdueMinor:number}>={};
  for(const i of balances){const paid=i.payments.reduce((s,p)=>s+p.amountMinor,0);const due=Math.max(0,i.amountMinor-paid);const row=receivables[i.currency]??={outstandingMinor:0,overdueMinor:0};row.outstandingMinor+=due;if(i.dueAt<now)row.overdueMinor+=due;}
- return NextResponse.json({generatedAt:now.toISOString(),summary:{companies:companies.length,activeCompanies:companies.filter(c=>c.active).length,activeSubscriptions:activeSubs.length,expiring30Days:expiring.length,plans:plans.length},companyRows,expiring:expiring.map(s=>({...s,companyName:companies.find(c=>c.id===s.companyId)?.name??'Unknown'})),byCurrency,receivables,months,monthly,planAdoption,moduleAdoption},{headers:{'Cache-Control':'private, no-store'}});
+ return NextResponse.json({generatedAt:now.toISOString(),summary:{companies:companies.length,activeCompanies:companies.filter(c=>c.active).length,activeSubscriptions:activeSubs.length,expiring30Days:expiring.length,plans:plans.length},companyRows,expiring:expiring.map(s=>({...s,companyName:companies.find(c=>c.id===s.companyId)?.name??'Unknown'})),byCurrency,receivables,months,monthly,companyBilling,companyMonthly,planAdoption,moduleAdoption},{headers:{'Cache-Control':'private, no-store'}});
 }
