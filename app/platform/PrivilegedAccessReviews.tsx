@@ -1,5 +1,5 @@
+'use client';
 import {displayRoleName, displayRoleNames} from '../../lib/displayRoleName';
- 'use client';
 import {useEffect,useState} from 'react';
 import {Users, ShieldAlert, ClipboardList, CalendarClock, ShieldCheck} from 'lucide-react';
 type Role={id:string;name:string;active:boolean;protected:boolean;system:boolean};
