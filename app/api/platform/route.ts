@@ -45,17 +45,18 @@ export async function POST(req:NextRequest){
  }
  if(action==='updateCompany'){
   const companyId=typeof body.companyId==='string'?body.companyId:'';
-  const name=typeof body.name==='string'?body.name.trim():'';
-  const country=typeof body.country==='string'?body.country.trim():'';
-  const email=typeof body.email==='string'?body.email.trim():'';
-  const phone=typeof body.phone==='string'?body.phone.trim():'';
-  if(!companyId||name.length<2||name.length>120||country.length>80||email.length>254||phone.length>60|| (email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))return NextResponse.json({error:'Invalid company profile'},{status:400});
-  let logoDataUrl:string|null|undefined;try{logoDataUrl=body.logoDataUrl===undefined?undefined:validateCompanyLogo(body.logoDataUrl)}catch(e){return NextResponse.json({error:(e as Error).message},{status:400})}
+  const keys=['name','country','registrationNumber','companyType','taxIdentifier','businessAddress','digitalAddress','phone','email','industry','contactName','contactPosition','contactPhone','contactEmail','website'] as const;
+  const values=Object.fromEntries(keys.map(key=>[key,typeof body[key]==='string'?body[key].trim():''])) as Record<typeof keys[number],string>;
+  if(!companyId||values.name.length<2||values.name.length>120||keys.some(key=>values[key].length>(key==='businessAddress'?500:254))||values.country.length>80||values.phone.length>60||[values.email,values.contactEmail].some(email=>email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))return NextResponse.json({error:'Invalid company profile details'},{status:400});
+  if(values.website){try{const url=new URL(values.website);if(!['https:','http:'].includes(url.protocol))throw Error('invalid')}catch{return NextResponse.json({error:'Enter a valid website URL'},{status:400})}}
+  let logoDataUrl:string|null|undefined;try{logoDataUrl=body.logoDataUrl?validateCompanyLogo(body.logoDataUrl):undefined}catch(e){return NextResponse.json({error:(e as Error).message},{status:400})}
   const company=await db.company.findUnique({where:{id:companyId}});
   if(!company)return NextResponse.json({error:'Company not found'},{status:404});
+  const duplicates=await db.company.findFirst({where:{id:{not:companyId},OR:[...(values.registrationNumber?[{registrationNumber:{equals:values.registrationNumber,mode:'insensitive' as const}}]:[]),...(values.taxIdentifier?[{taxIdentifier:{equals:values.taxIdentifier,mode:'insensitive' as const}}]:[])]},select:{id:true}});
+  if(duplicates)return NextResponse.json({error:'Registration number or tax identifier is already assigned to another company'},{status:409});
   const updated=await db.$transaction(async tx=>{
-   const result=await tx.company.update({where:{id:companyId},data:{name,country:country||null,email:email||null,phone:phone||null,...(logoDataUrl===undefined?{}:{logoDataUrl})}});
-   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_UPDATED',entity:'Company',entityId:companyId,detail:{previous:{name:company.name,country:company.country,email:company.email,phone:company.phone},current:{name,country,email,phone,logoReplaced:!!logoDataUrl}}}});
+   const result=await tx.company.update({where:{id:companyId},data:{...Object.fromEntries(keys.map(key=>[key,values[key]||null])),name:values.name,...(logoDataUrl===undefined?{}:{logoDataUrl})}});
+   await tx.auditLog.create({data:{actorId:a.user.id,companyId,action:'PLATFORM_COMPANY_UPDATED',entity:'Company',entityId:companyId,detail:{changedFields:keys.filter(key=>String(company[key]||'')!==values[key]),logoReplaced:logoDataUrl!==undefined}}});
    return result;
   });
   return NextResponse.json({company:updated});
