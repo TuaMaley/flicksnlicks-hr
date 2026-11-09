@@ -6,7 +6,7 @@ export const dynamic='force-dynamic';
 export async function GET(req:NextRequest){
  const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});
  if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});
- if(!a.user.roles.some(r=>r.role.active&&['Administrator','Finance','Finance Officer','Finance Manager'].includes(r.role.name)))return NextResponse.json({error:'Finance access required'},{status:403});
+ if(!a.can('payroll.create'))return NextResponse.json({error:'Finance access required'},{status:403});
  const id=req.nextUrl.searchParams.get('batchId')||'';if(!id)return NextResponse.json({error:'Select a payroll batch'},{status:400});
  const b=await db.payrollCalculationBatch.findFirst({where:{id,companyId:a.companyId},include:{approvals:true}});
  if(!b||b.status!=='APPROVED')return NextResponse.json({error:'Finance-ready payroll batch required'},{status:409});

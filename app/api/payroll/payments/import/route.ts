@@ -6,10 +6,10 @@ export const dynamic='force-dynamic';
 const validPeriod=(p:string)=>/^\d{4}-(0[1-9]|1[0-2])$/.test(p);
 const validAmount=(v:string)=>/^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/.test(v);
 const toCents=(v:string)=>Math.round(Number(v)*100);
-function finance(a:Awaited<ReturnType<typeof access>>){return Boolean(a.user&&a.companyId&&a.can('payroll.finance_approve'))}
+function finance(a:Awaited<ReturnType<typeof access>>){return Boolean(a.user&&a.companyId&&a.can('payroll.create'))}
 export async function POST(req:NextRequest){
  try{
-  const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!finance(a))return NextResponse.json({error:'Finance access required'},{status:403});
+  const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!finance(a))return NextResponse.json({error:'Payroll preparation permission required'},{status:403});
   const form=await req.formData(),file=form.get('file'),period=String(form.get('period')||''),batchId=String(form.get('batchId')||''),mode=String(form.get('mode')||'preview');
   if(!validPeriod(period)||!batchId||!['preview','prepare'].includes(mode))return NextResponse.json({error:'Invalid month, batch or action'},{status:400});
   if(!(file instanceof File)||!file.name.toLowerCase().endsWith('.xlsx')||file.size>1_000_000||file.size<100)return NextResponse.json({error:'Upload a valid .xlsx file under 1 MB'},{status:400});

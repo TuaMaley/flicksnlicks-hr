@@ -4,21 +4,22 @@ import {db} from '../../../../lib/db';
 export const dynamic='force-dynamic';
 type A=Awaited<ReturnType<typeof access>>;
 function finance(a:A){return a.can('payroll.finance_approve')}
+function preparer(a:A){return a.can('payroll.create')}
 function hr(a:A){return a.can('payroll.view')}
 function money(x:unknown):x is number{return typeof x==='number'&&Number.isFinite(x)&&x>=0}
 const validPeriod=(p:string)=>/^\d{4}-(0[1-9]|1[0-2])$/.test(p);
 export async function GET(req:NextRequest){
- try{const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});if(!finance(a)&&!hr(a))return NextResponse.json({error:'Payroll payments access restricted'},{status:403});
+ try{const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});if(!finance(a)&&!preparer(a)&&!hr(a))return NextResponse.json({error:'Payroll payments access restricted'},{status:403});
  const period=req.nextUrl.searchParams.get('period')||new Date().toISOString().slice(0,7);if(!validPeriod(period))return NextResponse.json({error:'Invalid period'},{status:400});
  const [payments,batches]=await Promise.all([db.payrollPayment.findMany({where:{period,companyId:a.companyId},orderBy:{preparedAt:'desc'},include:{events:{orderBy:{createdAt:'asc'}}}}),db.payrollCalculationBatch.findMany({where:{period,status:'APPROVED',companyId:a.companyId},select:{id:true,period:true,employeeCount:true,lineItems:true,approvals:{select:{action:true}}}})]);
  const actorIds=[...new Set(payments.flatMap(p=>p.events.map(e=>e.actorId)).filter(Boolean))];
  const actors=await db.user.findMany({where:{id:{in:actorIds},companyMemberships:{some:{companyId:a.companyId}}},select:{id:true,name:true,email:true}});
  const actorNames=new Map(actors.map(u=>[u.id,u.name?.trim()||u.email]));
  const eligible=batches.map(b=>({id:b.id,period:b.period,employeeCount:b.employeeCount,prepared:payments.some(p=>p.batchId===b.id),totalNet:Array.isArray(b.lineItems)?b.lineItems.reduce((sum:number,x:any)=>sum+(money(x?.net)?x.net:0),0):0,eligibleCount:Array.isArray(b.lineItems)?b.lineItems.filter((x:any)=>x&&typeof x==='object'&&!Array.isArray(x)&&typeof x.employeeId==='string'&&money(x.net)&&money(x.incomeTax)&&money(x.employeeSSNIT)&&typeof x.policyId==='string').length:0}));
- return NextResponse.json({period,canManage:finance(a),payments:payments.map(p=>({...p,events:p.events.map(e=>({...e,actorName:actorNames.get(e.actorId)||'Former/unknown user'})),paymentDestination:p.paymentDestination?"••••"+p.paymentDestination.slice(-4):null,netAmount:Number(p.netAmount)})),batches:eligible},{headers:{'Cache-Control':'private, no-store'}});
+ return NextResponse.json({period,canManage:finance(a)||preparer(a),canPrepare:preparer(a),canVerify:finance(a),canConfirm:finance(a),payments:payments.map(p=>({...p,events:p.events.map(e=>({...e,actorName:actorNames.get(e.actorId)||'Former/unknown user'})),paymentDestination:p.paymentDestination?"••••"+p.paymentDestination.slice(-4):null,netAmount:Number(p.netAmount)})),batches:eligible},{headers:{'Cache-Control':'private, no-store'}});
  }catch(e){console.error('[payments GET]',e);return NextResponse.json({error:'Could not load payroll payments'},{status:500})}}
 export async function POST(req:NextRequest){
- try{const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});if(!finance(a))return NextResponse.json({error:'Finance permission required'},{status:403});
+ try{const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});if(!preparer(a))return NextResponse.json({error:'Payroll preparation permission required'},{status:403});
  const body=await req.json();const batchId=String(body.batchId||'');if(!batchId)return NextResponse.json({error:'Batch required'},{status:400});
  const result=await db.$transaction(async tx=>{const b=await tx.payrollCalculationBatch.findUnique({where:{id:batchId},include:{approvals:true}});if(!b||b.companyId!==a.companyId||b.status!=='APPROVED')return {error:'Finance-ready payroll batch required',status:409};
  const items=Array.isArray(b.lineItems)?b.lineItems:[];if(items.length===0)return {error:'Payroll batch has no employees',status:409};
@@ -29,7 +30,9 @@ export async function POST(req:NextRequest){
  if('error'in result)return NextResponse.json({error:result.error,...('conflicts'in result?{conflicts:result.conflicts}: {})},{status:result.status,headers:{'Cache-Control':'private, no-store'}});return NextResponse.json(result,{status:201});
  }catch(e){console.error('[payments POST]',e);return NextResponse.json({error:'Unable to prepare payments'},{status:500})}}
 export async function PATCH(req:NextRequest){
- try{const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});if(!finance(a))return NextResponse.json({error:'Finance permission required'},{status:403});const d=await req.json();const id=String(d.id||''),action=String(d.action||'');if(!['VERIFY','CONFIRM_PAID','MARK_FAILED','RETRY','SET_DESTINATION'].includes(action))return NextResponse.json({error:'Invalid action'},{status:400});
+ try{const a=await access();if(!a.user)return NextResponse.json({error:'Unauthorized'},{status:401});if(!a.companyId)return NextResponse.json({error:'Company selection required'},{status:403});if(!finance(a)&&!preparer(a))return NextResponse.json({error:'Payroll payment permission required'},{status:403});const d=await req.json();const id=String(d.id||''),action=String(d.action||'');if(!['VERIFY','CONFIRM_PAID','MARK_FAILED','RETRY','SET_DESTINATION'].includes(action))return NextResponse.json({error:'Invalid action'},{status:400});
+ if((action==='SET_DESTINATION'||action==='RETRY')&&!preparer(a))return NextResponse.json({error:'Payroll preparation permission required'},{status:403});
+ if((action==='VERIFY'||action==='CONFIRM_PAID'||action==='MARK_FAILED')&&!finance(a))return NextResponse.json({error:'Finance approval permission required'},{status:403});
  const method=String(d.method||'BANK');if(!['BANK','MOMO','CASH'].includes(method))return NextResponse.json({error:'Invalid payment method'},{status:400});const reference=String(d.reference||'').trim(),notes=String(d.notes||'').trim().slice(0,500);
  if(action==='SET_DESTINATION'&&(!['BANK','MOMO','CASH'].includes(method)||String(d.recipient||'').trim().length<3||String(d.destination||'').trim().length<4))return NextResponse.json({error:'Provide a recipient name and payment destination'},{status:400});
  if(action==='CONFIRM_PAID'&&(reference.length<5||reference.length>120))return NextResponse.json({error:'Payment confirmation requires an external transaction reference (5–120 characters)'},{status:400});
