@@ -9,6 +9,7 @@ import './nexora-module-cards.css';
 import './nexora-card-consistency.css';
 import './mobile-responsive.css';
 import ModuleShell from './components/ModuleShell';
+import IdleSessionGuard from './components/IdleSessionGuard';
 export const metadata = {
   metadataBase: new URL('https://app.nexora-hrms.com'),
   title: 'Nexora | HR Management Platform',
@@ -26,4 +27,4 @@ export const metadata = {
     description: 'People, performance, growth. Manage your workforce with Nexora.',
   },
 };
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><ModuleShell>{children}</ModuleShell></body></html>};
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><IdleSessionGuard/><ModuleShell>{children}</ModuleShell></body></html>};
