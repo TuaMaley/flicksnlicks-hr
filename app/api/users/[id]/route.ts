@@ -22,6 +22,7 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
  if(otherMemberships)return fail('Multi-company users must be managed through a company-specific access workflow',409);
  const d=await req.json().catch(()=>null);
  if(!d||!Array.isArray(d.roleIds)||!d.roleIds.length||d.roleIds.some((x:unknown)=>typeof x!=='string')||!Array.isArray(d.scopes)||typeof d.name!=='string'||d.name.trim().length<2||typeof d.active!=='boolean')return fail('Invalid user settings');
+ if(typeof d.email!=='string'||!d.email.trim()||!/^\S+@\S+\.\S+$/.test(d.email.trim()))return fail('Valid email is required');
  if(d.password!==undefined&&(typeof d.password!=='string'||d.password.length<12))return fail('Password must contain 12+ characters');
  if(d.scopes.length>100||d.scopes.some((s:any)=>!s||typeof s!=='object'||(s.branchId&&typeof s.branchId!=='string')||(s.department&&typeof s.department!=='string')||(!s.branchId&&!s.department)))return fail('Invalid access scopes');
  const uniqueRoleIds=[...new Set(d.roleIds)] as string[];
@@ -57,13 +58,13 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
    await tx.companyMembershipRole.createMany({data:roles.map(r=>({membershipId:valid.id,roleId:r.id}))});
    await tx.userAccessScope.deleteMany({where:{userId:id}});
    if(scopes.length)await tx.userAccessScope.createMany({data:scopes.map((s:any)=>({...s,userId:id,companyId}))});
-   await tx.user.update({where:{id},data:{name:d.name.trim(),active:d.active,...(d.employeeId!==undefined?{employeeId:d.employeeId||null}:{}),...(d.password?{passwordHash:hashPassword(d.password)}:{})}});
+   await tx.user.update({where:{id},data:{name:d.name.trim(),email:d.email.trim().toLowerCase(),active:d.active,...(d.employeeId!==undefined?{employeeId:d.employeeId||null}:{}),...(d.password?{passwordHash:hashPassword(d.password)}:{})}});
    await tx.auditLog.create({data:{companyId,actorId:a.user!.id,action:'USER_ACCESS_UPDATED',entity:'User',entityId:id,detail:{roles:roles.map(r=>r.name),scopes,active:d.active,passwordReset:!!d.password,employeeLinkChanged:d.employeeId!==undefined&&d.employeeId!==target.employeeId,employeeId:d.employeeId!==undefined?(d.employeeId||null):target.employeeId}}});
   });
   return ok({success:true});
  }catch(e:any){
   if(e?.message==='MEMBERSHIP_CHANGED')return fail('Membership changed; refresh and try again',409);
-  if(e?.code==='P2002')return fail('Employee is already linked',409);
+  if(e?.code==='P2002')return fail('Email address is already used or employee is already linked',409);
   return fail('Could not update user',500);
  }
 }
