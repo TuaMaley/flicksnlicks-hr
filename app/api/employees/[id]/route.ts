@@ -51,6 +51,14 @@ export async function PATCH(
       return fail('Transfer permission required', 403);
     }
 
+    if (data.department && data.department !== old.department) {
+      const department=await db.companyDepartment.findFirst({where:{companyId:a.companyId!,name:data.department as string,active:true}});
+      if(!department)return fail('Select an active company department',400);
+    }
+    if (data.position && data.position !== old.position) {
+      const position=await db.companyPosition.findFirst({where:{companyId:a.companyId!,name:data.position as string,active:true}});
+      if(!position)return fail('Select an active company position',400);
+    }
     if (data.branchId) {
       const branch = await db.branch.findFirst({where:{id:data.branchId as string,companyId:a.companyId}});
       if (!branch) return fail('Invalid branch for selected company',400);

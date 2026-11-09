@@ -11,10 +11,10 @@ export async function requireCompanyAdministrator() {
     where: { userId: a.user.id, companyId: a.companyId, active: true },
     include: { roles: { include: { role: true } } },
   });
-  const allowed = membership?.roles.some(
+  const allowed = a.can('employees.create') || a.can('employees.edit') || membership?.roles.some(
     (x) => x.role.active && x.role.companyId === a.companyId &&
       (x.role.name === 'Administrator' || x.role.name.startsWith('Administrator ['))
   );
-  if (!allowed) return { error: fail('Company administrator access required', 403) };
+  if (!allowed) return { error: fail('HR or company administrator access required', 403) };
   return { a };
 }
