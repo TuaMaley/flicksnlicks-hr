@@ -36,5 +36,5 @@ export async function POST(req:NextRequest){try{const a=await access();if(!a.use
   const chosen=new Set<string>(body.employeeIds);lines=data.lines.filter(l=>chosen.has(l.employeeId));
   if(lines.length!==chosen.size)return NextResponse.json({error:'One or more selected employees are not eligible for this company and payroll month. Refresh and retry.'},{status:409});
  }
- const gross=roundMoney(lines.reduce((sum:number,l)=>sum+l.gross,0));const net=roundMoney(lines.reduce((sum:number,l)=>sum+l.net,0));
+ let grossTotal=0,netTotal=0;for(const l of lines){grossTotal+=Number(l.gross);netTotal+=Number(l.net)}const gross=roundMoney(grossTotal);const net=roundMoney(netTotal);
  const row=await db.payrollCalculationBatch.create({data:{companyId:a.companyId,period:body.period,employeeCount:lines.length,grossAmount:gross.toFixed(2),netBeforeStatutory:net.toFixed(2),lineItems:lines,createdById:a.user.id}});return NextResponse.json({id:row.id,notice:'Draft snapshot created. netBeforeStatutory database column stores calculated net for new batches; historical batches retain original semantics. Do not disburse before final verification.'},{status:201})}catch(e){console.error('[ghana payroll process POST]',e);return NextResponse.json({error:e instanceof Error?e.message:'Unable to save payroll calculation'},{status:500})}}
