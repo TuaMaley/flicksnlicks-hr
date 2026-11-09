@@ -1,4 +1,6 @@
 'use client';
+import {displayRoleName, displayRoleNames} from '../../lib/displayRoleName';
+
 import {useEffect,useState} from 'react';
 type Data={
  filters:{users:{id:string;name:string;email:string}[];branches:{id:string;name:string}[];departments:string[]};
@@ -34,7 +36,7 @@ export default function AccessReports(){
  const clear=()=>{setUserId('');setBranchId('');setDepartment('');setStart('');setEnd('');setFilters({userId:'',branchId:'',department:'',start:'',end:''})};
  const exportData=()=>{if(!data)return;saveCsv('nexora-access-analytics.csv',[
  ['Metric','Value'],...cards.map(([key,label])=>[label,data.metrics[key]||0]),[],
- ['Role','Assigned Users'],...data.roleDistribution.map(r=>[r.name,r.count]),[],
+ ['Role','Assigned Users'],...data.roleDistribution.map(r=>[displayRoleName(r.name),r.count]),[],
  ['Most Active User','Audit Events'],...data.topUsers.map(r=>[r.name,r.count]),[],
  ['Date (UTC)','Audit Events'],...data.activityTrend.map(r=>[r.date,r.count])
  ])};

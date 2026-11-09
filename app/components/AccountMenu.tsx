@@ -1,4 +1,6 @@
 'use client';
+import {displayRoleName, displayRoleNames} from '../../lib/displayRoleName';
+
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {usePathname,useRouter} from 'next/navigation';
 import Link from 'next/link';
@@ -56,7 +58,7 @@ export default function AccountMenu(){
    <ChevronDown size={17} aria-hidden="true"/>
   </button>
   {open&&<div className="fnlAccountDropdown" role="menu">
-   <div className="fnlAccountSummary"><strong>{me.name}</strong><small>{me.email}</small><small>{me.roles.join(', ')||'User'}</small></div>
+   <div className="fnlAccountSummary"><strong>{me.name}</strong><small>{me.email}</small><small>{displayRoleNames(me.roles)||'User'}</small></div>
    <Link role="menuitem" href="/profile" onClick={()=>setOpen(false)}><UserRound size={17}/> My profile</Link>
    <Link role="menuitem" href="/settings" onClick={()=>setOpen(false)}><Settings size={17}/> Account settings</Link>
    <button type="button" role="menuitem" onClick={signOut} disabled={busy}><LogOut size={17}/>{busy?'Signing out…':'Sign out'}</button>
