@@ -9,7 +9,7 @@ export const runtime='nodejs';
 /**
  * Mobile sign-in for the Nexora Employee app.
  * Identical checks to /api/auth/login, but returns the signed session token in the body
- * (for Authorization: Bearer) instead of setting the browser cookie. Token lifetime: 8 h.
+ * (for Authorization: Bearer) instead of setting the browser cookie. Absolute token lifetime: 8 h; idle timeout: 10 minutes.
  */
 export async function POST(req:NextRequest){
  try{
@@ -20,7 +20,7 @@ export async function POST(req:NextRequest){
   if(!user||!user.active||!verifyPassword(password,user.passwordHash)){await recordSecurityEvent('LOGIN_FAILURE',null,{reason:'invalid_credentials',client:'mobile'});return fail('Invalid credentials',401)}
   if(await companyAccessState(user)==='suspended')return fail(SUSPENDED_COMPANY_MESSAGE,403);
   if(!user.employeeId)return fail('This login is not linked to an employee record. The employee app is for staff accounts only.',403);
-  const token=issueToken(user.id);
+  const token=await issueToken(user.id);
   const memberships=await db.companyMembership.findMany({where:{userId:user.id,active:true,company:{active:true}},select:{companyId:true,company:{select:{name:true,code:true}}}});
   try{const companyId=await activeTenant({id:user.id,platformAdmin:user.platformAdmin});await db.auditLog.create({data:{actorId:user.id,companyId,action:'LOGIN',entity:'User',entityId:user.id,detail:{client:'mobile'}}})}catch(error){console.error('Mobile login audit write failed',error)}
   await recordSecurityEvent('LOGIN_SUCCESS',user.id,{method:'password',client:'mobile'},null);
