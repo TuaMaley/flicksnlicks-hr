@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import AccountMenu from './AccountMenu';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
-import {LayoutDashboard,Users,Wallet,CalendarDays,GraduationCap,UserPlus,ClipboardCheck,LogOut,ShieldAlert,Award,UserRound,ShieldCheck,BarChart3,Settings,Menu,X,Search,UsersRound,Bell,ChevronDown,ArrowLeft} from 'lucide-react';
+import {LayoutDashboard,Users,Wallet,CalendarDays,GraduationCap,UserPlus,ClipboardCheck,LogOut,ShieldAlert,Award,UserRound,ShieldCheck,BarChart3,Settings,Menu,X,UsersRound,Bell,ChevronDown,ArrowLeft} from 'lucide-react';
 
 const items=[
  {label:'Dashboard',href:'/',Icon:LayoutDashboard},
@@ -41,7 +41,6 @@ export default function ModuleShell({children}:{children:React.ReactNode}){
  const [ready,setReady]=useState(false);
  const [platformAdmin,setPlatformAdmin]=useState(false);
  const [open,setOpen]=useState(false);
- const [search,setSearch]=useState('');
  const isPlatform=pathname==='/platform'||pathname.startsWith('/platform/');
  const [platformSection,setPlatformSection]=useState('Overview');
  useEffect(()=>{if(!isPlatform)return;const sync=()=>setPlatformSection(new URLSearchParams(window.location.search).get('section')||'Overview');sync();window.addEventListener('nexora-platform-section',sync);window.addEventListener('popstate',sync);return()=>{window.removeEventListener('nexora-platform-section',sync);window.removeEventListener('popstate',sync)}},[isPlatform]);
@@ -74,8 +73,7 @@ export default function ModuleShell({children}:{children:React.ReactNode}){
  {open&&<button type="button" className="persistentBackdrop" aria-label="Close navigation" onClick={()=>setOpen(false)}/>}
  <div className="persistentContent">
  <header className="persistentTopbar" aria-label="Page toolbar">
-  <button type="button" className="persistentTopbarBack" aria-label="Go back" title="Go back" onClick={()=>{if(window.history.length>1)router.back();else router.push('/')}}><ArrowLeft size={21}/></button>
-  <div className="persistentTopbarSearch"><Search size={19}/><input type="search" aria-label="Search" placeholder="Search employees, modules, reports..." value={search} onChange={e=>setSearch(e.target.value)}/></div>
+  {pathname!=='/'&&!(pathname==='/platform'&&platformSection==='Overview')&&<button type="button" className="persistentTopbarBack" aria-label="Go back" title="Go back" onClick={()=>{if(window.history.length>1)router.back();else router.push('/')}}><ArrowLeft size={21}/></button>}
   <div className="persistentTopbarRight">{!isPlatform&&<div className="persistentBranchLabel"><UsersRound size={18}/> All Branches <ChevronDown size={15}/></div>}<span className="persistentBell" aria-label="Notifications"><Bell size={21}/></span><AccountMenu/></div>
  </header>
  <div className="persistentPageScroll" id="module-page-scroll">{children}</div>
