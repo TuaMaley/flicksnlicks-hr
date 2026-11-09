@@ -1464,3 +1464,22 @@ model CompanyPlanPrice {
   @@unique([companyId,planId])
   @@index([companyId])
 }
+
+// ESS vacancy applications and referrals. Resume bytes are private database records.
+model EssJobSubmission {
+  id String @id @default(cuid())
+  companyId String
+  vacancyId String
+  applicationId String? @unique
+  submittedById String
+  kind String
+  candidateName String
+  candidateEmail String
+  resumeName String
+  resumeMime String
+  resumeData Bytes
+  emailStatus String @default("NOT_REQUIRED")
+  createdAt DateTime @default(now())
+  @@index([companyId, vacancyId])
+  @@index([companyId, submittedById])
+}
