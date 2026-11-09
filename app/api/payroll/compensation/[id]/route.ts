@@ -13,7 +13,7 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
   return NextResponse.json(await db.employeeCompensation.update({where:{id},data:{status:'PENDING_APPROVAL'}}));
  }
  if(d.action==='approve'||d.action==='reject'){
-  if(!canApprove||row.status!=='PENDING_APPROVAL'||row.createdById===a.user.id)return NextResponse.json({error:'Approval requires a different authorized Administrator'},{status:403});
+  if(!canApprove||row.status!=='PENDING_APPROVAL'||row.createdById===a.user.id)return NextResponse.json({error:'Approval requires a different authorized HR Manager'},{status:403});
   if(d.action==='reject'&&String(d.note||'').trim().length<10)return NextResponse.json({error:'Rejection reason must be at least 10 characters'},{status:400});
   return NextResponse.json(await db.employeeCompensation.update({where:{id},data:{status:d.action==='approve'?'APPROVED':'REJECTED',reviewedById:a.user.id,reviewedAt:new Date(),reviewNote:String(d.note||'').slice(0,1000)}}));
  }
