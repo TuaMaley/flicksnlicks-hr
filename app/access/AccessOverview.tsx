@@ -1,5 +1,5 @@
+'use client';
 import {displayRoleName, displayRoleNames} from '../../lib/displayRoleName';
- 'use client';
 import {useEffect,useState} from 'react';
 type Row={id:string;name:string;email:string;active:boolean;employeeNo:string|null;department:string|null;branch:string|null;roles:string[];permissions:string[];scopes:{branch:string|null;department:string|null}[]};
 export default function AccessOverview(){
