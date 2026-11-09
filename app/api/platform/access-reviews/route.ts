@@ -1,6 +1,7 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {currentUser} from '../../../../lib/auth';
 import {db} from '../../../../lib/db';
+import {displayRoleName} from '../../../../lib/displayRoleName';
 
 export async function GET(req:NextRequest){
  const session=await currentUser();
@@ -18,6 +19,6 @@ export async function GET(req:NextRequest){
   db.accessReview.findMany({where:reviewWhere,select:{id:true,userId:true,companyId:true,status:true,dueDate:true,notes:true,completedAt:true,createdAt:true,user:{select:{name:true,email:true}},reviewer:{select:{name:true,email:true}}},orderBy:{createdAt:'desc'},take:100})
  ]);
  const now=Date.now();
- const members=memberships.map(m=>({id:m.id,companyId:m.companyId,companyName:m.company.name,companyActive:m.company.active,active:m.active,user:m.user,roles:m.roles.map(x=>x.role),flags:[...(!m.user.active?['Inactive user']:[]),...(!m.company.active?['Suspended company']:[]),...(m.user.platformAdmin?['Platform administrator also has company membership']:[]),...(m.roles.some(x=>!x.role.active)?['Inactive role assigned']:[]),...(m.roles.some(x=>x.role.companyId&&x.role.companyId!==m.companyId)?['Cross-company role assigned']:[])]}));
+ const members=memberships.map(m=>({id:m.id,companyId:m.companyId,companyName:m.company.name,companyActive:m.company.active,active:m.active,user:m.user,roles:m.roles.map(x=>({...x.role,name:displayRoleName(x.role.name)})),flags:[...(!m.user.active?['Inactive user']:[]),...(!m.company.active?['Suspended company']:[]),...(m.user.platformAdmin?['Platform administrator also has company membership']:[]),...(m.roles.some(x=>!x.role.active)?['Inactive role assigned']:[]),...(m.roles.some(x=>x.role.companyId&&x.role.companyId!==m.companyId)?['Cross-company role assigned']:[])]}));
  return NextResponse.json({members,platformAdmins,reviews:reviews.map(r=>({...r,overdue:r.status==='OPEN'&&new Date(r.dueDate).getTime()<now})),limited:memberships.length===500||reviews.length===100||platformAdmins.length===100},{headers:{'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'}});
 }
