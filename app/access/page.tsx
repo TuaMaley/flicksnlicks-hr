@@ -1,5 +1,5 @@
+'use client';
 import {displayRoleName, displayRoleNames} from '../../lib/displayRoleName';
- 'use client';
 import {useEffect,useState} from 'react';import UserAssignments from './users/page';import AccessOverview from './AccessOverview';import AuditLogs from './AuditLogs';import LoginSecurity from './LoginSecurity';import AccessReviews from './AccessReviews';import AccessReports from './AccessReports';import NexoraModuleTabs from '../components/NexoraModuleTabs';import Link from 'next/link';import Image from 'next/image';
 type AccessTab='overview'|'users'|'roles'|'audit'|'security'|'reviews'|'reports';
 const accessTabs:{id:AccessTab;label:string;disabled?:boolean}[]=[{id:'overview',label:'Overview'},{id:'users',label:'User Management'},{id:'roles',label:'Roles & Permissions'},{id:'audit',label:'Audit Logs'},{id:'security',label:'Login & Security'},{id:'reviews',label:'Access Reviews'},{id:'reports',label:'Reports & Analytics'}];
