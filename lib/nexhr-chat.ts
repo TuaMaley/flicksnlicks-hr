@@ -15,16 +15,18 @@ async function extract(d:{mimeType:string;fileData:Uint8Array}):Promise<{page:nu
  }
  if(d.mimeType==='application/pdf'){
   const pdfParse=(await import('pdf-parse')).default;
-  const r=await pdfParse(b,{pagerender:async(page:any)=>{
-   const c=await page.getTextContent();return c.items.map((x:any)=>x.str||'').join(' ');
+  const pages:{page:number|null;text:string}[]=[];
+  await pdfParse(b,{pagerender:async(page:any)=>{
+   const c=await page.getTextContent();const text=c.items.map((x:any)=>x.str||'').join(' ');
+   pages.push({page:page.pageNumber||pages.length+1,text});return text;
   }});
-  // pdf-parse concatenates pages; page boundaries are not retained reliably.
-  return [{page:null,text:r.text}];
+  return pages;
  }
  return [];
 }
 export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:string):Promise<Evidence[]>{
  const q=terms(question);if(q.length===0)return [];
+ const synonyms:Record<string,string[]>={leave:['vacation','holiday','absence'],vacation:['leave','holiday'],termination:['dismissal','separation'],dismissal:['termination'],pay:['salary','wages','compensation'],salary:['pay','wages'],sick:['illness','medical'],discipline:['misconduct','sanction'],complaint:['grievance'],grievance:['complaint']};
  const now=new Date();
  const docs=await db.nexHrDocument.findMany({where:{companyId:a.companyId!,status:'APPROVED',OR:[{effectiveAt:null},{effectiveAt:{lte:now}}],AND:[{OR:[{expiresAt:null},{expiresAt:{gt:now}}]}]},select:{id:true,title:true,version:true,visibility:true,status:true,mimeType:true,fileData:true},orderBy:{updatedAt:'desc'},take:120});
  const matches:Evidence[]=[];
@@ -36,7 +38,7 @@ export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:str
     const candidates=snippets(part.text.slice(0,600000));
     for(let i=0;i<candidates.length;i++){
      const text=candidates[i];const lower=text.toLowerCase();
-     const hits=q.filter(t=>new RegExp('\\b'+t+'\\b','i').test(lower)).length;
+     const hits=q.filter(t=>[t,...(synonyms[t]||[])].some(w=>new RegExp('\\b'+w+'\\b','i').test(lower))).length;
      if(hits<Math.min(2,q.length))continue;
      const score=hits/q.length;
      if(score<0.5)continue;
