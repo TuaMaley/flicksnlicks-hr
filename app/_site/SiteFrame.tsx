@@ -2,7 +2,7 @@
 // through a middleware rewrite, so every public navigation is a full page load.
 import './site.css';
 import {Menu} from 'lucide-react';
-const NAV=[['features','Features','/features'],['pricing','Pricing','/pricing'],['about','About','/about'],['contact','Contact','/contact']] as const;
+const NAV=[['home','Home','/'],['features','Features','/features'],['pricing','Pricing','/pricing'],['about','About','/about'],['contact','Contact','/contact']] as const;
 export default function SiteFrame({active,children}:{active?:string;children:React.ReactNode}){
  return <div className="nx">
   <link rel="preconnect" href="https://fonts.googleapis.com"/>

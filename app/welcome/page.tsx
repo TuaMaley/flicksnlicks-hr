@@ -18,7 +18,7 @@ export default function Welcome(){
  // A real calculation from the same engine Nexora payroll uses.
  const calc=(basic:number,allowances:number)=>computeGhanaPayroll({basic,allowances,otherDeductions:0,overtimeDays:0,overtimeRate:0,unpaidDays:0,workDaysPerMonth:22,tier3Employee:0,employeeRate:.055,employerRate:.13,tier1Rate:.135,tier2Rate:.05,minimumInsurable:0,maximumInsurable:1_000_000,taxBands:OCT_2026_BANDS});
  const pay=calc(6500,1200),kwame=calc(4600,800),efua=calc(8500,1300);
- return <SiteFrame>
+ return <SiteFrame active="home">
   <section className="hero dark"><div className="wrap">
    <div className="hero-copy">
     <h1>HR and payroll, built for how Ghana works.</h1>
