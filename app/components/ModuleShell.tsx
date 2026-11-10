@@ -6,7 +6,7 @@ import Image from 'next/image';
 import AccountMenu from './AccountMenu';
 import NotificationBell from './NotificationBell';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
-import {LayoutDashboard,Users,Wallet,CalendarDays,GraduationCap,UserPlus,ClipboardCheck,LogOut,ShieldAlert,Award,UserRound,ShieldCheck,BarChart3,Settings,Menu,X,UsersRound,Bell,ChevronDown,ArrowLeft} from 'lucide-react';
+import {LayoutDashboard,Users,Wallet,CalendarDays,GraduationCap,UserPlus,ClipboardCheck,LogOut,ShieldAlert,Award,UserRound,ShieldCheck,BarChart3,Settings,Menu,X,UsersRound,Bell,ChevronDown,ArrowLeft,Bot} from 'lucide-react';
 
 const items=[
  {label:'Dashboard',href:'/',Icon:LayoutDashboard},
@@ -20,6 +20,7 @@ const items=[
  {label:'Disciplinary Management',href:'/disciplinary',permission:'disciplinary.view',Icon:ShieldAlert},
  {label:'Rewards & Recognition',href:'/',permission:'rewards.view',Icon:Award},
  {label:'Employee Self-Service',href:'/self-service',permission:'selfservice.view',Icon:UserRound},
+ {label:'Nex HR Knowledge',href:'/nex-hr',permission:'nexhr.view',Icon:Bot},
  {label:'Access & Audit Controls',href:'/access',permission:'access.view',Icon:ShieldCheck},
 ];
 const platformItems=[
