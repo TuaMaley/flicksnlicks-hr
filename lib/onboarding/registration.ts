@@ -8,16 +8,16 @@ type Db=PrismaClient|Prisma.TransactionClient;
 
 export type RegistrationInput={
  companyName:string;companyType:string;registrationNumber:string;taxIdentifier:string;industry:string;employeeBand:string|null;
- businessAddress:string;digitalAddress:string;city:string|null;companyEmail:string;companyPhone:string;website:string|null;
+ businessAddress:string;digitalAddress:string;country:string;city:string|null;companyEmail:string;companyPhone:string;website:string|null;
  contactName:string;contactPosition:string;contactPhone:string;contactEmail:string;
  adminName:string;adminEmail:string;adminPhone:string|null;adminJobTitle:string|null;
  planId:string;billingCycle:'MONTHLY'|'ANNUAL';notes:string|null;
 };
 
-/** Comparable form of registration numbers and Ghana Card/TIN: upper-case, letters and digits only. */
+/** Comparable form of registration numbers and tax / national ID numbers: upper-case, letters and digits only. */
 export const idKey=(v:string|null|undefined)=>v?v.toUpperCase().replace(/[^A-Z0-9]/g,'')||null:null;
-const DIGITAL_ADDRESS=/^[A-Z]{2}-?\d{3,4}-?\d{4}$/i;
-const fmtDigital=(v:string)=>{const m=v.toUpperCase().replace(/\s/g,'').match(/^([A-Z]{2})-?(\d{3,4})-?(\d{4})$/);return m?`${m[1]}-${m[2]}-${m[3]}`:v};
+const DIGITAL_ADDRESS=/^[A-Z0-9][A-Z0-9 -]{1,18}[A-Z0-9]$/i; // postcode or digital address (e.g. GhanaPost GPS GA-123-4567)
+const fmtDigital=(v:string)=>{const m=v.toUpperCase().replace(/\s/g,'').match(/^([A-Z]{2})-?(\d{3,4})-?(\d{4})$/);return m?`${m[1]}-${m[2]}-${m[3]}`:v.toUpperCase().replace(/\s+/g,' ')};
 
 /** Validates a registration payload. Returns field-level messages written for the person filling the form. */
 export function parseRegistration(b:any):{data?:RegistrationInput;errors:Record<string,string>}{
@@ -27,11 +27,12 @@ export function parseRegistration(b:any):{data?:RegistrationInput;errors:Record<
  if(companyName.length<2)e.companyName='Enter your company name.';else if(!/[A-Za-z0-9]/.test(companyName))e.companyName='Company name must contain letters or numbers.';
  const companyType=clean(b?.companyType,60);if(!(COMPANY_TYPES as readonly string[]).includes(companyType))e.companyType='Choose a company type.';
  const registrationNumber=clean(b?.registrationNumber,40).toUpperCase();if(!/^[A-Z0-9][A-Z0-9 /-]{2,39}$/.test(registrationNumber))e.registrationNumber='Enter your business registration number (for example CS123456789).';
- const taxIdentifier=clean(b?.taxIdentifier,30).toUpperCase();if(!/^[A-Z0-9][A-Z0-9-]{5,29}$/.test(taxIdentifier))e.taxIdentifier='Enter a Ghana Card number (GHA-XXXXXXXXX-X) or TIN.';
+ const taxIdentifier=clean(b?.taxIdentifier,30).toUpperCase();if(!/^[A-Z0-9][A-Z0-9 /-]{3,29}$/.test(taxIdentifier))e.taxIdentifier='Enter your company tax ID or the owner’s national ID number.';
  const industry=clean(b?.industry,80);if(!(INDUSTRIES as readonly string[]).includes(industry))e.industry='Choose an industry.';
  const employeeBand=clean(b?.employeeBand,20)||null;if(employeeBand&&!(EMPLOYEE_BANDS as readonly string[]).includes(employeeBand))e.employeeBand='Choose a company size from the list.';
  const businessAddress=cleanMultiline(b?.businessAddress,500).replace(/\n+/g,', ');if(businessAddress.length<5)e.businessAddress='Enter your business address.';
- const digitalRaw=clean(b?.digitalAddress,20);if(!DIGITAL_ADDRESS.test(digitalRaw.replace(/\s/g,'')))e.digitalAddress='Enter a GhanaPost GPS address such as GA-123-4567.';
+ const digitalRaw=clean(b?.digitalAddress,20);if(!DIGITAL_ADDRESS.test(digitalRaw))e.digitalAddress='Enter your postcode or digital address.';
+ const country=clean(b?.country,80)||(b?.source==='platform'?'Ghana':'');if(country.length<2)e.country='Enter your country.';
  const city=clean(b?.city,80)||null;
  const companyEmail=normEmail(b?.companyEmail);if(!companyEmail)e.companyEmail='Enter a valid company email address.';
  const companyPhone=phone('companyPhone','Enter the company phone number.');
@@ -48,7 +49,7 @@ export function parseRegistration(b:any):{data?:RegistrationInput;errors:Record<
  const billingCycle=clean(b?.billingCycle,10).toUpperCase();if(!(BILLING_CYCLES as readonly string[]).includes(billingCycle))e.billingCycle='Choose monthly or annual billing.';
  const notes=cleanMultiline(b?.notes,1000)||null;
  if(Object.keys(e).length)return {errors:e};
- return {errors:{},data:{companyName,companyType,registrationNumber,taxIdentifier,industry,employeeBand,businessAddress,digitalAddress:fmtDigital(digitalRaw),city,companyEmail,companyPhone,website:websiteRaw||null,
+ return {errors:{},data:{companyName,companyType,registrationNumber,taxIdentifier,industry,employeeBand,businessAddress,digitalAddress:fmtDigital(digitalRaw),country,city,companyEmail,companyPhone,website:websiteRaw||null,
   contactName,contactPosition,contactPhone,contactEmail,adminName,adminEmail,adminPhone:adminPhone||null,adminJobTitle,planId,billingCycle:billingCycle as 'MONTHLY'|'ANNUAL',notes}};
 }
 
@@ -59,7 +60,7 @@ type DupInput={companyName:string;companyEmail:string;companyPhone:string|null;a
 /**
  * Duplicate prevention.
  * - Administrator email already has a Nexora login, or sits on another open registration → blockedReason (never created/approved).
- * - Registration number or Ghana Card/TIN already belongs to a company on Nexora → businessConflict (cannot be approved;
+ * - Registration number or tax ID already belongs to a company on Nexora → businessConflict (cannot be approved;
  *   mirrors the rule in Platform › Companies › Onboard Company).
  * - Same registration number/TIN as another open registration, same normalised name, corporate email domain, phone or
  *   company email → flags for the reviewer (high-severity flags need explicit acknowledgement to approve).
@@ -78,7 +79,7 @@ export async function checkDuplicates(db:Db,i:DupInput,excludeId?:string):Promis
  const companies=await db.company.findMany({select:{id:true,name:true,code:true,email:true,phone:true,registrationNumber:true,taxIdentifier:true}});
  for(const c of companies){
   if(reg&&idKey(c.registrationNumber)===reg||tax&&idKey(c.taxIdentifier)===tax){
-   businessConflict=`${c.name} (${c.code}) is already registered on Nexora with the same ${reg&&idKey(c.registrationNumber)===reg?'business registration number':'Ghana Card / TIN'}.`;
+   businessConflict=`${c.name} (${c.code}) is already registered on Nexora with the same ${reg&&idKey(c.registrationNumber)===reg?'business registration number':'tax ID'}.`;
    flags.push({kind:'BUSINESS_REGISTERED',severity:'blocking',detail:businessConflict,ref:c.id});continue;
   }
   if(key&&companyNameKey(c.name)===key)flags.push({kind:'EXISTING_COMPANY_NAME',severity:'high',detail:`Same name as existing company ${c.name} (${c.code})`,ref:c.id});
@@ -87,7 +88,7 @@ export async function checkDuplicates(db:Db,i:DupInput,excludeId?:string):Promis
  }
  const others=await db.companyRegistration.findMany({where:{AND:[...open,{OR:[{companyNameKey:key},...(reg?[{registrationNumberKey:reg}]:[]),...(tax?[{taxIdentifierKey:tax}]:[]),...(domain?[{companyEmailDomain:domain}]:[]),...(phone?[{phoneKey:phone}]:[]),{companyEmail:i.companyEmail}]}]},select:{id:true,reference:true,companyName:true,companyNameKey:true,registrationNumberKey:true,taxIdentifierKey:true,companyEmailDomain:true,phoneKey:true,companyEmail:true},take:20});
  for(const r of others){
-  if(reg&&r.registrationNumberKey===reg||tax&&r.taxIdentifierKey===tax)flags.push({kind:'OPEN_REGISTRATION_BUSINESS_ID',severity:'high',detail:`Registration ${r.reference} (${r.companyName}) uses the same registration number or Ghana Card / TIN`,ref:r.id});
+  if(reg&&r.registrationNumberKey===reg||tax&&r.taxIdentifierKey===tax)flags.push({kind:'OPEN_REGISTRATION_BUSINESS_ID',severity:'high',detail:`Registration ${r.reference} (${r.companyName}) uses the same registration number or tax ID`,ref:r.id});
   else if(r.companyNameKey===key)flags.push({kind:'OPEN_REGISTRATION_NAME',severity:'high',detail:`Another open registration uses the same name (${r.reference}: ${r.companyName})`,ref:r.id});
   else if(r.companyEmail===i.companyEmail)flags.push({kind:'COMPANY_EMAIL',severity:'medium',detail:`Company email also used by registration ${r.reference}`,ref:r.id});
   else if(domain&&r.companyEmailDomain===domain)flags.push({kind:'COMPANY_DOMAIN',severity:'medium',detail:`Same email domain as registration ${r.reference} (${r.companyName})`,ref:r.id});
@@ -108,7 +109,7 @@ export async function loadPlan(db:Db,planId:string){
 /** Fields persisted on CompanyRegistration from validated input. */
 export function registrationColumns(d:RegistrationInput,planName:string){
  return {companyName:d.companyName,companyNameKey:companyNameKey(d.companyName),companyType:d.companyType,registrationNumber:d.registrationNumber,registrationNumberKey:idKey(d.registrationNumber),
-  taxIdentifier:d.taxIdentifier,taxIdentifierKey:idKey(d.taxIdentifier),businessAddress:d.businessAddress,digitalAddress:d.digitalAddress,country:'Ghana',city:d.city,industry:d.industry,employeeBand:d.employeeBand,
+  taxIdentifier:d.taxIdentifier,taxIdentifierKey:idKey(d.taxIdentifier),businessAddress:d.businessAddress,digitalAddress:d.digitalAddress,country:d.country,city:d.city,industry:d.industry,employeeBand:d.employeeBand,
   companyEmail:d.companyEmail,companyEmailDomain:corporateDomain(d.companyEmail)||corporateDomain(d.adminEmail),companyPhone:d.companyPhone,phoneKey:phoneKey(d.companyPhone),website:d.website,
   contactName:d.contactName,contactPosition:d.contactPosition,contactPhone:d.contactPhone,contactEmail:d.contactEmail,
   adminName:d.adminName,adminEmail:d.adminEmail,adminPhone:d.adminPhone,adminJobTitle:d.adminJobTitle,planId:d.planId,planName,billingCycle:d.billingCycle,notes:d.notes};
