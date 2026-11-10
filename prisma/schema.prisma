@@ -1651,3 +1651,26 @@ model NexHrAuditEvent {
   createdAt DateTime @default(now())
   @@index([companyId,documentId,createdAt])
 }
+
+
+model NexHrChatThread {
+  id String @id @default(cuid())
+  companyId String
+  userId String
+  title String @db.VarChar(180)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages NexHrChatMessage[]
+  @@index([companyId,userId,updatedAt])
+}
+
+model NexHrChatMessage {
+  id String @id @default(cuid())
+  threadId String
+  thread NexHrChatThread @relation(fields:[threadId],references:[id],onDelete:Cascade)
+  role String
+  content String @db.Text
+  citations Json?
+  createdAt DateTime @default(now())
+  @@index([threadId,createdAt])
+}
