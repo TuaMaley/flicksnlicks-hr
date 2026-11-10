@@ -5,7 +5,7 @@
  --red:#E3141B;--red-hover:#C40F16;--red-soft:#FDECEC;--red-deep:#9E0B11;
  --ink:#0A0C10;--text:#363B46;--muted:#646B78;--line:#E3E5E9;--fog:#F4F5F7;--paper:#fff;--ok:#0F7A43;--ok-soft:#E7F6EE;--warn:#B45309;
  --r-sm:10px;--r:16px;--r-lg:24px;
- --wrap:1200px;--gutter:clamp(16px,4vw,40px);
+ --wrap:1400px;--gutter:clamp(16px,4vw,40px);
  --shadow:0 1px 2px rgba(10,12,16,.06),0 12px 32px -12px rgba(10,12,16,.18);
  --shadow-lg:0 2px 4px rgba(0,0,0,.2),0 40px 80px -24px rgba(0,0,0,.55);
  font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;font-variation-settings:'wdth' 100;
