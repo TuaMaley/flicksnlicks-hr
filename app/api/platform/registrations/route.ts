@@ -56,7 +56,7 @@ export async function POST(req:NextRequest){
   switch(action){
    case 'createAssisted':{
     // Hybrid onboarding: a platform administrator enters the company on its behalf (sales-led / assisted).
-    const {data,errors}=parseRegistration(b);
+    const {data,errors}=parseRegistration({...b,source:'platform'});
     if(!data)return err('Please fix the highlighted fields.',400,{fields:errors});
     const plan=await loadPlan(db,data.planId);if(!plan)return err('Please fix the highlighted fields.',400,{fields:{planId:'Choose an active plan with at least one module.'}});
     const dup=await checkDuplicates(db,data);
