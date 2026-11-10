@@ -1,6 +1,7 @@
+import {pageMeta} from '../_site/seo';
 import SiteFrame from '../_site/SiteFrame';
 import {Landmark,Smartphone,ClipboardCheck,BadgeCheck,ArrowRight} from 'lucide-react';
-export const metadata={title:'About | Nexora HR Management System',description:'Why Nexora exists and how we build it.'};
+export const metadata=pageMeta('About | Nexora HR Management System','Why Nexora exists: HR and payroll software built for how businesses in Ghana work.','/about');
 export default function About(){
  return <SiteFrame active="about">
   <section className="pagehead dark has-art"><div className="wrap"><div><h1>HR software that understands how businesses here work</h1><p className="lede">Nexora began inside a growing Ghanaian business that needed its people records, leave, appraisals and payroll in one dependable place — and could not find software that handled PAYE, SSNIT and multi-branch teams without workarounds.</p></div><img className="art" src="/art/about.svg" alt="" width={520} height={420}/></div></section>

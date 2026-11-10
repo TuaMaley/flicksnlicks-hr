@@ -21,9 +21,11 @@ export const metadata = {
     url: 'https://app.nexora-hrms.com',
     siteName: 'Nexora',
     type: 'website',
+    images: [{url:'https://www.nexora-hrms.com/og/nexora-og.png',width:1200,height:630,alt:'Nexora — HR and payroll, built for how Ghana works'}],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
+    images: ['https://www.nexora-hrms.com/og/nexora-og.png'],
     title: 'Nexora | HR Management Platform',
     description: 'People, performance, growth. Manage your workforce with Nexora.',
   },

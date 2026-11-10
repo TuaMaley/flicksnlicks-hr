@@ -1,7 +1,8 @@
+import {pageMeta} from '../_site/seo';
 import SiteFrame from '../_site/SiteFrame';
 import LeadForm from '../_site/LeadForm';
 import {Mail,KeyRound,Video} from 'lucide-react';
-export const metadata={title:'Contact | Nexora HR Management System',description:'Get in touch with the Nexora team.'};
+export const metadata=pageMeta('Contact | Nexora HR Management System','Questions about plans, billing, your data or an existing account? Contact the Nexora team.','/contact');
 export default function Contact(){
  const email=process.env.NEXT_PUBLIC_NEXORA_CONTACT_EMAIL||'';
  return <SiteFrame active="contact">

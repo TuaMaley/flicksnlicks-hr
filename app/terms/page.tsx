@@ -1,5 +1,6 @@
+import {pageMeta} from '../_site/seo';
 import SiteFrame from '../_site/SiteFrame';
-export const metadata={title:'Terms of service | Nexora',description:'Terms for using Nexora HR Management System.'};
+export const metadata=pageMeta('Terms of service | Nexora','Terms for using Nexora HR Management System.','/terms');
 // NOTE FOR NEXORA: review this text with your legal adviser before launch and set the effective date.
 export default function Terms(){
  return <SiteFrame>

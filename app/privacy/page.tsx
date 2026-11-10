@@ -1,5 +1,6 @@
+import {pageMeta} from '../_site/seo';
 import SiteFrame from '../_site/SiteFrame';
-export const metadata={title:'Privacy notice | Nexora',description:'How Nexora handles personal data.'};
+export const metadata=pageMeta('Privacy notice | Nexora','How Nexora handles personal data.','/privacy');
 // NOTE FOR NEXORA: review this text with your legal adviser / Data Protection Commission registration before launch.
 export default function Privacy(){
  return <SiteFrame>

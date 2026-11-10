@@ -1,10 +1,11 @@
+import {pageMeta} from '../_site/seo';
 import SiteFrame from '../_site/SiteFrame';
 import LeadForm from '../_site/LeadForm';
 import {Video,MessageSquareText,UserPlus} from 'lucide-react';
 import VideoFeature from '../_site/VideoFeature';
 import {siteVideo} from '../_site/video';
 export const dynamic='force-dynamic';
-export const metadata={title:'Book a demo | Nexora HR Management System',description:'See Nexora with a member of our team.'};
+export const metadata=pageMeta('Book a demo | Nexora HR Management System','See Nexora with a member of our team — payroll, leave, appraisals and self-service, using your own questions.','/request-demo');
 export default function RequestDemo(){
  const video=siteVideo();
  return <SiteFrame>

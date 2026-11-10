@@ -1,9 +1,10 @@
+import {pageMeta} from '../_site/seo';
 import SiteFrame from '../_site/SiteFrame';
 import {publicPlans} from '../_site/plans';
 import PricingTable from './PricingTable';
 import {ArrowRight} from 'lucide-react';
 export const dynamic='force-dynamic';
-export const metadata={title:'Pricing | Nexora HR Management System',description:'Simple monthly or annual plans for Nexora HR and payroll.'};
+export const metadata=pageMeta('Pricing | Nexora HR Management System','Plans for every stage of your business — Starter to Enterprise, billed monthly or annually.','/pricing');
 const FAQ:[string,string][]=[
  ['When does my subscription start?','On the day your workspace is activated — when your administrator accepts their invitation and sets a password. Nothing is charged while your registration is being reviewed.'],
  ['How do I pay?','The Nexora team issues an invoice for your plan. Pay by bank transfer or mobile money using the details on the invoice.'],

@@ -1,7 +1,8 @@
+import {pageMeta} from '../_site/seo';
 import SiteFrame from '../_site/SiteFrame';
 import {GROUPS} from '../_site/content';
 import {Check,Lock,ScrollText,UsersRound,Building2,ArrowRight} from 'lucide-react';
-export const metadata={title:'Features | Nexora HR Management System',description:'Employee records, leave, Ghana payroll, appraisals, recruitment, training, onboarding, disciplinary management, self-service and access controls.'};
+export const metadata=pageMeta('Features | Nexora HR Management System','Employee records, leave, Ghana payroll, appraisals, recruitment, training, onboarding, disciplinary management, self-service and access controls.','/features');
 export default function Features(){
  return <SiteFrame active="features">
   <section className="pagehead dark"><div className="wrap"><h1>Everything you need to run HR in Ghana</h1><p className="lede">Each plan includes a set of modules. Your administrator decides who in your company can use each one.</p>

@@ -1,9 +1,10 @@
+import {pageMeta} from '../_site/seo';
 import SiteFrame from '../_site/SiteFrame';
 import {publicPlans} from '../_site/plans';
 import RegisterForm from './RegisterForm';
 import {MailCheck,BadgeCheck,KeyRound,Building2} from 'lucide-react';
 export const dynamic='force-dynamic';
-export const metadata={title:'Register your company | Nexora',description:'Register your company for Nexora HR Management System.'};
+export const metadata=pageMeta('Register your company | Nexora','Register your company for Nexora HR Management System.','/register');
 export default async function Register({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}){
  const sp=await searchParams;const plans=await publicPlans();
  const plan=typeof sp.plan==='string'&&plans.some(p=>p.id===sp.plan)?sp.plan:'';

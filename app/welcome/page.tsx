@@ -1,3 +1,4 @@
+import {pageMeta} from '../_site/seo';
 // Public home page. Served at "/" for signed-out visitors (middleware rewrite) and at /welcome.
 import SiteFrame from '../_site/SiteFrame';
 import ModuleExplorer from '../_site/ModuleExplorer';
@@ -7,7 +8,7 @@ import {siteVideo} from '../_site/video';
 import {OCT_2026_BANDS,computeGhanaPayroll} from '../../lib/ghana-payroll';
 import {ArrowRight,BadgeCheck,Building2,CalendarCheck,ClipboardCheck,FileCheck2,IdCard,Landmark,LayoutDashboard,Lock,MapPin,ScrollText,ShieldCheck,Smartphone,Users,UsersRound,Wallet,Check,CheckCircle2} from 'lucide-react';
 
-export const metadata={title:'Nexora | HR and payroll software for Ghanaian businesses',description:'Run people, payroll and performance in one place. PAYE and SSNIT calculated for you, leave and appraisals tracked, and payslips every employee can open on their phone.'};
+export const metadata=pageMeta('Nexora | HR and payroll software for Ghanaian businesses','Run people, payroll and performance in one place. PAYE and SSNIT calculated for you, leave and appraisals tracked, and payslips every employee can open on their phone.','/');
 
 const money=(n:number)=>n.toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2});
 
