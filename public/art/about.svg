@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 420" role="img" aria-labelledby="t"><title id="t">A connected team across branches</title>
+  <defs><pattern id="band" width="192" height="24" patternUnits="userSpaceOnUse">
+  
+  <rect width="192" height="24" fill="#0A0C10"/>
+  <rect x="0" width="48" height="24" fill="#E3141B"/>
+  <path d="M0 18 L8 6 L16 18 L24 6 L32 18 L40 6 L48 18" fill="none" stroke="#0A0C10" stroke-width="3" stroke-linejoin="round"/>
+  <g fill="#fff"><rect x="54" y="0" width="3" height="24"/><rect x="61" y="0" width="3" height="24"/><rect x="68" y="0" width="3" height="24"/></g>
+  <rect x="78" width="36" height="24" fill="#fff"/>
+  <g fill="#E3141B"><path d="M87 12 L93 6 L99 12 L93 18Z"/><path d="M99 12 L105 6 L111 12 L105 18Z" fill="#0A0C10"/></g>
+  <rect x="114" width="10" height="24" fill="#FF6B70"/>
+  <g fill="#E3141B"><rect x="130" y="3" width="56" height="4"/><rect x="130" y="17" width="56" height="4"/></g>
+  <g fill="#fff"><rect x="142" y="10" width="6" height="4"/><rect x="156" y="10" width="6" height="4"/><rect x="170" y="10" width="6" height="4"/></g>
+</pattern><radialGradient id="g" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#E3141B" stop-opacity=".45"/><stop offset="1" stop-color="#E3141B" stop-opacity="0"/></radialGradient>
+  <clipPath id="a"><circle cx="260" cy="200" r="64"/></clipPath><clipPath id="b"><circle cx="110" cy="120" r="40"/></clipPath><clipPath id="c"><circle cx="420" cy="110" r="42"/></clipPath><clipPath id="d"><circle cx="112" cy="300" r="36"/></clipPath><clipPath id="e"><circle cx="416" cy="300" r="40"/></clipPath></defs>
+  <circle cx="260" cy="200" r="200" fill="url(#g)"/>
+  <g stroke="#3A404C" stroke-width="2" stroke-dasharray="3 7" fill="none"><path d="M146 136 L206 176"/><path d="M380 126 L316 172"/><path d="M146 286 L204 236"/><path d="M378 286 L316 232"/><circle cx="260" cy="200" r="150"/></g>
+  <circle cx="260" cy="200" r="64" fill="#E3141B"/><g clip-path="url(#a)" fill="#0A0C10"><circle cx="260" cy="186" r="22"/><ellipse cx="260" cy="250" rx="40" ry="30"/></g>
+  <circle cx="110" cy="120" r="40" fill="#14171E" stroke="#2A2F3A" stroke-width="2"/><g clip-path="url(#b)" fill="#FF6B70"><circle cx="110" cy="110" r="14"/><ellipse cx="110" cy="150" rx="26" ry="18"/></g>
+  <circle cx="420" cy="110" r="42" fill="#fff"/><g clip-path="url(#c)" fill="#0A0C10"><circle cx="420" cy="100" r="15"/><ellipse cx="420" cy="142" rx="27" ry="19"/></g>
+  <circle cx="112" cy="300" r="36" fill="#fff"/><g clip-path="url(#d)" fill="#E3141B"><circle cx="112" cy="292" r="13"/><ellipse cx="112" cy="328" rx="24" ry="16"/></g>
+  <circle cx="416" cy="300" r="40" fill="#14171E" stroke="#2A2F3A" stroke-width="2"/><g clip-path="url(#e)" fill="#C9CDD5"><circle cx="416" cy="290" r="14"/><ellipse cx="416" cy="330" rx="26" ry="18"/></g>
+  <g><rect x="196" y="300" width="128" height="44" rx="14" fill="#14171E" stroke="#2A2F3A" stroke-width="2"/><circle cx="220" cy="322" r="9" fill="#E3141B"/><path d="M215.5 322 l3 3 l6 -6.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="238" y="314" width="70" height="7" rx="3.5" fill="#fff"/><rect x="238" y="326" width="46" height="6" rx="3" fill="#646B78"/></g>
+  <g transform="translate(60 380)"><rect width="400" height="24" rx="4" fill="url(#band)"/></g>
+</svg>

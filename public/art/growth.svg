@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-labelledby="t"><title id="t">Growth: payslips calculated and paid on time</title>
+  <defs><pattern id="band" width="192" height="24" patternUnits="userSpaceOnUse">
+  
+  <rect width="192" height="24" fill="#0A0C10"/>
+  <rect x="0" width="48" height="24" fill="#E3141B"/>
+  <path d="M0 18 L8 6 L16 18 L24 6 L32 18 L40 6 L48 18" fill="none" stroke="#0A0C10" stroke-width="3" stroke-linejoin="round"/>
+  <g fill="#fff"><rect x="54" y="0" width="3" height="24"/><rect x="61" y="0" width="3" height="24"/><rect x="68" y="0" width="3" height="24"/></g>
+  <rect x="78" width="36" height="24" fill="#fff"/>
+  <g fill="#E3141B"><path d="M87 12 L93 6 L99 12 L93 18Z"/><path d="M99 12 L105 6 L111 12 L105 18Z" fill="#0A0C10"/></g>
+  <rect x="114" width="10" height="24" fill="#FF6B70"/>
+  <g fill="#E3141B"><rect x="130" y="3" width="56" height="4"/><rect x="130" y="17" width="56" height="4"/></g>
+  <g fill="#fff"><rect x="142" y="10" width="6" height="4"/><rect x="156" y="10" width="6" height="4"/><rect x="170" y="10" width="6" height="4"/></g>
+</pattern><filter id="s" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#0A0C10" flood-opacity=".16"/></filter>
+  <linearGradient id="r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E3141B"/><stop offset="1" stop-color="#9E0B11"/></linearGradient></defs>
+  <rect x="16" y="20" width="448" height="320" rx="36" fill="#F4F5F7"/>
+  <g transform="rotate(-6 200 180)" filter="url(#s)"><rect x="96" y="62" width="196" height="232" rx="16" fill="#fff"/></g>
+  <g transform="rotate(-6 200 180)">
+    <rect x="96" y="62" width="196" height="40" rx="16" fill="url(#r)"/><rect x="96" y="86" width="196" height="16" fill="#9E0B11" opacity=".0"/>
+    <rect x="114" y="76" width="70" height="9" rx="4.5" fill="#fff"/><circle cx="268" cy="82" r="9" fill="#fff" opacity=".85"/>
+    <g fill="#E3E5E9"><rect x="114" y="122" width="88" height="8" rx="4"/><rect x="114" y="144" width="70" height="8" rx="4"/><rect x="114" y="166" width="96" height="8" rx="4"/><rect x="114" y="188" width="62" height="8" rx="4"/></g>
+    <g fill="#C9CDD5"><rect x="236" y="122" width="38" height="8" rx="4"/><rect x="236" y="144" width="30" height="8" rx="4"/></g>
+    <g fill="#FF6B70"><rect x="236" y="166" width="34" height="8" rx="4"/><rect x="236" y="188" width="28" height="8" rx="4"/></g>
+    <rect x="114" y="214" width="160" height="3" rx="1.5" fill="#0A0C10"/>
+    <rect x="114" y="230" width="58" height="12" rx="6" fill="#0A0C10"/><rect x="216" y="230" width="58" height="12" rx="6" fill="#E3141B"/>
+    <g fill="#E3E5E9"><rect x="114" y="262" width="40" height="6" rx="3"/><rect x="160" y="262" width="26" height="6" rx="3"/></g>
+  </g>
+  <g filter="url(#s)">
+    <ellipse cx="350" cy="262" rx="58" ry="17" fill="#0A0C10"/><rect x="292" y="232" width="116" height="30" fill="#0A0C10"/><ellipse cx="350" cy="232" rx="58" ry="17" fill="#14171E" stroke="#2A2F3A" stroke-width="2"/>
+  </g>
+  <rect x="292" y="206" width="116" height="26" fill="#E3141B"/><ellipse cx="350" cy="232" rx="58" ry="17" fill="#E3141B"/><ellipse cx="350" cy="206" rx="58" ry="17" fill="#FF6B70"/>
+  <ellipse cx="350" cy="206" rx="40" ry="11" fill="none" stroke="#fff" stroke-width="2.5" opacity=".7"/>
+  <rect x="304" y="178" width="92" height="22" fill="#0A0C10"/><ellipse cx="350" cy="200" rx="46" ry="14" fill="#0A0C10"/><ellipse cx="350" cy="178" rx="46" ry="14" fill="#1E222B" stroke="#3A404C" stroke-width="2"/><ellipse cx="350" cy="178" rx="30" ry="8" fill="none" stroke="#FF6B70" stroke-width="2.5"/>
+  <path d="M330 140 C360 132 390 112 412 74" fill="none" stroke="#E3141B" stroke-width="6" stroke-linecap="round"/><path d="M392 74 L414 70 L414 94" fill="none" stroke="#E3141B" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(16 300)"><rect width="448" height="24" rx="4" fill="url(#band)"/></g>
+</svg>

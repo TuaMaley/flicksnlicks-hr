@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-labelledby="t"><title id="t">People: employee records connected across a team</title>
+  <defs><pattern id="band" width="192" height="24" patternUnits="userSpaceOnUse">
+  
+  <rect width="192" height="24" fill="#0A0C10"/>
+  <rect x="0" width="48" height="24" fill="#E3141B"/>
+  <path d="M0 18 L8 6 L16 18 L24 6 L32 18 L40 6 L48 18" fill="none" stroke="#0A0C10" stroke-width="3" stroke-linejoin="round"/>
+  <g fill="#fff"><rect x="54" y="0" width="3" height="24"/><rect x="61" y="0" width="3" height="24"/><rect x="68" y="0" width="3" height="24"/></g>
+  <rect x="78" width="36" height="24" fill="#fff"/>
+  <g fill="#E3141B"><path d="M87 12 L93 6 L99 12 L93 18Z"/><path d="M99 12 L105 6 L111 12 L105 18Z" fill="#0A0C10"/></g>
+  <rect x="114" width="10" height="24" fill="#FF6B70"/>
+  <g fill="#E3141B"><rect x="130" y="3" width="56" height="4"/><rect x="130" y="17" width="56" height="4"/></g>
+  <g fill="#fff"><rect x="142" y="10" width="6" height="4"/><rect x="156" y="10" width="6" height="4"/><rect x="170" y="10" width="6" height="4"/></g>
+</pattern><filter id="s" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#0A0C10" flood-opacity=".16"/></filter>
+  <clipPath id="c1"><circle cx="196" cy="128" r="30"/></clipPath><clipPath id="c2"><circle cx="92" cy="240" r="36"/></clipPath><clipPath id="c3"><circle cx="396" cy="252" r="32"/></clipPath></defs>
+  <rect x="16" y="20" width="448" height="320" rx="36" fill="#F4F5F7"/>
+  <g stroke="#E3141B" stroke-width="2.5" stroke-dasharray="2 8" stroke-linecap="round" fill="none"><path d="M118 214 C150 190 160 190 176 186"/><path d="M372 232 C352 214 352 214 344 206"/></g>
+  <g filter="url(#s)"><rect x="150" y="72" width="216" height="146" rx="20" fill="#fff"/></g>
+  <circle cx="196" cy="128" r="30" fill="#E3141B"/>
+  <g clip-path="url(#c1)" fill="#fff"><circle cx="196" cy="120" r="11"/><ellipse cx="196" cy="152" rx="20" ry="14"/></g>
+  <rect x="240" y="108" width="96" height="10" rx="5" fill="#0A0C10"/><rect x="240" y="128" width="70" height="8" rx="4" fill="#C9CDD5"/><rect x="240" y="144" width="54" height="8" rx="4" fill="#E3E5E9"/>
+  <rect x="172" y="178" width="58" height="22" rx="11" fill="#FDECEC"/><rect x="182" y="186" width="38" height="6" rx="3" fill="#E3141B"/>
+  <rect x="240" y="178" width="58" height="22" rx="11" fill="#F4F5F7"/><rect x="250" y="186" width="38" height="6" rx="3" fill="#646B78"/>
+  <rect x="306" y="178" width="38" height="22" rx="11" fill="#0A0C10"/><rect x="316" y="186" width="18" height="6" rx="3" fill="#fff"/>
+  <g filter="url(#s)"><circle cx="92" cy="240" r="36" fill="#0A0C10"/></g>
+  <g clip-path="url(#c2)" fill="#FF6B70"><circle cx="92" cy="230" r="13"/><ellipse cx="92" cy="268" rx="24" ry="17"/></g>
+  <g filter="url(#s)"><circle cx="396" cy="252" r="32" fill="#fff"/></g>
+  <g clip-path="url(#c3)" fill="#0A0C10"><circle cx="396" cy="243" r="11"/><ellipse cx="396" cy="276" rx="21" ry="15"/></g>
+  <circle cx="420" cy="226" r="11" fill="#E3141B" stroke="#fff" stroke-width="3"/><path d="M415 226 l4 4 l7 -8" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="64" y="56" width="52" height="40" rx="10" fill="#fff" stroke="#E3E5E9" stroke-width="2"/><rect x="74" y="66" width="16" height="20" rx="3" fill="#E3141B"/><rect x="96" y="68" width="12" height="4" rx="2" fill="#C9CDD5"/><rect x="96" y="78" width="10" height="4" rx="2" fill="#E3E5E9"/>
+  <g transform="translate(16 300)"><rect width="448" height="24" rx="4" fill="url(#band)"/></g>
+</svg>
