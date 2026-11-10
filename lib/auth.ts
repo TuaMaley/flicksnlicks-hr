@@ -72,7 +72,7 @@ export async function access(){
     for(const p of role.permissions)keys.add(p.permission.key);
    }
    const enabled=new Set(company.company.modules.filter(m=>m.enabled).map(m=>m.moduleKey));
-   const prefixes=['employees','payroll','leave','training','recruitment','appraisals','onboarding','disciplinary','rewards','selfservice','access'];
+   const prefixes=['employees','payroll','leave','training','recruitment','appraisals','onboarding','disciplinary','rewards','selfservice','access','nexhr'];
    for(const key of keys){
     const module=key.split('.')[0];
     if(prefixes.includes(module)&&!enabled.has(module))keys.delete(key);

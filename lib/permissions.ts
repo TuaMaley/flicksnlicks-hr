@@ -9,6 +9,7 @@ export const PERMISSIONS=[
 'disciplinary.view','disciplinary.create','disciplinary.edit','disciplinary.approve',
 'rewards.view','rewards.create','rewards.edit','rewards.approve',
 'selfservice.view','selfservice.edit',
+'nexhr.view','nexhr.manage','nexhr.approve',
 'access.view','access.roles.manage','access.users.manage','access.audit.view'
 ] as const;
 export type PermissionKey=typeof PERMISSIONS[number];
