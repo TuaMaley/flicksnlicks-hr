@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import {access} from './auth';
 import {fail} from './http';
 import {db} from './db';
@@ -18,6 +19,7 @@ export function allowedToRead(a:Awaited<ReturnType<typeof access>>,d:{visibility
 }
 export function summary(d:any){const {fileData,...rest}=d;return rest}
 export async function log(companyId:string,documentId:string,actorId:string,action:string,detail?:Record<string,unknown>){
- await db.nexHrAuditEvent.create({data:{companyId,documentId,actorId,action,detail:detail||{}}});
- await db.auditLog.create({data:{companyId,entity:'NexHrDocument',entityId:documentId,actorId,action:'NEXHR_'+action,detail:detail||{}}});
+ const jsonDetail = (detail ?? {}) as Prisma.InputJsonValue;
+ await db.nexHrAuditEvent.create({data:{companyId,documentId,actorId,action,detail:jsonDetail}});
+ await db.auditLog.create({data:{companyId,entity:'NexHrDocument',entityId:documentId,actorId,action:'NEXHR_'+action,detail:jsonDetail}});
 }
