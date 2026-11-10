@@ -1674,3 +1674,16 @@ model NexHrChatMessage {
   createdAt DateTime @default(now())
   @@index([threadId,createdAt])
 }
+
+
+model NexHrAnswerFeedback {
+  id String @id @default(cuid())
+  companyId String
+  userId String
+  messageId String @unique
+  rating String
+  comment String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([companyId,createdAt])
+}
