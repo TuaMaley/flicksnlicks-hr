@@ -35,7 +35,7 @@ export async function POST(req:NextRequest){
  if((effectiveAt&&!Number.isFinite(effectiveAt.getTime()))||(expiresAt&&!Number.isFinite(expiresAt.getTime())))return fail('Invalid date',400);
  if(effectiveAt&&expiresAt&&expiresAt<=effectiveAt)return fail('Expiry must follow effective date',400);
  const result=await db.$transaction(async tx=>{
- let familyId=randomUUID(),version=1;
+ let familyId: string = randomUUID(),version=1;
  if(replaceId){
  const old=await tx.nexHrDocument.findFirst({where:{id:replaceId,companyId:a.companyId!}});
  if(!old)throw Error('Original document not found');
