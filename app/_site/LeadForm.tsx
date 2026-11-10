@@ -4,7 +4,7 @@ import {useEffect,useRef,useState} from 'react';
 import {Field} from './SiteFrame';
 import {CONTACT_TOPICS,EMPLOYEE_BANDS} from '../../lib/onboarding/constants';
 export default function LeadForm({kind}:{kind:'DEMO'|'CONTACT'}){
- const [v,setV]=useState({name:'',email:'',phone:'',companyName:'',jobTitle:'',country:'Ghana',employeeBand:'',topic:kind==='CONTACT'?'Sales':'',message:'',preferredTime:'',website_url:''});
+ const [v,setV]=useState({name:'',email:'',phone:'',companyName:'',jobTitle:'',country:'',employeeBand:'',topic:kind==='CONTACT'?'Sales':'',message:'',preferredTime:'',website_url:''});
  const [errors,setErrors]=useState<Record<string,string>>({}),[error,setError]=useState(''),[done,setDone]=useState(''),[busy,setBusy]=useState(false);
  const started=useRef(0);useEffect(()=>{started.current=Date.now()},[]);
  const set=(k:keyof typeof v)=>(e:React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>)=>setV(x=>({...x,[k]:e.target.value}));

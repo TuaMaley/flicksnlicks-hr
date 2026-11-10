@@ -14,7 +14,7 @@ export default function Terms(){
   <h2>Subscriptions and payment</h2>
   <p>Subscriptions are monthly or annual, start on the day the workspace is activated, and include the modules of the chosen plan. Invoices are payable within the terms stated on the invoice. Nexora may restrict access to a workspace whose subscription has ended or remains unpaid after notice.</p>
   <h2>Payroll calculations</h2>
-  <p>Nexora calculates PAYE and SSNIT using the tax bands and rates configured in the system. The customer remains responsible for reviewing and approving each pay run and for its statutory filings and payments.</p>
+  <p>Nexora calculates income tax and pension contributions using the tax bands and rates configured in the system. The customer remains responsible for reviewing and approving each pay run and for its statutory filings and payments.</p>
   <h2>Customer data</h2>
   <p>The customer owns the data in its workspace. Nexora processes it only to provide the service, as described in the <a href="/privacy">privacy notice</a>. On request at the end of a subscription, Nexora will provide an export of the customer’s data before deletion.</p>
   <h2>Acceptable use</h2>

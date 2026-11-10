@@ -2,10 +2,10 @@ import {pageMeta} from '../_site/seo';
 import SiteFrame from '../_site/SiteFrame';
 import {GROUPS} from '../_site/content';
 import {Check,Lock,ScrollText,UsersRound,Building2,ArrowRight} from 'lucide-react';
-export const metadata=pageMeta('Features | Nexora HR Management System','Employee records, leave, Ghana payroll, appraisals, recruitment, training, onboarding, disciplinary management, self-service and access controls.','/features');
+export const metadata=pageMeta('HR, Payroll & Self-Service Features | Nexora','Employee records, leave, payroll, appraisals, recruitment, training, onboarding, disciplinary management, self-service and access controls.','/features');
 export default function Features(){
  return <SiteFrame active="features">
-  <section className="pagehead dark"><div className="wrap"><h1>Everything you need to run HR in Ghana</h1><p className="lede">Each plan includes a set of modules. Your administrator decides who in your company can use each one.</p>
+  <section className="pagehead dark"><div className="wrap"><h1>Everything you need to run HR, in one place</h1><p className="lede">Each plan includes a set of modules. Your administrator decides who in your company can use each one.</p>
    <div className="actions"><a className="btn btn-red" href="/pricing">Compare plans</a><a className="btn btn-line" href="/request-demo">Book a demo</a></div></div></section>
   <section className="sec"><div className="wrap">
    {GROUPS.map(g=><div className="fgroup" key={g.title} id={g.title.toLowerCase()}>

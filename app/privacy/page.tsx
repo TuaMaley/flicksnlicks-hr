@@ -6,7 +6,7 @@ export default function Privacy(){
  return <SiteFrame>
   <section className="pagehead dark"><div className="wrap"><h1>Privacy notice</h1></div></section>
   <section className="sec"><div className="wrap prose">
-  <p>This notice explains how Nexora handles personal data on this website and in the Nexora HR Management System. We aim to meet the requirements of Ghana’s Data Protection Act, 2012 (Act 843).</p>
+  <p>This notice explains how Nexora handles personal data on this website and in the Nexora HR Management System. We aim to meet the requirements of the data protection laws that apply where our customers operate.</p>
   <h2>Website enquiries and registrations</h2>
   <p>When you book a demo, send a message or register a company, we collect the details you enter — such as names, work email addresses, phone numbers and company information — to respond to you, review the registration and set up your workspace. We also record a one-way hash of your network address to prevent abuse of our forms; we do not store the address itself.</p>
   <h2>Data inside a customer workspace</h2>

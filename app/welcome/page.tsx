@@ -8,7 +8,7 @@ import {siteVideo} from '../_site/video';
 import {OCT_2026_BANDS,computeGhanaPayroll} from '../../lib/ghana-payroll';
 import {ArrowRight,BadgeCheck,Building2,CalendarCheck,ClipboardCheck,FileCheck2,IdCard,Landmark,LayoutDashboard,Lock,MapPin,ScrollText,ShieldCheck,Smartphone,Users,UsersRound,Wallet,Check,CheckCircle2} from 'lucide-react';
 
-export const metadata=pageMeta('Nexora | HR and payroll software for Ghanaian businesses','Run people, payroll and performance in one place. PAYE and SSNIT calculated for you, leave and appraisals tracked, and payslips every employee can open on their phone.','/');
+export const metadata=pageMeta('Nexora | Run your people, not paperwork','HR and payroll software that does the heavy lifting: tax and statutory deductions calculated every run, leave and appraisals tracked, payslips on every phone.','/');
 
 const money=(n:number)=>n.toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2});
 
@@ -22,8 +22,8 @@ export default function Welcome(){
  return <SiteFrame active="home">
   <section className="hero dark"><div className="wrap">
    <div className="hero-copy">
-    <h1>HR and payroll, built for how Ghana works.</h1>
-    <p className="lede">Nexora brings employee records, leave, appraisals and payroll into one place. PAYE and SSNIT are calculated for every pay run, and every employee can open their own payslip on their phone.</p>
+    <h1>Run your people, not paperwork.</h1>
+    <p className="lede">Payroll, leave, appraisals and employee records in one place — with tax and statutory deductions calculated every run, and a payslip in every employee’s pocket.</p>
     <div className="actions"><a className="btn btn-red" href="/register">Register your company <ArrowRight size={18} aria-hidden="true"/></a><a className="btn btn-line" href="/request-demo">Book a demo</a></div>
     <p className="assure"><span><BadgeCheck size={16} aria-hidden="true"/>Every new company is reviewed by our team</span><span><Lock size={16} aria-hidden="true"/>Your data is kept separate from every other company</span></p>
    </div>
@@ -36,14 +36,14 @@ export default function Welcome(){
        <b><LayoutDashboard size={15}/>Dashboard</b><b><Users size={15}/>Employees</b><b><CalendarCheck size={15}/>Leave</b><b className="on"><Wallet size={15}/>Payroll</b><b><ClipboardCheck size={15}/>Appraisals</b><b><ShieldCheck size={15}/>Access</b>
       </div>
       <div className="win-main">
-       <h4>October 2026 pay run</h4><p className="sub">Head Office and Kumasi branch · monthly</p>
+       <h4>October 2026 pay run</h4><p className="sub">Head Office and 2 branches · monthly</p>
        <div className="wkpis">
         <div className="wkpi"><small>Employees</small><b className="num">48</b></div>
-        <div className="wkpi"><small>Gross pay</small><b className="num">GH₵ 312,480</b></div>
-        <div className="wkpi"><small>PAYE</small><b className="num">GH₵ 51,906</b></div>
-        <div className="wkpi"><small>SSNIT (employee)</small><b className="num">GH₵ 14,712</b></div>
+        <div className="wkpi"><small>Gross pay</small><b className="num">312,480.00</b></div>
+        <div className="wkpi"><small>Income tax</small><b className="num">51,906.00</b></div>
+        <div className="wkpi"><small>Pension (employee)</small><b className="num">14,712.00</b></div>
        </div>
-       <div className="runrow th"><span>Employee</span><span className="r">Gross</span><span className="r">PAYE</span><span className="r">Net</span></div>
+       <div className="runrow th"><span>Employee</span><span className="r">Gross</span><span className="r">Income tax</span><span className="r">Net</span></div>
        <div className="runrow"><span className="who"><span className="av">AM</span>Ama Mensah</span><span className="r num">{money(pay.gross)}</span><span className="r num">{money(pay.incomeTax)}</span><span className="r num">{money(pay.net)}</span></div>
        <div className="runrow"><span className="who"><span className="av">KO</span>Kwame Owusu</span><span className="r num">{money(kwame.gross)}</span><span className="r num">{money(kwame.incomeTax)}</span><span className="r num">{money(kwame.net)}</span></div>
        <div className="runrow"><span className="who"><span className="av">EA</span>Efua Asante</span><span className="r num">{money(efua.gross)}</span><span className="r num">{money(efua.incomeTax)}</span><span className="r num">{money(efua.net)}</span></div>
@@ -57,21 +57,21 @@ export default function Welcome(){
      <table><tbody>
       <tr><td>Basic salary</td><td>{money(pay.basic)}</td></tr>
       <tr><td>Allowances</td><td>{money(pay.allowances)}</td></tr>
-      <tr className="ded"><td>SSNIT 5.5%</td><td>−{money(pay.employeeSSNIT)}</td></tr>
-      <tr className="ded"><td>PAYE</td><td>−{money(pay.incomeTax)}</td></tr>
-      <tr className="tot"><td>Net pay (GH₵)</td><td>{money(pay.net)}</td></tr>
+      <tr className="ded"><td>Pension 5.5%</td><td>−{money(pay.employeeSSNIT)}</td></tr>
+      <tr className="ded"><td>Income tax</td><td>−{money(pay.incomeTax)}</td></tr>
+      <tr className="tot"><td>Net pay</td><td>{money(pay.net)}</td></tr>
      </tbody></table>
-     <footer>Calculated with Nexora’s Ghana PAYE engine</footer>
+     <footer>Calculated by Nexora’s payroll engine</footer>
     </figure>
    </div>
   </div></section>
 
-  <section className="strip" aria-label="Built for Ghana"><div className="wrap">
-   <p className="lbl">Built for Ghanaian employers</p>
-   <div className="it"><span className="ico"><Landmark size={20} aria-hidden="true"/></span><p><b>PAYE</b><span>GRA tax bands built in</span></p></div>
-   <div className="it"><span className="ico"><ShieldCheck size={20} aria-hidden="true"/></span><p><b>SSNIT</b><span>Tier 1, 2 and 3 contributions</span></p></div>
-   <div className="it"><span className="ico"><IdCard size={20} aria-hidden="true"/></span><p><b>Ghana Card</b><span>Recorded on employee profiles</span></p></div>
-   <div className="it"><span className="ico"><MapPin size={20} aria-hidden="true"/></span><p><b>GhanaPost GPS</b><span>Digital addresses for your business</span></p></div>
+  <section className="strip" aria-label="Compliance built in"><div className="wrap">
+   <p className="lbl">Compliance built in</p>
+   <div className="it"><span className="ico"><Landmark size={20} aria-hidden="true"/></span><p><b>Income tax</b><span>Configurable tax bands, every pay run</span></p></div>
+   <div className="it"><span className="ico"><ShieldCheck size={20} aria-hidden="true"/></span><p><b>Pensions</b><span>Tiered contributions calculated for you</span></p></div>
+   <div className="it"><span className="ico"><IdCard size={20} aria-hidden="true"/></span><p><b>Statutory records</b><span>National ID and tax numbers on every profile</span></p></div>
+   <div className="it"><span className="ico"><MapPin size={20} aria-hidden="true"/></span><p><b>Multi-branch</b><span>Branches, departments and positions</span></p></div>
   </div></section>
 
   {video&&<section className="sec video-sec" aria-labelledby="tour-h"><div className="wrap">
@@ -84,7 +84,7 @@ export default function Welcome(){
    <div className="head"><h2>What payday looks like in Nexora</h2><p>Payroll runs on the same employee records your HR team already keeps, so nothing is typed twice.</p></div>
    <ol className="flow">
     <li><span className="ico"><CalendarCheck size={20} aria-hidden="true"/></span><h3>Confirm attendance</h3><p>Record days worked, unpaid days and overtime for the period.</p></li>
-    <li><span className="ico"><ClipboardCheck size={20} aria-hidden="true"/></span><h3>Calculate and approve</h3><p>Nexora works out gross pay, SSNIT tiers and PAYE. A second person approves the run before anything is paid.</p></li>
+    <li><span className="ico"><ClipboardCheck size={20} aria-hidden="true"/></span><h3>Calculate and approve</h3><p>Nexora works out gross pay, pension contributions and income tax. A second person approves the run before anything is paid.</p></li>
     <li><span className="ico"><FileCheck2 size={20} aria-hidden="true"/></span><h3>Pay and publish</h3><p>Record or import payments from Excel and release payslips each employee can download as a PDF.</p></li>
    </ol>
   </div></section>

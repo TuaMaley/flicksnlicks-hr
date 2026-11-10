@@ -4,13 +4,13 @@ import {publicPlans} from '../_site/plans';
 import RegisterForm from './RegisterForm';
 import {MailCheck,BadgeCheck,KeyRound,Building2} from 'lucide-react';
 export const dynamic='force-dynamic';
-export const metadata=pageMeta('Register your company | Nexora','Register your company for Nexora HR Management System.','/register');
+export const metadata=pageMeta('Register your company | Nexora','Register your company on Nexora in about 10 minutes. Our team reviews each registration, then your administrator activates your HR and payroll workspace.','/register');
 export default async function Register({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}){
  const sp=await searchParams;const plans=await publicPlans();
  const plan=typeof sp.plan==='string'&&plans.some(p=>p.id===sp.plan)?sp.plan:'';
  const cycle=sp.cycle==='ANNUAL'?'ANNUAL':'MONTHLY';
  return <SiteFrame>
-  <section className="pagehead dark"><div className="wrap"><h1>Register your company</h1><p className="lede">About ten minutes. Have your business registration number, Ghana Card or TIN and GhanaPost GPS address to hand. Nothing is charged today.</p></div></section>
+  <section className="pagehead dark"><div className="wrap"><h1>Register your company</h1><p className="lede">About ten minutes. Have your business registration number, tax ID and business address to hand. Nothing is charged today.</p></div></section>
   <section className="sec fog"><div className="wrap split">
    <aside>
     <img className="art aside-art" src="/art/onboarding.svg" alt="" width={480} height={220}/>

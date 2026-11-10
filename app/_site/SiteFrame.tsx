@@ -23,7 +23,7 @@ export default function SiteFrame({active,children}:{active?:string;children:Rea
   <div className="band" aria-hidden="true"/>
   <footer className="nx-foot"><div className="wrap">
    <div className="cols">
-    <div className="fbrand"><img src="/nexora-wordmark-light.png" alt="Nexora" width={139} height={40}/><p style={{maxWidth:'34ch'}}>HR, payroll and employee self-service for growing businesses in Ghana.</p></div>
+    <div className="fbrand"><img src="/nexora-wordmark-light.png" alt="Nexora" width={139} height={40}/><p style={{maxWidth:'34ch'}}>HR, payroll and employee self-service for growing businesses.</p></div>
     <div><b>Product</b><a href="/features">Features</a><a href="/pricing">Pricing</a><a href="/request-demo">Book a demo</a><a href="https://employee.nexora-hrms.com">Employee self-service</a></div>
     <div><b>Company</b><a href="/about">About</a><a href="/contact">Contact</a><a href="/register">Register your company</a></div>
     <div><b>Account</b><a href="/login">Sign in</a><a href="/forgot-password">Reset password</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></div>
