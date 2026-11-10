@@ -1221,6 +1221,8 @@ model AccessReview {
 
 // Nexora multi-company foundation — additive only; no existing records are reassigned here.
 model Company {
+  nexHrDocuments NexHrDocument[]
+  nexHrAuditEvents NexHrAuditEvent[]
   branchRecords Branch[]
   employeeRecords Employee[]
   userAccessScopeRecords UserAccessScope[]
@@ -1607,4 +1609,45 @@ model WebsiteLead {
   @@index([kind, status, createdAt])
   @@index([ipHash, createdAt])
   @@index([email])
+}
+
+
+model NexHrDocument {
+  id String @id @default(cuid())
+  companyId String
+  company Company @relation(fields:[companyId],references:[id],onDelete:Restrict)
+  familyId String
+  version Int @default(1)
+  title String
+  category String
+  description String? @db.Text
+  fileName String
+  mimeType String
+  sizeBytes Int
+  fileData Bytes
+  status String @default("DRAFT")
+  visibility String @default("ALL_EMPLOYEES")
+  effectiveAt DateTime?
+  expiresAt DateTime?
+  uploadedById String
+  reviewedById String?
+  reviewedAt DateTime?
+  reviewReason String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([companyId,familyId,version])
+  @@index([companyId,status,category])
+  @@index([companyId,familyId])
+}
+
+model NexHrAuditEvent {
+  id String @id @default(cuid())
+  companyId String
+  company Company @relation(fields:[companyId],references:[id],onDelete:Restrict)
+  documentId String
+  actorId String
+  action String
+  detail Json?
+  createdAt DateTime @default(now())
+  @@index([companyId,documentId,createdAt])
 }
