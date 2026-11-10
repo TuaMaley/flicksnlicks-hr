@@ -8,5 +8,5 @@ export async function GET(){
  const employee = a.companyId && a.user.employeeId
   ? await db.employee.findFirst({where:{id:a.user.employeeId,companyId:a.companyId},select:{profilePhotoDataUrl:true}})
   : null;
- return ok({profilePhotoDataUrl:employee?.profilePhotoDataUrl ?? null,name:a.user.name,email:a.user.email,employeeId:a.user.employeeId,permissions:[...a.keys],roles:a.user.roles.map(r=>r.role.name),platformAdmin:platform?.platformAdmin===true});
+ return ok({id:a.user.id,profilePhotoDataUrl:employee?.profilePhotoDataUrl ?? null,name:a.user.name,email:a.user.email,employeeId:a.user.employeeId,permissions:[...a.keys],roles:a.user.roles.map(r=>r.role.name),platformAdmin:platform?.platformAdmin===true});
 }
