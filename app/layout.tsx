@@ -10,6 +10,7 @@ import './nexora-card-consistency.css';
 import './mobile-responsive.css';
 import ModuleShell from './components/ModuleShell';
 import IdleSessionGuard from './components/IdleSessionGuard';
+import {headers} from 'next/headers';
 export const metadata = {
   metadataBase: new URL('https://app.nexora-hrms.com'),
   title: 'Nexora | HR Management Platform',
@@ -27,4 +28,5 @@ export const metadata = {
     description: 'People, performance, growth. Manage your workforce with Nexora.',
   },
 };
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><IdleSessionGuard/><ModuleShell>{children}</ModuleShell></body></html>};
+// The public home page is served at "/" via a middleware rewrite; the header tells the shell and idle guard to stay out of it.
+export default async function RootLayout({children}:{children:React.ReactNode}){const publicSurface=(await headers()).get('x-nexora-surface')==='public';return <html lang="en"><body><IdleSessionGuard bare={publicSurface}/><ModuleShell bare={publicSurface}>{children}</ModuleShell></body></html>};

@@ -22,6 +22,7 @@ export default function Login(){const [email,setEmail]=useState(''),[password,se
     <div style={{textAlign:"right",marginTop:-12,marginBottom:18}}><a href="/forgot-password">Forgot password?</a></div>
     {error&&<div className="formError nexoraLoginError" role="alert">{error}</div>}
     <button type="submit" className="nexoraLoginButton" disabled={loading}>{loading?'Signing in…':'Sign in'}</button>
+    <p style={{textAlign:"center",marginTop:18,fontSize:15}}>New to Nexora? <a href="/register">Register your company</a></p>
     <small className="nexoraLoginNotice">Authorized personnel only <span aria-hidden="true">•</span> Your access is recorded</small>
   </form>
 </main>;}

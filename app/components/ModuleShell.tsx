@@ -24,18 +24,22 @@ const items=[
 ];
 const platformItems=[
  {label:'Dashboard',section:'Overview',Icon:LayoutDashboard,group:'OVERVIEW'},
+ {label:'Registrations',section:'Registrations',Icon:ClipboardCheck,group:'TENANT MANAGEMENT'},
  {label:'Companies',section:'Companies',Icon:UsersRound,group:'TENANT MANAGEMENT'},
  {label:'Module Entitlements',section:'Modules',Icon:Settings,group:'TENANT MANAGEMENT'},
  {label:'Subscriptions',section:'Subscriptions',Icon:Wallet,group:'COMMERCIAL'},
  {label:'Billing & Collections',section:'Billing',Icon:Wallet,group:'COMMERCIAL'},
+ {label:'Website Leads',section:'Website Leads',Icon:Bell,group:'COMMERCIAL'},
  {label:'Analytics & Reports',section:'Analytics',Icon:BarChart3,group:'INTELLIGENCE'},
  {label:'Platform Audit',section:'Platform Audit',Icon:ShieldCheck,group:'GOVERNANCE'},
  {label:'Access Reviews',section:'Access Reviews',Icon:ShieldAlert,group:'GOVERNANCE'},
  {label:'Platform Administrators',section:'Platform Administrators',Icon:ShieldCheck,group:'SYSTEM'},
  {label:'Global Settings',section:'Global Settings',Icon:Settings,group:'SYSTEM'},
 ];
-const hiddenPaths=['/login','/forgot-password','/reset-password','/platform-invite'];
-export default function ModuleShell({children}:{children:React.ReactNode}){
+const hiddenPaths=['/login','/forgot-password','/reset-password','/platform-invite',
+ // Public website and onboarding pages
+ '/welcome','/features','/pricing','/about','/contact','/request-demo','/register','/accept-invitation','/terms','/privacy'];
+export default function ModuleShell({children,bare=false}:{children:React.ReactNode;bare?:boolean}){
  const pathname=usePathname()||'/';
  const router=useRouter();
  const [permissions,setPermissions]=useState<string[]>([]);
@@ -45,11 +49,12 @@ export default function ModuleShell({children}:{children:React.ReactNode}){
  const isPlatform=pathname==='/platform'||pathname.startsWith('/platform/');
  const [platformSection,setPlatformSection]=useState('Overview');
  useEffect(()=>{if(!isPlatform)return;const sync=()=>setPlatformSection(new URLSearchParams(window.location.search).get('section')||'Overview');sync();window.addEventListener('nexora-platform-section',sync);window.addEventListener('popstate',sync);return()=>{window.removeEventListener('nexora-platform-section',sync);window.removeEventListener('popstate',sync)}},[isPlatform]);
- useEffect(()=>{let active=true;fetch('/api/me',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(active){setPermissions(d?.permissions||[]);setPlatformAdmin(d?.platformAdmin===true);setReady(Boolean(d))}}).catch(()=>{if(active)setReady(false)});return()=>{active=false}},[pathname]);
+ const chromeless=bare||hiddenPaths.some(p=>pathname===p||pathname.startsWith(p+'/'))||pathname.startsWith('/api/');
+ useEffect(()=>{if(chromeless)return;let active=true;fetch('/api/me',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{if(active){setPermissions(d?.permissions||[]);setPlatformAdmin(d?.platformAdmin===true);setReady(Boolean(d))}}).catch(()=>{if(active)setReady(false)});return()=>{active=false}},[pathname,chromeless]);
  useEffect(()=>setOpen(false),[pathname]);
  useEffect(()=>{if(!open)return;const close=(event:KeyboardEvent)=>{if(event.key==='Escape')setOpen(false)};document.addEventListener('keydown',close);return()=>document.removeEventListener('keydown',close)},[open]);
  // Dashboard already owns its full sidebar. Do not render two sidebars there.
- if(hiddenPaths.some(p=>pathname===p||pathname.startsWith(p+'/'))||pathname.startsWith('/api/'))return children;
+ if(chromeless)return children;
  const activeHref=pathname.startsWith('/appraisals')||pathname.startsWith('/pips')?'/appraisals':pathname.startsWith('/employees')?'/employees':pathname.startsWith('/leave')?'/leave':pathname.startsWith('/access')?'/access':pathname.startsWith('/settings')?'/settings':pathname.startsWith('/onboarding')?'/onboarding':pathname.startsWith('/disciplinary')?'/disciplinary':pathname;
  return <div className="shell persistentShell">
  <aside className={'sidebar persistentSidebar '+(open?'open':'')} aria-label="Main navigation" id="nexora-mobile-navigation">
