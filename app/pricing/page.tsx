@@ -15,7 +15,7 @@ const FAQ:[string,string][]=[
 export default async function Pricing(){
  const plans=await publicPlans();
  return <SiteFrame active="pricing">
-  <section className="pagehead dark"><div className="wrap"><h1>Simple plans for every stage of your business</h1><p className="lede">Pick the modules you need today and change plan as you grow. Prices are per company.</p></div></section>
+  <section className="pagehead dark"><div className="wrap"><h1>Simple plans for every stage of your business</h1><p className="lede">Pick the modules you need today and change plan as you grow. We quote every plan for your organisation — monthly or annual billing.</p></div></section>
   <section className="sec"><div className="wrap">
    {plans.length?<PricingTable plans={plans}/>:<div className="alert">Plans are being updated. <a href="/request-demo">Book a demo</a> and we will quote for your organisation.</div>}
    <p className="note">Your subscription starts on the day your workspace is activated. Invoices are issued by the Nexora team; pay by bank transfer or mobile money as stated on the invoice.</p>

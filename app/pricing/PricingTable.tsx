@@ -9,7 +9,7 @@ export default function PricingTable({plans}:{plans:PublicPlan[]}){
  const all=PUBLIC_MODULE_KEYS.length;
  const most=Math.max(...plans.map(p=>p.modules.length));
  return <>
-  <div className="toggle" role="group" aria-label="Billing period"><button type="button" aria-pressed={cycle==='MONTHLY'} onClick={()=>setCycle('MONTHLY')}>Monthly</button><button type="button" aria-pressed={cycle==='ANNUAL'} onClick={()=>setCycle('ANNUAL')}>Annual</button></div>
+  {plans.some(p=>p.monthlyPrice>0||p.annualPrice>0)&&<div className="toggle" role="group" aria-label="Billing period"><button type="button" aria-pressed={cycle==='MONTHLY'} onClick={()=>setCycle('MONTHLY')}>Monthly</button><button type="button" aria-pressed={cycle==='ANNUAL'} onClick={()=>setCycle('ANNUAL')}>Annual</button></div>}
   <div className="plans">{plans.map(p=>{
    const price=cycle==='MONTHLY'?p.monthlyPrice:p.annualPrice;
    const saving=cycle==='ANNUAL'&&p.monthlyPrice>0&&p.annualPrice>0&&p.annualPrice<p.monthlyPrice*12?Math.round((1-p.annualPrice/(p.monthlyPrice*12))*100):0;
