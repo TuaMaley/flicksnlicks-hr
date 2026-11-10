@@ -1494,3 +1494,117 @@ model EssJobSubmission {
   @@index([companyId, vacancyId])
   @@index([companyId, submittedById])
 }
+
+// ─── Phase 17: Public website & hybrid SaaS onboarding (additive only) ───
+// A company's request to join Nexora, whether self-registered on the public site
+// (source SELF_SERVICE) or entered by a platform administrator (source PLATFORM_ADMIN).
+// Status: PENDING_VERIFICATION → PENDING_REVIEW → APPROVED → ACTIVE, or REJECTED / CANCELLED.
+model CompanyRegistration {
+  id                  String    @id @default(cuid())
+  reference           String    @unique
+  source              String    @default("SELF_SERVICE")
+  status              String    @default("PENDING_VERIFICATION")
+  companyName         String
+  companyNameKey      String
+  companyType         String?
+  registrationNumber  String?
+  registrationNumberKey String?
+  taxIdentifier       String?
+  taxIdentifierKey    String?
+  businessAddress     String?
+  digitalAddress      String?
+  country             String    @default("Ghana")
+  city                String?
+  industry            String?
+  employeeBand        String?
+  companyEmail        String
+  companyEmailDomain  String?
+  companyPhone        String?
+  phoneKey            String?
+  website             String?
+  contactName         String?
+  contactPosition     String?
+  contactPhone        String?
+  contactEmail        String?
+  adminName           String
+  adminEmail          String
+  adminPhone          String?
+  adminJobTitle       String?
+  planId              String?
+  planName            String?
+  billingCycle        String    @default("MONTHLY")
+  notes               String?
+  duplicateFlags      Json?
+  termsAcceptedAt     DateTime?
+  emailTokenHash      String?   @unique
+  emailTokenExpiresAt DateTime?
+  emailVerifiedAt     DateTime?
+  reviewedById        String?
+  reviewedAt          DateTime?
+  reviewNotes         String?
+  rejectionReason     String?
+  companyId           String?   @unique
+  companyCode         String?
+  adminUserId         String?
+  approvedAt          DateTime?
+  activatedAt         DateTime?
+  createdById         String?
+  ipHash              String?
+  userAgent           String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([status, createdAt])
+  @@index([companyNameKey])
+  @@index([adminEmail])
+  @@index([companyEmailDomain])
+  @@index([registrationNumberKey])
+  @@index([taxIdentifierKey])
+  @@index([ipHash, createdAt])
+}
+
+// Single-use invitation for a new company's first administrator. Only a SHA-256 digest of the token is stored.
+model CompanyInvitation {
+  id             String    @id @default(cuid())
+  companyId      String
+  userId         String
+  registrationId String?
+  email          String
+  tokenHash      String    @unique
+  expiresAt      DateTime
+  sentAt         DateTime?
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+  createdById    String?
+  createdAt      DateTime  @default(now())
+
+  @@index([companyId, createdAt])
+  @@index([userId])
+  @@index([registrationId])
+}
+
+// Demo requests and contact-form messages from the public website.
+model WebsiteLead {
+  id           String   @id @default(cuid())
+  kind         String
+  status       String   @default("NEW")
+  name         String
+  email        String
+  phone        String?
+  companyName  String?
+  jobTitle     String?
+  country      String?
+  employeeBand String?
+  topic        String?
+  message      String?
+  preferredTime String?
+  internalNote String?
+  handledById  String?
+  ipHash       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([kind, status, createdAt])
+  @@index([ipHash, createdAt])
+  @@index([email])
+}
