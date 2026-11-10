@@ -9,14 +9,17 @@
  --shadow:0 1px 2px rgba(10,12,16,.06),0 12px 32px -12px rgba(10,12,16,.18);
  --shadow-lg:0 2px 4px rgba(0,0,0,.2),0 40px 80px -24px rgba(0,0,0,.55);
  font-family:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;font-variation-settings:'wdth' 100;
- color:var(--text);background:var(--paper);font-size:17px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;
+ color:var(--text);background:var(--paper);font-size:17px;line-height:1.6;display:flex;flex-direction:column;
+ /* The HRMS locks html/body scrolling (fixed-header-scroll.css), so the public site scrolls inside its own container. */
+ height:100vh;height:100dvh;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;scroll-behavior:smooth;
  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
 }
 .nx *,.nx *::before,.nx *::after{box-sizing:border-box}
 .nx a{color:inherit}
 .nx img{max-width:100%}
 .nx :focus-visible{outline:3px solid var(--red);outline-offset:3px;border-radius:4px}
-.nx main{flex:1}
+.nx main{flex:1 0 auto}
+.nx > header,.nx > footer{flex:0 0 auto}
 .nx .wrap{max-width:var(--wrap);margin:0 auto;padding:0 var(--gutter)}
 .nx h1,.nx h2,.nx h3,.nx h4{color:var(--ink);font-weight:800;letter-spacing:-.025em;margin:0;font-variation-settings:'wdth' 112}
 .nx h1{font-size:clamp(40px,6.4vw,80px);line-height:.98;font-variation-settings:'wdth' 125}
@@ -352,6 +355,6 @@
 .nx-foot .fbrand img{height:40px;width:auto;margin-bottom:18px}
 .nx-foot .base{margin-top:56px;padding-top:22px;border-top:1px solid var(--night-line);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px}
 @media(max-width:760px){.nx-foot .cols{grid-template-columns:1fr 1fr}.nx-foot .fbrand{grid-column:1/-1}}
-@media(prefers-reduced-motion:reduce){.nx *{transition:none!important;animation:none!important}}
+@media(prefers-reduced-motion:reduce){.nx{scroll-behavior:auto}.nx *{transition:none!important;animation:none!important}}
 .twocol{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(28px,5vw,72px);align-items:start}
 @media(max-width:900px){.twocol{grid-template-columns:1fr}}
