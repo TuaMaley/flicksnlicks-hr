@@ -47,7 +47,7 @@ export async function POST(req:NextRequest){
  const doc=await tx.nexHrDocument.create({data:{companyId:a.companyId!,familyId,version,title,category,description,fileName:filename,mimeType:types[ext],sizeBytes:bytes.length,fileData:bytes,status:'DRAFT',visibility:vis,effectiveAt,expiresAt,uploadedById:a.user!.id}});
  return doc;
  });
- await log(a.companyId!,result.id,a.user!.id,'UPLOADED',{title,version});
+ await log(a.companyId!,result.id,a.user!.id,'UPLOADED',{title,version:result.version});
  return ok({document:summary(result)},201);
  }catch(e:any){if(e?.code==='P2002')return fail('A new version was uploaded concurrently. Please retry.',409);if(e instanceof SyntaxError)return fail('Invalid form',400);if(e?.message==='Original document not found'||e?.message?.startsWith('Review the pending'))return fail(e.message,409);console.error('Nex HR upload failed',e);return fail('Unable to upload document',500)}
 }
