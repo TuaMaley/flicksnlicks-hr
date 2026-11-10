@@ -20,6 +20,7 @@ export default function SiteFrame({active,children}:{active?:string;children:Rea
    </div></details>
   </div></header>
   <main id="main">{children}</main>
+  <div className="band" aria-hidden="true"/>
   <footer className="nx-foot"><div className="wrap">
    <div className="cols">
     <div className="fbrand"><img src="/nexora-wordmark-light.png" alt="Nexora" width={139} height={40}/><p style={{maxWidth:'34ch'}}>HR, payroll and employee self-service for growing businesses in Ghana.</p></div>

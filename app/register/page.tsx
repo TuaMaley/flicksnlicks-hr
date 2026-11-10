@@ -12,6 +12,7 @@ export default async function Register({searchParams}:{searchParams:Promise<Reco
   <section className="pagehead dark"><div className="wrap"><h1>Register your company</h1><p className="lede">About ten minutes. Have your business registration number, Ghana Card or TIN and GhanaPost GPS address to hand. Nothing is charged today.</p></div></section>
   <section className="sec fog"><div className="wrap split">
    <aside>
+    <img className="art aside-art" src="/art/onboarding.svg" alt="" width={480} height={220}/>
     <h2 style={{fontSize:26}}>What happens next</h2>
     <ul className="side-list">
      <li><span className="ico"><Building2 size={20} aria-hidden="true"/></span><p><b>You register</b><span>Your business details, contact person and plan.</span></p></li>

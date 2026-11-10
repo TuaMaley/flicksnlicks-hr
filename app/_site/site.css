@@ -20,10 +20,8 @@
 .nx :focus-visible{outline:3px solid var(--red);outline-offset:3px;border-radius:4px}
 .nx main{flex:1 0 auto}
 .nx > header,.nx > footer{flex:0 0 auto}
-/* Keep desktop content 1.5 inches from the LEFT page edge.
-   Remove the centered max-width constraint that creates excessive blank space. */
-.nx .wrap{width:100%;max-width:none;margin:0;padding:0 var(--gutter) 0 1.5in}
-/* On narrower screens use the original responsive gutter to avoid squeezing content. */
+/* Keep the public website content 1.5 inches from the left viewport edge on desktop. */
+.nx .wrap{max-width:none;width:100%;margin:0;padding-left:1.5in;padding-right:var(--gutter)}
 @media(max-width:900px){.nx .wrap{padding-left:var(--gutter)}}
 .nx h1,.nx h2,.nx h3,.nx h4{color:var(--ink);font-weight:800;letter-spacing:-.025em;margin:0;font-variation-settings:'wdth' 112}
 .nx h1{font-size:clamp(40px,6.4vw,80px);line-height:.98;font-variation-settings:'wdth' 125}
@@ -180,6 +178,7 @@
 /* Module explorer */
 .explore{display:grid;grid-template-columns:300px 1fr;gap:clamp(24px,4vw,56px);align-items:start}
 .tabs{display:flex;flex-direction:column;gap:8px;position:sticky;top:100px}
+.tablist{display:flex;flex-direction:column;gap:8px}
 .tabs button{all:unset;cursor:pointer;display:block;padding:20px 22px;border-radius:var(--r);border:1px solid var(--line);background:#fff;transition:border-color .15s,box-shadow .15s}
 .tabs button:focus-visible{outline:3px solid var(--red);outline-offset:3px}
 .tabs button b{display:block;font-size:26px;color:var(--ink);font-weight:800;font-variation-settings:'wdth' 125;letter-spacing:-.02em}
@@ -191,7 +190,7 @@
 .mod p{color:var(--muted);font-size:15px}
 .mod ul{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-wrap:wrap;gap:6px}
 .mod li{font-size:13px;background:var(--fog);border-radius:999px;padding:4px 11px;color:var(--text)}
-@media(max-width:900px){.explore{grid-template-columns:1fr}.tabs{position:static;flex-direction:row;overflow-x:auto}.tabs button{flex:1 0 auto;padding:14px 18px}.tabs button b{font-size:20px}.tabs button span{display:none}}
+@media(max-width:900px){.explore{grid-template-columns:1fr}.tabs{position:static}.tablist{flex-direction:row;overflow-x:auto}.tabs button{flex:1 0 auto;padding:14px 18px}.tabs button b{font-size:20px}.tabs button span{display:none}}
 @media(max-width:640px){.mods{grid-template-columns:1fr}}
 
 /* Self-service band */
@@ -362,3 +361,34 @@
 @media(prefers-reduced-motion:reduce){.nx{scroll-behavior:auto}.nx *{transition:none!important;animation:none!important}}
 .twocol{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(28px,5vw,72px);align-items:start}
 @media(max-width:900px){.twocol{grid-template-columns:1fr}}
+
+/* Brand band (kente-inspired) */
+.band{height:12px;background:url(/art/band.svg) repeat-x 0 0/auto 12px}
+.nx-foot{position:relative}
+/* Artwork */
+.art{display:block;width:100%;height:auto}
+.pagehead.has-art .wrap{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(24px,4vw,64px);align-items:center}
+.pagehead.has-art .art{max-width:520px;justify-self:end}
+@media(max-width:900px){.pagehead.has-art .wrap{grid-template-columns:1fr}.pagehead.has-art .art{max-width:420px;justify-self:start}}
+.fgroup-intro{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:clamp(20px,4vw,56px);align-items:end;border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:24px}
+.fgroup-intro h2{font-size:clamp(36px,5vw,60px);font-variation-settings:'wdth' 125}
+.fgroup-intro p{color:var(--muted);max-width:44ch;margin-top:12px}
+@media(max-width:820px){.fgroup-intro{grid-template-columns:1fr}.fgroup-intro .art{max-width:380px}}
+.tabs .art{margin-top:8px;border-radius:var(--r)}
+@media(max-width:900px){.tabs .art{display:none}}
+.aside-art{margin:0 0 28px;max-width:440px}
+/* Video */
+.vframe{margin:0;position:relative;border-radius:var(--r-lg);overflow:hidden;background:var(--night);box-shadow:var(--shadow-lg);aspect-ratio:16/9}
+.vframe video,.vposter img{width:100%;height:100%;object-fit:cover;display:block}
+.vframe video{background:#000}
+.vposter{all:unset;cursor:pointer;display:block;width:100%;height:100%;position:relative}
+.vposter:focus-visible{outline:3px solid var(--red);outline-offset:4px}
+.vposter::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,12,16,0) 40%,rgba(10,12,16,.65))}
+.vplay{position:absolute;left:24px;bottom:22px;width:68px;height:68px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 10px rgba(227,20,27,.25),0 16px 32px -10px rgba(0,0,0,.6);transition:transform .2s,box-shadow .2s;z-index:1}
+.vplay svg{margin-left:4px}
+.vposter:hover .vplay{transform:scale(1.06);box-shadow:0 0 0 14px rgba(227,20,27,.22),0 16px 32px -10px rgba(0,0,0,.6)}
+.vlabel{position:absolute;left:110px;bottom:44px;z-index:1;color:#fff;font-weight:700;font-size:17px}
+.video-sec .wrap{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);gap:clamp(28px,5vw,72px);align-items:center}
+@media(max-width:900px){.video-sec .wrap{grid-template-columns:1fr}}
+.aside-video{margin-bottom:30px}
+.aside-video p{margin-top:12px;color:var(--muted);font-size:15px}

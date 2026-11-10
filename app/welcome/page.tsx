@@ -2,6 +2,8 @@
 import SiteFrame from '../_site/SiteFrame';
 import ModuleExplorer from '../_site/ModuleExplorer';
 import Phone from '../_site/Phone';
+import VideoFeature from '../_site/VideoFeature';
+import {siteVideo} from '../_site/video';
 import {OCT_2026_BANDS,computeGhanaPayroll} from '../../lib/ghana-payroll';
 import {ArrowRight,BadgeCheck,Building2,CalendarCheck,ClipboardCheck,FileCheck2,IdCard,Landmark,LayoutDashboard,Lock,MapPin,ScrollText,ShieldCheck,Smartphone,Users,UsersRound,Wallet,Check,CheckCircle2} from 'lucide-react';
 
@@ -9,7 +11,10 @@ export const metadata={title:'Nexora | HR and payroll software for Ghanaian busi
 
 const money=(n:number)=>n.toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2});
 
+export const dynamic='force-dynamic';
+
 export default function Welcome(){
+ const video=siteVideo();
  // A real calculation from the same engine Nexora payroll uses.
  const calc=(basic:number,allowances:number)=>computeGhanaPayroll({basic,allowances,otherDeductions:0,overtimeDays:0,overtimeRate:0,unpaidDays:0,workDaysPerMonth:22,tier3Employee:0,employeeRate:.055,employerRate:.13,tier1Rate:.135,tier2Rate:.05,minimumInsurable:0,maximumInsurable:1_000_000,taxBands:OCT_2026_BANDS});
  const pay=calc(6500,1200),kwame=calc(4600,800),efua=calc(8500,1300);
@@ -67,6 +72,12 @@ export default function Welcome(){
    <div className="it"><span className="ico"><IdCard size={20} aria-hidden="true"/></span><p><b>Ghana Card</b><span>Recorded on employee profiles</span></p></div>
    <div className="it"><span className="ico"><MapPin size={20} aria-hidden="true"/></span><p><b>GhanaPost GPS</b><span>Digital addresses for your business</span></p></div>
   </div></section>
+
+  {video&&<section className="sec video-sec" aria-labelledby="tour-h"><div className="wrap">
+   <div><h2 id="tour-h">See Nexora in action</h2><p className="lede">A walkthrough of employee records, leave, payroll and self-service — the way your team will use them every day.</p>
+    <div className="actions"><a className="btn btn-ink" href="/request-demo">Book a live demo</a></div></div>
+   <VideoFeature video={video} label="Product tour · 3 min"/>
+  </div></section>}
 
   <section className="sec fog"><div className="wrap">
    <div className="head"><h2>What payday looks like in Nexora</h2><p>Payroll runs on the same employee records your HR team already keeps, so nothing is typed twice.</p></div>

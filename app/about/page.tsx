@@ -3,7 +3,7 @@ import {Landmark,Smartphone,ClipboardCheck,BadgeCheck,ArrowRight} from 'lucide-r
 export const metadata={title:'About | Nexora HR Management System',description:'Why Nexora exists and how we build it.'};
 export default function About(){
  return <SiteFrame active="about">
-  <section className="pagehead dark"><div className="wrap"><h1>HR software that understands how businesses here work</h1><p className="lede">Nexora began inside a growing Ghanaian business that needed its people records, leave, appraisals and payroll in one dependable place — and could not find software that handled PAYE, SSNIT and multi-branch teams without workarounds.</p></div></section>
+  <section className="pagehead dark has-art"><div className="wrap"><div><h1>HR software that understands how businesses here work</h1><p className="lede">Nexora began inside a growing Ghanaian business that needed its people records, leave, appraisals and payroll in one dependable place — and could not find software that handled PAYE, SSNIT and multi-branch teams without workarounds.</p></div><img className="art" src="/art/about.svg" alt="" width={520} height={420}/></div></section>
   <section className="sec"><div className="wrap twocol">
    <div><h2>What we believe</h2><p className="lede" style={{fontSize:18}}>Good HR is mostly good records, kept honestly and shared with the right people.</p></div>
    <div className="values">

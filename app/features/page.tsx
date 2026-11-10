@@ -8,7 +8,7 @@ export default function Features(){
    <div className="actions"><a className="btn btn-red" href="/pricing">Compare plans</a><a className="btn btn-line" href="/request-demo">Book a demo</a></div></div></section>
   <section className="sec"><div className="wrap">
    {GROUPS.map(g=><div className="fgroup" key={g.title} id={g.title.toLowerCase()}>
-    <div className="fgroup-head"><h2>{g.title}</h2><p>{g.sub}</p></div>
+    <div className="fgroup-intro"><div><h2>{g.title}</h2><p>{g.sub}</p></div><img className="art" src={`/art/${g.title.toLowerCase()}.svg`} alt="" width={480} height={360} loading="lazy"/></div>
     {g.mods.map(m=>{const Icon=m.Icon;return <div className="frow" key={m.key}>
      <div className="t"><span className="ico"><Icon size={20} aria-hidden="true"/></span><div><h3>{m.name}</h3><p>{m.what}</p></div></div>
      <ul>{m.items.map(x=><li key={x}><Check size={16} aria-hidden="true"/>{x}</li>)}</ul>
