@@ -30,7 +30,7 @@ export async function POST(req:NextRequest){
   let cited:{documentId:string;title:string;version:number;page:number|null;excerpt:string}[]=[];
   if(isCountQuestion){
    const now=new Date();
-   const documents=await db.nexHrDocument.findMany({where:{companyId:a.companyId!,status:'APPROVED',OR:[{effectiveAt:null},{effectiveAt:{lte:now}}],AND:[{OR:[{expiresAt:null},{expiresAt:{gt:now}}]}]},select:{familyId:true,category:true,visibility:true}});
+   const documents=await db.nexHrDocument.findMany({where:{companyId:a.companyId!,status:'APPROVED',OR:[{effectiveAt:null},{effectiveAt:{lte:now}}],AND:[{OR:[{expiresAt:null},{expiresAt:{gt:now}}]}]},select:{familyId:true,category:true,visibility:true,status:true}});
    const visible=documents.filter(d=>allowedToRead(a,d));
    const families=new Set(visible.filter(d=>/policy/i.test(d.category)).map(d=>d.familyId));
    response=`You have ${families.size} approved, currently effective policy document${families.size===1?'':'s'} available to your account. Different versions of the same policy are counted once.`;
