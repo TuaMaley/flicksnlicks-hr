@@ -6,7 +6,17 @@ export const REFUSAL="I couldn't find sufficient information in your company's a
 export type Evidence={documentId:string;title:string;version:number;page:number|null;excerpt:string;score:number};
 const stop=new Set('what which when where why who how does do did is are was were can could should would i we you our your the a an of in on for to with by from at about and or if as it this that their my me please tell explain policy policies company nex hr punishment penalty penalties disciplinary says say have many number count total'.split(' '));
 function terms(s:string){return [...new Set((s.toLowerCase().match(/[a-z0-9]{3,}/g)||[]).filter(t=>!stop.has(t)))];}
-function snippets(s:string){return s.replace(/\r/g,'').split(/(?<=[.!?])\s+|\n{2,}/).map(t=>t.trim()).filter(t=>t.length>=35&&t.length<=1800);}
+function snippets(s:string){
+ const normalized=s.replace(/\r/g,'').replace(/\s+/g,' ').trim();
+ if(!normalized)return [];
+ // Overlapping windows preserve offence and sanction columns when PDF text has lost table structure.
+ const result:string[]=[];const size=1100;const stride=650;
+ for(let i=0;i<normalized.length&&result.length<1200;i+=stride){
+  const chunk=normalized.slice(i,i+size).trim();if(chunk.length>=25)result.push(chunk);
+  if(i+size>=normalized.length)break;
+ }
+ return result;
+}
 async function extract(d:{mimeType:string;fileData:Uint8Array}):Promise<{page:number|null;text:string}[]>{
  const b=Buffer.from(d.fileData);
  if(d.mimeType==='text/plain')return [{page:null,text:b.toString('utf8')}];
