@@ -2,7 +2,7 @@ import {NextRequest} from 'next/server';
 import {db} from '../../../../lib/db';
 import {gate} from '../../../../lib/nexhr';
 import {ok,fail} from '../../../../lib/http';
-import {retrieve,answer,REFUSAL} from '../../../../lib/nexhr-chat';
+import {retrieve,answerWithSources,REFUSAL} from '../../../../lib/nexhr-chat';
 import {Prisma} from '@prisma/client';
 export const runtime='nodejs';
 export async function GET(req:NextRequest){
@@ -25,8 +25,9 @@ export async function POST(req:NextRequest){
  if(threadId){thread=await db.nexHrChatThread.findFirst({where:{id:threadId,companyId:a.companyId!,userId:a.user!.id}});if(!thread)return fail('Conversation not found',404)}
  try{
   const evidence=await retrieve(a,question);
-  const response=await answer(question,evidence);
-  const cited=response===REFUSAL?[]:evidence.map(({documentId,title,version,page,excerpt})=>({documentId,title,version,page,excerpt}));
+  const result=await answerWithSources(question,evidence);
+  const response=result.text;
+  const cited=response===REFUSAL?[]:result.usedEvidence.map(({documentId,title,version,page,excerpt})=>({documentId,title,version,page,excerpt}));
   const saved=await db.$transaction(async tx=>{
    const t=thread||await tx.nexHrChatThread.create({data:{companyId:a.companyId!,userId:a.user!.id,title:question.slice(0,180)}});
    await tx.nexHrChatMessage.create({data:{threadId:t.id,role:'user',content:question}});
