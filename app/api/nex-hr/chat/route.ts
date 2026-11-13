@@ -44,6 +44,7 @@ export async function GET(req:NextRequest){
 export async function POST(req:NextRequest){
  const {a,error}=await gate();if(error)return error;
  let input:any;try{input=await req.json()}catch{return fail('Invalid JSON',400)}
+ const startedAt=Date.now();
  const question=String(input?.question||'').trim();const threadId=typeof input?.threadId==='string'?input.threadId:'';
  if(question.length<3||question.length>1200)return fail('Question must be between 3 and 1200 characters',400);
  let thread;
@@ -56,6 +57,7 @@ export async function POST(req:NextRequest){
   const resolvedQuestion=resolveFollowUp(question,previous.reverse());
   const isCountQuestion=/\b(how many|number of|count|total)\b/i.test(resolvedQuestion)&&/\b(policies|policy documents|documents in (?:the |our )?knowledge base)\b/i.test(resolvedQuestion);
   let response:string;
+  let responseMode:string='count';
   let cited:{documentId:string;title:string;version:number;page:number|null;excerpt:string}[]=[];
   if(isCountQuestion){
    const now=new Date();
@@ -67,6 +69,7 @@ export async function POST(req:NextRequest){
    const evidence=await retrieve(a,resolvedQuestion);
    const result=await answerWithSources(resolvedQuestion,evidence);
    response=result.text;
+   responseMode=result.mode;
    cited=result.usedEvidence.map(({documentId,title,version,page,excerpt})=>({documentId,title,version,page,excerpt}));
   }
   const saved=await db.$transaction(async tx=>{
@@ -76,6 +79,7 @@ export async function POST(req:NextRequest){
    await tx.nexHrChatThread.update({where:{id:t.id},data:{updatedAt:new Date()}});
    return {threadId:t.id,message};
   });
+  console.info('Nex HR request metrics',JSON.stringify({companyId:a.companyId,mode:responseMode,latencyMs:Date.now()-startedAt,citations:cited.length}));
   return ok({...saved,citations:cited});
  }catch(e){console.error('Nex HR chat error',e);return fail('Unable to process your question',500)}
 }
