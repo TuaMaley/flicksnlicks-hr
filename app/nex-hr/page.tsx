@@ -2,7 +2,8 @@
 import {useEffect,useState} from 'react';
 import './nexhr.css';
 type Doc={id:string;familyId:string;version:number;title:string;category:string;description:string|null;fileName:string;sizeBytes:number;status:string;visibility:string;reviewReason:string|null;createdAt:string;uploadedById:string};
-import {categories} from '../../lib/nexhr';
+// Keep this client-side list separate from lib/nexhr.ts, which imports server-only auth and database modules.
+const categories=['HR Policy','SOP','Regulation','Employee Handbook','Safety','Payroll','Leave','Conduct','Training','Other'];
 type Section='dashboard'|'library'|'documents'|'governance'|'analytics';
 export default function NexHrPage(){
  const [docs,setDocs]=useState<Doc[]>([]),[permissions,setPermissions]=useState<string[]>([]),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[search,setSearch]=useState(''),[status,setStatus]=useState(''),[categoryFilter,setCategoryFilter]=useState(''),[replaceId,setReplaceId]=useState(''),[audit,setAudit]=useState<any[]>([]),[showAudit,setShowAudit]=useState(false),[myId,setMyId]=useState('');
