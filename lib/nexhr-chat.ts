@@ -77,23 +77,26 @@ export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:str
    for(const part of parts){
     for(const excerpt of snippets(part.text.slice(0,600000))){
      const score=lexical(q,excerpt);
-     if(score>0)candidates.push({documentId:d.id,title:d.title,version:d.version,page:part.page,excerpt,score});
+     if(score>0||process.env.NEXHR_SEMANTIC_SEARCH==='true')candidates.push({documentId:d.id,title:d.title,version:d.version,page:part.page,excerpt,score});
     }
    }
   }catch(e){console.error('Nex HR document extraction failed',d.id,e)}
  }
- const top=candidates.sort((x,y)=>y.score-x.score).slice(0,24);
- if(!top.length)return [];
- // Optional semantic reranking. Only the already-authorized top excerpts are transmitted.
- // Do not use embeddings to bypass lexical evidence thresholds.
- if(process.env.NEXHR_SEMANTIC_SEARCH==='true'&&process.env.NEXHR_OPENAI_API_KEY){
-  const vectors=await embeddings([question,...top.map(x=>x.excerpt)]);
-  if(vectors){
-   for(let i=0;i<top.length;i++)top[i].score=0.65*top[i].score+0.35*Math.max(0,cosine(vectors[0],vectors[i+1]));
-   top.sort((x,y)=>y.score-x.score);
-  }
- }
- return top.filter(e=>lexical(q,e.excerpt)>=0.20).slice(0,5);
+ const ranked=candidates.sort((x,y)=>y.score-x.score);
+ const lexicalTop=ranked.filter(x=>x.score>=0.20).slice(0,5);
+ // Semantic matching is optional and bounded. Never send unapproved or unauthorized material.
+ // Include lower-lexical candidates so alternative phrasing can be discovered.
+ if(process.env.NEXHR_SEMANTIC_SEARCH!=='true'||!process.env.NEXHR_OPENAI_API_KEY)return lexicalTop;
+ const pool=ranked.slice(0,60);
+ if(!pool.length)return [];
+ const vectors=await embeddings([question,...pool.map(x=>x.excerpt)]);
+ if(!vectors)return lexicalTop;
+ const semantic=pool.map((e,i)=>({...e,similarity:cosine(vectors[0],vectors[i+1])}));
+ // A conservative semantic threshold prevents unrelated documents from becoming evidence.
+ const selected=semantic.filter(e=>e.score>=0.20||e.similarity>=0.66)
+  .map(e=>({...e,score:0.45*e.score+0.55*Math.max(0,e.similarity)}))
+  .sort((x,y)=>y.score-x.score).slice(0,5);
+ return selected.map(({similarity,...e})=>e);
 }
 export type AnswerResult={text:string;usedEvidence:Evidence[];mode:'openai'|'extractive'|'refusal'};
 export async function answerWithSources(question:string,evidence:Evidence[]):Promise<AnswerResult>{
