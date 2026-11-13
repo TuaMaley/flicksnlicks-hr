@@ -1,4 +1,5 @@
 'use client';
+import NexHrFloating from './NexHrFloating';
 import {useEffect,useState} from 'react';
 import {usePathname,useRouter} from 'next/navigation';
 import Link from 'next/link';
@@ -83,7 +84,7 @@ export default function ModuleShell({children,bare=false}:{children:React.ReactN
   {pathname!=='/'&&!(pathname==='/platform'&&platformSection==='Overview')&&<button type="button" className="persistentTopbarBack" aria-label="Go back" title="Go back" onClick={()=>{if(window.history.length>1)router.back();else router.push('/')}}><ArrowLeft size={21}/></button>}
   <div className="persistentTopbarRight">{!isPlatform&&<div className="persistentBranchLabel"><UsersRound size={18}/> All Branches <ChevronDown size={15}/></div>}<NotificationBell/><AccountMenu/></div>
  </header>
- <div className="persistentPageScroll" id="module-page-scroll">{children}</div>
+ <div className="persistentPageScroll" id="module-page-scroll">{children}</div>{ready&&!isPlatform&&<NexHrFloating/>}
  </div>
  </div>;
 }

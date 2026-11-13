@@ -3,8 +3,9 @@ import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import NexoraModuleTabs from '../components/NexoraModuleTabs';
 import JobVacancies from './JobVacancies';
-type Tab='information'|'leave'|'payslips'|'performance'|'training'|'requests'|'announcements'|'jobs';
-const tabs:{id:Tab;label:string;disabled?:boolean}[]=[{id:'information',label:'My Information'},{id:'leave',label:'My Leave'},{id:'payslips',label:'My Payslips'},{id:'performance',label:'My Performance'},{id:'training',label:'My Training'},{id:'requests',label:'My Requests'},{id:'jobs',label:'Job Vacancies'},{id:'announcements',label:'Announcements',disabled:true}];
+import NexHrChat from '../components/NexHrChat';
+type Tab='information'|'leave'|'payslips'|'performance'|'training'|'requests'|'announcements'|'jobs'|'nexhr';
+const tabs:{id:Tab;label:string;disabled?:boolean}[]=[{id:'information',label:'My Information'},{id:'leave',label:'My Leave'},{id:'payslips',label:'My Payslips'},{id:'performance',label:'My Performance'},{id:'training',label:'My Training'},{id:'requests',label:'My Requests'},{id:'jobs',label:'Job Vacancies'},{id:'nexhr',label:'Ask Nex HR'},{id:'announcements',label:'Announcements',disabled:true}];
 type LeaveRow={id:string;type:string;startDate:string;endDate:string;days:number;status:string;reason:string|null;createdAt:string;reviewStage:number;decisionNote:string|null};
 type LeaveBalance={type:string;year:number;entitled:number;used:number;remaining:number;pending:number;available:number};
 type PayRow={id:string;period:string;netAmount:string;currency:string;method:string;status:string;confirmedAt:string|null;reference:string|null};
@@ -64,6 +65,7 @@ export default function SelfService(){
  const display=(s:string|null|undefined)=>s?.trim()||'Not provided';
  return <div className="workspace"><div className="workspaceTop"><Link href="/" className="backLink">← Dashboard</Link></div><div className="workspaceHeading"><div><h1>Employee Self-Service</h1><p>Personal information and HR services</p></div></div>
  <NexoraModuleTabs<Tab> tabs={tabs} active={tab} onChange={setTab} ariaLabel="Employee Self-Service sections"/>
+ {tab==='nexhr'&&<div className="nexhr-page"><NexHrChat/></div>}
  {loading&&<section className="workCard" style={{padding:24}}>Loading your employee profile…</section>}
  {error&&<div className="formError" role="alert">{error}</div>}{message&&<div className="successNotice" role="status">{message}</div>}
  {employee&&<>{tab==='information'&&<><section className="workCard" style={{padding:24,marginBottom:20}}><div style={{display:'flex',alignItems:'center',gap:18,flexWrap:'wrap'}}><div style={{background:'#a71924',color:'white',width:64,height:64,borderRadius:16,display:'grid',placeItems:'center',fontSize:24,fontWeight:700,overflow:'hidden'}}>{employee.profilePhotoDataUrl?<img src={employee.profilePhotoDataUrl} alt="Employee profile" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<>{employee.firstName.charAt(0)}{employee.lastName.charAt(0)}</>}</div><div><h2 style={{margin:'0 0 4px'}}>{employee.firstName} {employee.lastName}</h2><div>{employee.position} · {employee.branch.name}</div><small>{employee.employeeNo} · {employee.status.replaceAll('_',' ')}</small></div></div></section>
