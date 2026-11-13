@@ -1,38 +1,22 @@
 
 .nexhr-float{position:fixed;right:20px;bottom:20px;z-index:1000;display:flex;align-items:flex-end;flex-direction:column;gap:10px}.nexhr-float-launch{border:0;border-radius:999px;background:#e3141b;color:white;padding:13px 19px;font-weight:700;box-shadow:0 6px 24px #0003;cursor:pointer}.nexhr-float-panel{width:min(440px,calc(100vw - 24px));height:min(640px,calc(100dvh - 110px));background:white;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 14px 45px #0003;display:flex;flex-direction:column;overflow:hidden}.nexhr-float-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #e5e7eb}.nexhr-float-head button{font-size:25px;background:transparent;border:0;cursor:pointer}.nexhr-float-body{overflow:auto;flex:1;padding:10px}.nexhr-float-body .nexhr-chat-layout{display:flex;flex-direction:column}.nexhr-float-body .nexhr-chat-threads{max-height:92px;overflow:auto;display:flex;gap:5px;flex-direction:row}.nexhr-float-body .nexhr-chat-threads button{flex:0 0 auto;max-width:150px}.nexhr-float-body .nexhr-chat-messages{height:260px;min-height:160px;overflow:auto}.nexhr-category-nav{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.nexhr-category-nav button{border:1px solid #ddd;border-radius:20px;padding:7px 12px;background:white;cursor:pointer}.nexhr-category-nav button[aria-pressed=true]{background:#e3141b;color:white;border-color:#e3141b}@media(max-width:600px){.nexhr-float{right:12px;bottom:12px}.nexhr-float-panel{height:min(610px,calc(100dvh - 85px))}}
 
-/* Floating assistant: override full-page chat layout inside a narrow panel. */
+/* Compact floating Nex HR: history hidden until requested; full ESS chat unchanged. */
 .nexhr-float-panel{min-width:0;max-width:calc(100vw - 24px);overflow:hidden}
-.nexhr-float-body{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;padding:10px}
-.nexhr-float-body .nexhr-card{display:flex;flex:1 1 auto;flex-direction:column;min-width:0;min-height:0;width:100%;max-width:100%;margin:0;padding:12px;overflow:hidden}
-.nexhr-float-body .nexhr-card>p{font-size:12px;line-height:1.35;margin:5px 0 8px}
-.nexhr-float-body .nexhr-chat-layout{display:flex;flex:1 1 auto;flex-direction:column;gap:8px;min-width:0;min-height:0;width:100%;margin-top:8px;overflow:hidden}
-.nexhr-float-body .nexhr-chat-threads{flex:0 0 auto;display:flex;flex-direction:row;min-width:0;max-width:100%;max-height:66px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;border-right:0;border-bottom:1px solid #e4e6ea;padding:0 0 8px;scrollbar-width:thin}
-.nexhr-float-body .nexhr-chat-threads button{flex:0 0 auto;max-width:145px;min-width:0;white-space:normal;overflow-wrap:anywhere}
-.nexhr-float-body .nexhr-chat-main{display:flex;flex:1 1 auto;flex-direction:column;min-width:0;min-height:0;width:100%;overflow:hidden}
-.nexhr-float-body .nexhr-chat-messages{flex:1 1 auto;height:auto;min-height:0;max-height:none;min-width:0;width:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin}
-.nexhr-float-body .nexhr-chat-message{max-width:100%;min-width:0;margin-left:0;margin-right:0;overflow-wrap:anywhere;word-break:normal;white-space:pre-wrap}
-.nexhr-float-body .nexhr-chat-message p,.nexhr-float-body .nexhr-chat-message details,.nexhr-float-body .nexhr-chat-message a{max-width:100%;overflow-wrap:anywhere}
-.nexhr-float-body .nexhr-chat-form{flex:0 0 auto;min-width:0;width:100%;margin-top:8px}
-.nexhr-float-body .nexhr-chat-form input{min-width:0;width:0;flex:1 1 auto}
-.nexhr-float-body .nexhr-chat-form button{flex:0 0 auto}
-@media(max-width:600px){.nexhr-float-panel{width:calc(100vw - 24px)}}
-
-/* Critical: .nexhr-page applies full-page 32px side padding and a wide layout.
-   Remove it ONLY inside the floating assistant. */
-.nexhr-float, .nexhr-float * {box-sizing:border-box}
-.nexhr-float-panel {width:min(480px,calc(100vw - 24px));max-width:calc(100vw - 24px);min-width:0;overflow:hidden}
-.nexhr-float-panel .nexhr-float-body.nexhr-page {width:100%;max-width:none;margin:0;padding:8px;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column}
-.nexhr-float-panel .nexhr-card {width:100%;max-width:100%;min-width:0;min-height:0;margin:0;padding:10px;overflow:hidden;flex:1;display:flex;flex-direction:column}
-.nexhr-float-panel .nexhr-chat-layout {display:flex!important;flex-direction:column!important;grid-template-columns:none!important;min-width:0;min-height:0;width:100%;max-width:100%;overflow:hidden;flex:1;gap:8px;margin-top:8px}
-.nexhr-float-panel .nexhr-chat-threads {width:100%;max-width:100%;min-width:0;flex:0 0 auto;display:flex!important;flex-direction:row!important;overflow-x:auto;overflow-y:hidden;max-height:78px;border-right:0;padding-right:0;padding-bottom:6px}
-.nexhr-float-panel .nexhr-chat-main {width:100%;max-width:100%;min-width:0;min-height:0;flex:1;display:flex;flex-direction:column;overflow:hidden}
-.nexhr-float-panel .nexhr-chat-messages {width:100%;max-width:100%;min-width:0;min-height:0;flex:1;overflow-x:hidden;overflow-y:auto;height:auto;max-height:none;padding:8px}
-.nexhr-float-panel .nexhr-chat-message {width:auto;max-width:100%;min-width:0;margin-right:0;margin-left:0;padding:10px;white-space:normal;overflow-wrap:anywhere;word-break:normal}
-.nexhr-float-panel .nexhr-chat-message.user {margin-left:7%}
-.nexhr-float-panel .nexhr-chat-message p {white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}
-.nexhr-float-panel .nexhr-chat-message details {max-width:100%;overflow-wrap:anywhere}
-.nexhr-float-panel .nexhr-chat-form {display:flex;flex:0 0 auto;min-width:0;width:100%;gap:6px;margin-top:8px}
-.nexhr-float-panel .nexhr-chat-form input {flex:1 1 auto;width:0;min-width:0}
-.nexhr-float-panel .nexhr-chat-form button {flex:0 0 auto;padding:8px 10px}
+.nexhr-float-body.nexhr-page{flex:1;display:flex;min-width:0;min-height:0;padding:8px;overflow:hidden}
+.nexhr-float-body .nexhr-card.nexhr-compact-chat{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;width:100%;max-width:100%;margin:0;padding:8px;overflow:hidden}
+.nexhr-float-body .nexhr-compact-toolbar{display:flex;align-items:center;gap:6px;flex:0 0 auto;min-width:0;margin-bottom:8px}
+.nexhr-float-body .nexhr-compact-toolbar button,.nexhr-float-body .nexhr-compact-toolbar a{display:inline-flex;align-items:center;justify-content:center;flex:0 0 34px;width:34px;height:34px;padding:0;border:1px solid #d5d9e0;border-radius:8px;background:white;color:#20232b;text-decoration:none;font-size:20px}
+.nexhr-float-body .nexhr-compact-topic{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#646b78;font-size:12px}
+.nexhr-float-body .nexhr-chat-layout{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;width:100%;gap:6px;margin:0;overflow:hidden}
+.nexhr-float-body .nexhr-chat-threads{display:flex;flex-direction:column;flex:0 0 auto;min-height:0;max-height:145px;overflow-y:auto;overflow-x:hidden;gap:4px;padding:6px;border:1px solid #e4e6ea;border-radius:8px}
+.nexhr-float-body .nexhr-chat-threads.nexhr-history-hidden{display:none}
+.nexhr-float-body .nexhr-chat-threads button{max-width:100%;flex:0 0 auto;text-align:left;white-space:normal;overflow-wrap:anywhere}
+.nexhr-float-body .nexhr-chat-main{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;width:100%;overflow:hidden}
+.nexhr-float-body .nexhr-chat-messages{flex:1;min-height:0;height:auto;max-height:none;min-width:0;width:100%;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:8px}
+.nexhr-float-body .nexhr-chat-message{min-width:0;max-width:100%;margin-right:0;margin-left:0;padding:10px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal}
+.nexhr-float-body .nexhr-chat-message p,.nexhr-float-body .nexhr-chat-message details{max-width:100%;overflow-wrap:anywhere}
+.nexhr-float-body .nexhr-chat-form{flex:0 0 auto;display:flex;min-width:0;width:100%;gap:6px;margin-top:8px}
+.nexhr-float-body .nexhr-chat-form input{flex:1 1 auto;min-width:0;width:0}
+.nexhr-float-body .nexhr-chat-form button{flex:0 0 auto;padding:10px}
 @media(max-width:600px){.nexhr-float-panel{width:calc(100vw - 24px)}}
