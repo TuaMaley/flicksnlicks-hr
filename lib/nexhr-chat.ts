@@ -146,34 +146,52 @@ export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:str
  return selected.map(({similarity,...e})=>e);
 }
 export type AnswerResult={text:string;usedEvidence:Evidence[];mode:'openai'|'extractive'|'refusal'};
-// A deterministic answer is safer than a model guess when a verified, labelled
-// sanctions-matrix row explicitly contains the requested occurrence and penalty.
-// Restrict this path to the precise lateness offence until other table rows have
-// been validated against their source PDFs.
-function verifiedLatenessSanction(question:string,evidence:Evidence[]):AnswerResult|null{
- const asksLateness=/\b(late|lateness|tardy|tardiness|punctuality)\b/i.test(question);
- const occurrence=/\b(second|2nd)\b/i.test(question)?2:/\b(first|1st)\b/i.test(question)?1:/\b(third|3rd)\b/i.test(question)?3:null;
- if(!asksLateness||!occurrence)return null;
- const rows=evidence.flatMap(source=>source.excerpt.split(/\n/).filter(line=>line.startsWith('Sanctions matrix row:')).map(line=>({source,line})));
- const matching=rows.filter(({line})=>/late reporting to(?:\s+timekeeping)?\s+work|late reporting to work|late reporting to timekeeping work/i.test(line));
- const sanctions=new Set<string>();let selected:Evidence|null=null;
- for(const {source,line} of matching){
-  const cells=line.match(/;\s*1st Occurrence:\s*([^;]+);\s*2nd Occurrence:\s*([^;]+);\s*3rd Occurrence \/ Severe Case:\s*(.+?)(?:\.|$)/i);
-  if(!cells)continue;
-  const raw=cells[occurrence].trim();
-  if(!raw||/^(not specified|—|-)$/i.test(raw))continue;
-  sanctions.add(raw.toLowerCase());selected=source;
+// Interpret labelled sanctions rows only when the offence and occurrence are
+// unambiguous. Other policy tables continue through the citation-checked AI path.
+type MatrixRow={offence:string;sanctions:[string,string,string];source:Evidence};
+function matrixRows(evidence:Evidence[]):MatrixRow[]{
+ const rows:MatrixRow[]=[];
+ for(const source of evidence)for(const line of source.excerpt.split('\n')){
+  if(!line.startsWith('Sanctions matrix row:'))continue;
+  const match=line.match(/^Sanctions matrix row:\s*Offence \/ Issue:\s*(.+?);\s*1st Occurrence:\s*([^;]+);\s*2nd Occurrence:\s*([^;]+);\s*3rd Occurrence \/ Severe Case:\s*(.+?)\.?$/i);
+  if(!match)continue;
+  rows.push({offence:match[1].trim(),sanctions:[match[2].trim(),match[3].trim(),match[4].trim().replace(/\.$/,'')],source});
  }
- // Conflicting extracted rows are not sufficient evidence.
- if(sanctions.size!==1||!selected)return null;
- const sanction=[...sanctions][0].replace(/\b\w/g,c=>c.toUpperCase());
- const ordinal=occurrence===1?'first':occurrence===2?'second':'third';
- const location=selected.page?`page ${selected.page}`:'the cited sanctions matrix';
- return {text:`According to the approved sanctions matrix (${location}), the sanction for the ${ordinal} occurrence of late reporting to work is ${sanction}.`,usedEvidence:[selected],mode:'extractive'};
+ return rows;
+}
+function normalizedTokens(value:string):string[]{
+ const aliases:Record<string,string>={lateness:'late',tardy:'late',tardiness:'late',punctuality:'late',reporting:'report',timekeeping:'',offence:'',issue:'',attendance:'',occurrence:'',sanction:'',sanctions:'',warning:'warning'};
+ return [...new Set((value.toLowerCase().match(/[a-z]+/g)||[]).map(t=>aliases[t]??t).filter(t=>t.length>2&&!['the','for','and','work','employee','employees','according','approved','policy','disciplinary','second','first','third','case','what','would','should','given','with','from','about','this','that','page','number','include','specific','matrix'].includes(t)))];
+}
+function verifiedMatrixSanction(question:string,evidence:Evidence[]):AnswerResult|null{
+ const occurrence=/\b(second|2nd)\b/i.test(question)?2:/\b(first|1st)\b/i.test(question)?1:/\b(third|3rd)\b/i.test(question)?3:null;
+ if(!occurrence)return null;
+ const queryTokens=normalizedTokens(question);
+ const candidates=matrixRows(evidence).map(row=>{
+  const offenseTokens=normalizedTokens(row.offence);
+  const matches=offenseTokens.filter(t=>queryTokens.includes(t));
+  const precision=matches.length/Math.max(1,offenseTokens.length);
+  return {row,precision,matched:matches.length};
+ }).filter(c=>c.matched>0&&c.precision>=0.6).sort((a,b)=>b.precision-a.precision||b.matched-a.matched);
+ if(!candidates.length)return null;
+ const best=candidates[0];
+ // Require one distinct offence, not just a category or a partial match shared
+ // by several offences. Multiple copies of the same row are acceptable.
+ const ties=candidates.filter(c=>c.precision===best.precision&&c.matched===best.matched);
+ const distinctOffences=new Set(ties.map(c=>c.row.offence.toLowerCase()));
+ if(distinctOffences.size!==1)return null;
+ const chosen=ties.map(c=>c.row);
+ const sanctions=new Set(chosen.map(r=>r.sanctions[occurrence-1].toLowerCase().trim()));
+ if(sanctions.size!==1)return null;
+ const raw=chosen[0].sanctions[occurrence-1];
+ if(!raw||/^(not specified|—|-|n\/a)$/i.test(raw))return null;
+ const page=chosen[0].source.page;
+ const ordinal=['first','second','third'][occurrence-1];
+ return {text:`According to the approved sanctions matrix${page?` (page ${page})`:''}, the sanction for the ${ordinal} occurrence of ${chosen[0].offence} is ${raw}.`,usedEvidence:[chosen[0].source],mode:'extractive'};
 }
 export async function answerWithSources(question:string,evidence:Evidence[]):Promise<AnswerResult>{
  if(!evidence.length)return {text:REFUSAL,usedEvidence:[],mode:'refusal'};
- const verified=verifiedLatenessSanction(question,evidence);
+ const verified=verifiedMatrixSanction(question,evidence);
  if(verified)return verified;
  // Avoid dumping full policy tables when AI is unavailable or validation fails.
  const fallback=():AnswerResult=>({text:'I found relevant policy material but could not confirm the specific answer. Please consult the cited document or contact HR.',usedEvidence:evidence.slice(0,2),mode:'extractive'});
