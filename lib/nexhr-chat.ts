@@ -146,8 +146,35 @@ export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:str
  return selected.map(({similarity,...e})=>e);
 }
 export type AnswerResult={text:string;usedEvidence:Evidence[];mode:'openai'|'extractive'|'refusal'};
+// A deterministic answer is safer than a model guess when a verified, labelled
+// sanctions-matrix row explicitly contains the requested occurrence and penalty.
+// Restrict this path to the precise lateness offence until other table rows have
+// been validated against their source PDFs.
+function verifiedLatenessSanction(question:string,evidence:Evidence[]):AnswerResult|null{
+ const asksLateness=/\b(late|lateness|tardy|tardiness|punctuality)\b/i.test(question);
+ const occurrence=/\b(second|2nd)\b/i.test(question)?2:/\b(first|1st)\b/i.test(question)?1:/\b(third|3rd)\b/i.test(question)?3:null;
+ if(!asksLateness||!occurrence)return null;
+ const rows=evidence.flatMap(source=>source.excerpt.split(/\n/).filter(line=>line.startsWith('Sanctions matrix row:')).map(line=>({source,line})));
+ const matching=rows.filter(({line})=>/late reporting to(?:\s+timekeeping)?\s+work|late reporting to work|late reporting to timekeeping work/i.test(line));
+ const sanctions=new Set<string>();let selected:Evidence|null=null;
+ for(const {source,line} of matching){
+  const cells=line.match(/;\s*1st Occurrence:\s*([^;]+);\s*2nd Occurrence:\s*([^;]+);\s*3rd Occurrence \/ Severe Case:\s*(.+?)(?:\.|$)/i);
+  if(!cells)continue;
+  const raw=cells[occurrence].trim();
+  if(!raw||/^(not specified|—|-)$/i.test(raw))continue;
+  sanctions.add(raw.toLowerCase());selected=source;
+ }
+ // Conflicting extracted rows are not sufficient evidence.
+ if(sanctions.size!==1||!selected)return null;
+ const sanction=[...sanctions][0].replace(/\b\w/g,c=>c.toUpperCase());
+ const ordinal=occurrence===1?'first':occurrence===2?'second':'third';
+ const location=selected.page?`page ${selected.page}`:'the cited sanctions matrix';
+ return {text:`According to the approved sanctions matrix (${location}), the sanction for the ${ordinal} occurrence of late reporting to work is ${sanction}.`,usedEvidence:[selected],mode:'extractive'};
+}
 export async function answerWithSources(question:string,evidence:Evidence[]):Promise<AnswerResult>{
  if(!evidence.length)return {text:REFUSAL,usedEvidence:[],mode:'refusal'};
+ const verified=verifiedLatenessSanction(question,evidence);
+ if(verified)return verified;
  // Avoid dumping full policy tables when AI is unavailable or validation fails.
  const fallback=():AnswerResult=>({text:'I found relevant policy material but could not confirm the specific answer. Please consult the cited document or contact HR.',usedEvidence:evidence.slice(0,2),mode:'extractive'});
  const key=process.env.NEXHR_OPENAI_API_KEY;
