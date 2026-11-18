@@ -11,6 +11,10 @@ import {Prisma} from '@prisma/client';
 function resolveFollowUp(question:string,history:{role:string;content:string}[]):string{
  const q=question.trim();
  if(!history.length)return q;
+ // Explicitly named offences are independent questions, even within a thread.
+ // Only resolve elliptical questions like "what about the second occurrence?".
+ if(/\b(first|second|third|1st|2nd|3rd)\s+occurrence\s+of\s+\S/i.test(q))return q;
+
  const isFollowUp=/^(?:and\s+)?(?:what about|how about|also|then|so|what if|what happens|what is|what's|does|is|can|will|and|the first|the second|the third)\b/i.test(q) || /\b(?:it|that|this|those|them|its|their)\b/i.test(q);
  if(!isFollowUp)return q;
  // Use the most recent substantive user topic; do not carry unrelated threads across conversations.
