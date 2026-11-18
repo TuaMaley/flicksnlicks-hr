@@ -23,7 +23,30 @@ const showWebsite=(req:NextRequest)=>{
  return NextResponse.rewrite(new URL('/welcome',req.url),{request:{headers}});
 };
 
+// Browser apps on other domains that may call the API (the employee web portal). Comma-separated full origins.
+const corsOrigins=()=>list(process.env.NEXORA_CORS_ORIGINS||'https://employee.nexora-hrms.com');
+const allowedOrigin=(req:NextRequest)=>{const o=(req.headers.get('origin')||'').toLowerCase().replace(/\/$/,'');return o&&corsOrigins().includes(o)?o:''};
+const withCors=(res:NextResponse,origin:string)=>{
+ res.headers.set('Access-Control-Allow-Origin',origin);
+ res.headers.set('Access-Control-Allow-Credentials','true');
+ res.headers.append('Vary','Origin');
+ return res;
+};
+
 export function middleware(req:NextRequest){
+ const origin=req.nextUrl.pathname.startsWith('/api/')?allowedOrigin(req):'';
+ if(origin&&req.method==='OPTIONS'){
+  const res=new NextResponse(null,{status:204});
+  res.headers.set('Access-Control-Allow-Methods','GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.headers.set('Access-Control-Allow-Headers',req.headers.get('access-control-request-headers')||'Authorization,Content-Type');
+  res.headers.set('Access-Control-Max-Age','86400');
+  return withCors(res,origin);
+ }
+ const res=route(req);
+ return origin?withCors(res,origin):res;
+}
+
+function route(req:NextRequest):NextResponse{
  const path=req.nextUrl.pathname;
  const host=(req.headers.get('host')||'').split(':')[0].toLowerCase();
  const session=req.cookies.get('fnl_session')?.value||(req.headers.get('authorization')?.startsWith('Bearer ')?'bearer':undefined);
