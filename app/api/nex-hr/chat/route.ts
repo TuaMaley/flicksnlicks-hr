@@ -59,17 +59,40 @@ export async function POST(req:NextRequest){
    select:{role:true,content:true}
   }) : [];
   const resolvedQuestion=resolveFollowUp(question,previous.reverse());
-  const isCountQuestion=/\b(how many|number of|count|total)\b/i.test(resolvedQuestion)&&/\b(policies|policy documents|documents in (?:the |our )?knowledge base)\b/i.test(resolvedQuestion);
+  // Inventory requests are answered from authorized metadata, never inferred from extracted PDF text.
+  const inventoryCount=/\b(how many|number of|count|total)\b/i.test(resolvedQuestion);
+  const inventoryList=/\b(list|show|which|what|name)\b/i.test(resolvedQuestion);
+  const policyScope=/\b(policies|policy|policy documents)\b/i.test(resolvedQuestion);
+  const documentScope=/\b(documents|knowledge base|knowledge documents)\b/i.test(resolvedQuestion);
+  const isInventoryQuestion=(inventoryCount||inventoryList)&&(policyScope||documentScope)
+   && !/\b(days|hours|entitlement|allowance|benefit amount|sanction|penalty|warning|occurrence)\b/i.test(resolvedQuestion);
   let response:string;
-  let responseMode:string='count';
+  let responseMode:string='inventory';
   let cited:{documentId:string;title:string;version:number;page:number|null;excerpt:string}[]=[];
-  if(isCountQuestion){
+  if(isInventoryQuestion){
    const now=new Date();
-   const documents=await db.nexHrDocument.findMany({where:{companyId:a.companyId!,status:'APPROVED',OR:[{effectiveAt:null},{effectiveAt:{lte:now}}],AND:[{OR:[{expiresAt:null},{expiresAt:{gt:now}}]}]},select:{familyId:true,category:true,visibility:true,status:true}});
+   const documents=await db.nexHrDocument.findMany({
+    where:{companyId:a.companyId!,status:'APPROVED',
+     OR:[{effectiveAt:null},{effectiveAt:{lte:now}}],
+     AND:[{OR:[{expiresAt:null},{expiresAt:{gt:now}}]}]},
+    select:{id:true,familyId:true,title:true,version:true,category:true,visibility:true,status:true},
+    orderBy:[{version:'desc'},{updatedAt:'desc'}]
+   });
    const visible=documents.filter(d=>allowedToRead(a,d));
-   const families=new Set(visible.filter(d=>/policy/i.test(d.category)).map(d=>d.familyId));
-   response=`You have ${families.size} approved, currently effective policy document${families.size===1?'':'s'} available to your account. Different versions of the same policy are counted once.`;
-  }else{
+   // Policy titles are authoritative for classification even when the upload
+   // category is Leave, Conduct, Other, etc. Never classify solely by category.
+   const isPolicy=(d:typeof visible[number])=>/\bpolic(?:y|ies)\b/i.test(d.title)||/\bpolic(?:y|ies)\b/i.test(d.category);
+   const scoped=policyScope?visible.filter(isPolicy):visible;
+   const byFamily=new Map<string,typeof scoped[number]>();
+   for(const d of scoped){if(!byFamily.has(d.familyId))byFamily.set(d.familyId,d)}
+   const current=[...byFamily.values()].sort((x,y)=>x.title.localeCompare(y.title));
+   const noun=policyScope?'policy document':'knowledge document';
+   const lead=`Your company has ${current.length} approved, currently effective ${noun}${current.length===1?'':'s'} available to your account. Different versions of the same document are counted once.`;
+   response=(inventoryList||current.length<=10)&&current.length
+    ?lead+'\n'+current.map((d,i)=>`${i+1}. ${d.title} (v${d.version})`).join('\n')
+    :lead;
+   // Inventory metadata is not a quoted document passage, so no fabricated citations.
+    }else{
    const evidence=await retrieve(a,resolvedQuestion);
    const result=await answerWithSources(resolvedQuestion,evidence);
    response=result.text;
