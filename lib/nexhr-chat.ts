@@ -202,6 +202,31 @@ function answerBroadOffence(question:string,evidence:Evidence[]):AnswerResult|nu
  }).join(' ');
  return {text:`The approved disciplinary matrix lists the following offence-specific sanctions: ${text}`,usedEvidence:rows.map(r=>r.source),mode:'extractive'};
 }
+// Conservative fallback for exact offence names when PDF layout adds category words.
+// Only accepts a uniquely matching offence row and a single unambiguous sanction.
+function exactNamedSanction(question:string,evidence:Evidence[]):AnswerResult|null{
+ const occurrence= /\b(first|1st)\b/i.test(question)?0:/\b(second|2nd)\b/i.test(question)?1:/\b(third|3rd)\b/i.test(question)?2:-1;
+ if(occurrence<0||!isOccurrenceSanctionQuestion(question))return null;
+ const normalized=(s:string)=>s.toLowerCase().replace(/[^a-z]+/g,' ').trim();
+ const q=normalized(question);
+ // Exact named phrases, not fuzzy categories: never substitute one offence for another.
+ const names=['threats or intimidation','wrong orders due to negligence','unauthorized discounts/free items','late reporting to work','poor personal hygiene'];
+ const name=names.find(n=>q.includes(normalized(n)));
+ if(!name)return null;
+ const variants:Record<string,string[]>={
+  'threats or intimidation':['threats or intimidation','threat intimidation'],
+  'wrong orders due to negligence':['wrong orders due to negligence'],
+  'unauthorized discounts/free items':['unauthorized discounts free items','unauthorised discounts free items'],
+  'late reporting to work':['late reporting to work'],
+  'poor personal hygiene':['poor personal hygiene']
+ };
+ const matches=evidence.map(source=>({source,row:parsedOffenceRow(source)})).filter(x=>x.row&&variants[name].some(v=>normalized(x.row!.offence).includes(normalized(v))));
+ if(!matches.length)return null;
+ const sanctions=[...new Set(matches.map(x=>x.row!.sanctions[occurrence].trim().toLowerCase()))];
+ if(sanctions.length!==1||/^(not specified|n\/a|-|—)$/i.test(sanctions[0]))return null;
+ const selected=matches[0];
+ return {text:`According to the approved sanctions matrix${selected.source.page?` (page ${selected.source.page})`:''}, the sanction for the ${['first','second','third'][occurrence]} occurrence of ${name} is ${selected.row!.sanctions[occurrence]}.`,usedEvidence:[selected.source],mode:'extractive'};
+}
 export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:string):Promise<Evidence[]>{
  const q=terms(question);if(!q.length)return [];
  const now=new Date();
@@ -240,6 +265,11 @@ export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:str
   return m?offenceMatchScore(question,m[1]):0;
  };
  const ranked=candidates.map(e=>({...e,score:e.score+(sanctionQuestion?matrixScore(e)*4:0)})).sort((x,y)=>y.score-x.score);
+ const named=exactNamedSanction(question,ranked);
+ if(named){
+  console.info('Nex HR sanctions retrieval',JSON.stringify({result:'exact_named_row',matchedRows:named.usedEvidence.length}));
+  return named.usedEvidence;
+ }
  const exactRows=sanctionQuestion?ranked.filter(e=>matrixScore(e)>=0.85):[];
  // When a matching row exists, give it priority and do not spend the citation
  // budget on neighboring offences or unrelated paragraphs.
@@ -281,6 +311,8 @@ export async function answerWithSources(question:string,evidence:Evidence[]):Pro
  if(broad)return broad;
  const verified=verifiedMatrixSanction(question,evidence);
  if(verified)return verified;
+ const named=exactNamedSanction(question,evidence);
+ if(named)return named;
  // Do not let the language model guess a sanction for an unmatched occurrence/offence.
  if(isOccurrenceSanctionQuestion(question)){
   console.info('Nex HR sanctions verification',JSON.stringify({
