@@ -46,7 +46,8 @@ contains('document list filters visibility',docs,/\.filter\s*\(\s*d\s*=>\s*allow
 contains('upload requires manage permission',docs,/gate\s*\(\s*['"]nexhr\.manage['"]\s*\)/);
 contains('upload validates effective/expiry ordering',docs,/expiresAt\s*<=\s*effectiveAt/);
 contains('regular employees only read approved documents',access,/d\.status\s*===\s*['"]APPROVED['"]/);
-contains('analytics scoped to company',analytics,/companyId\s*:\s*a\.companyId/);
+contains('analytics binds authenticated company',analytics,/const\s+companyId\s*=\s*a\.companyId!?/);
+contains('analytics queries scoped to company',analytics,/where\s*:\s*\{[^}]*\bcompanyId\b/s);
 
 // Exact deterministic sanction checks using representative synthetic rows.
 // The suite intentionally makes no claim about the actual approved PDF.
