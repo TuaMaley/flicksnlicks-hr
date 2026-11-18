@@ -167,6 +167,41 @@ function cosine(a:number[],b:number[]):number{
  for(let i=0;i<a.length;i++){dot+=a[i]*b[i];aa+=a[i]*a[i];bb+=b[i]*b[i]}
  return aa&&bb?dot/Math.sqrt(aa*bb):0;
 }
+// Broad offence questions must match the actual offence cell, never a category
+// heading, neighboring matrix row, or a generic mention elsewhere in the PDF.
+function broadOffence(question:string):string|null{
+ if(/\b(first|second|third|1st|2nd|3rd)\b/i.test(question))return null;
+ if(!/\b(punish(?:ment)?|sanction|penalt(?:y|ies)|disciplin(?:ary|e)|consequence|dismissal|termination)\b/i.test(question))return null;
+ const matches=['fraud','theft','harassment','intimidation','violence','insubordination'].filter(w=>new RegExp('\\b'+w+'\\b','i').test(question));
+ return matches.length===1?matches[0]:null;
+}
+function parsedOffenceRow(e:Evidence):{offence:string;sanctions:string[]}|null{
+ if(!e.excerpt.startsWith('Sanctions matrix row:'))return null;
+ const m=e.excerpt.match(/^Sanctions matrix row: Offence \/ Issue: (.+?); 1st Occurrence: ([^;]+); 2nd Occurrence: ([^;]+); 3rd Occurrence \/ Severe Case: (.+?)\.?$/);
+ return m?{offence:m[1].trim(),sanctions:[m[2].trim(),m[3].trim(),m[4].trim().replace(/\.$/,'')]}:null;
+}
+function broadOffenceRows(question:string,candidates:Evidence[]):Evidence[]{
+ const term=broadOffence(question);if(!term)return [];
+ const exact=new RegExp('\\b'+term+'\\b','i');
+ return candidates.filter(e=>{const row=parsedOffenceRow(e);return row&&exact.test(row.offence)});
+}
+function answerBroadOffence(question:string,evidence:Evidence[]):AnswerResult|null{
+ const matched=broadOffenceRows(question,evidence);
+ if(!matched.length)return null;
+ const unique=new Map<string,{source:Evidence;offence:string;sanctions:string[]}>();
+ for(const source of matched){
+  const row=parsedOffenceRow(source)!;
+  const key=row.offence.toLowerCase()+'|'+row.sanctions.join('|').toLowerCase();
+  if(!unique.has(key))unique.set(key,{source,...row});
+ }
+ if(unique.size>4)return null; // ambiguous extraction: let verified AI handle it
+ const rows=[...unique.values()];
+ const text=rows.map(r=>{
+  const sanctions=r.sanctions.map((v,i)=>`${['1st','2nd','3rd/severe'][i]}: ${v}`).join('; ');
+  return `${r.offence}: ${sanctions}${r.source.page?` (page ${r.source.page})`:''}.`;
+ }).join(' ');
+ return {text:`The approved disciplinary matrix lists the following offence-specific sanctions: ${text}`,usedEvidence:rows.map(r=>r.source),mode:'extractive'};
+}
 export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:string):Promise<Evidence[]>{
  const q=terms(question);if(!q.length)return [];
  const now=new Date();
@@ -193,6 +228,11 @@ export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:str
  }));
  // Keep independently extracted matrix rows distinct from broad PDF chunks.
  // A broad chunk can contain several offences, and must not outrank a precise row.
+ const broadRows=broadOffenceRows(question,candidates);
+ if(broadRows.length){
+  console.info('Nex HR broad offence retrieval',JSON.stringify({matchedRows:broadRows.length}));
+  return broadRows.slice(0,8);
+ }
  const sanctionQuestion=isOccurrenceSanctionQuestion(question);
  const matrixScore=(e:Evidence)=>{
   if(!e.excerpt.startsWith('Sanctions matrix row:'))return 0;
@@ -237,6 +277,8 @@ export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:str
 export type AnswerResult={text:string;usedEvidence:Evidence[];mode:'openai'|'extractive'|'refusal'};
 export async function answerWithSources(question:string,evidence:Evidence[]):Promise<AnswerResult>{
  if(!evidence.length)return {text:REFUSAL,usedEvidence:[],mode:'refusal'};
+ const broad=answerBroadOffence(question,evidence);
+ if(broad)return broad;
  const verified=verifiedMatrixSanction(question,evidence);
  if(verified)return verified;
  // Do not let the language model guess a sanction for an unmatched occurrence/offence.
