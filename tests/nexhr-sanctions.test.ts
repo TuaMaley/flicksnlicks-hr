@@ -23,3 +23,16 @@ for(const [q,expected] of tests){const result=verifiedMatrixSanction(q,evidence)
 const successive=['What is the sanction for a first occurrence of poor personal hygiene?','What is the sanction for a third occurrence of wrong orders due to negligence?','What is the sanction for a second occurrence of threats or intimidation?'];
 for(const q of successive){if(!verifiedMatrixSanction(q,evidence))throw Error('Failed successive question '+q)}
 console.log('Passed',tests.length,'matrix cases and successive-question regression.');
+
+// Verify each abbreviated question matches its own row and never a previous offence.
+const shortQuestions:[string,string][]=[
+ ['First occurrence of unauthorized discounts/free items','Written warning'],
+ ['Second occurrence of threats or intimidation','Suspension'],
+ ['Third occurrence of wrong orders due to negligence','Final written warning'],
+ ['First occurrence of poor personal hygiene','Verbal warning']
+];
+for(const [q,want] of shortQuestions){
+ const got=verifiedMatrixSanction(q,evidence);
+ if(!got||!got.text.endsWith('is '+want+'.'))throw Error('Short question regression: '+q+' => '+got?.text);
+}
+console.log('Passed abbreviated-question regression.');
