@@ -1,5 +1,5 @@
 // Module catalogue shown on the public site (home explorer and Features page). Grounded in what Nexora ships today.
-import {Users,CalendarDays,UserPlus,Smartphone,Award,Target,Gavel,Wallet,Briefcase,GraduationCap} from 'lucide-react';
+import {Users,CalendarDays,UserPlus,Smartphone,Award,Target,Gavel,Wallet,Briefcase,GraduationCap,Bot} from 'lucide-react';
 export type SiteModule={key:string;name:string;what:string;Icon:typeof Users;items:string[]};
 export type SiteGroup={title:string;sub:string;mods:SiteModule[]};
 export const GROUPS:SiteGroup[]=[
@@ -8,6 +8,7 @@ export const GROUPS:SiteGroup[]=[
   {key:'leave',name:'Leave Management',Icon:CalendarDays,what:'Leave rules your staff understand and managers approve in a click.',items:['Leave policies and entitlements','Live leave balances','Requests and approvals','Team leave calendar','Eligibility checks per policy','Leave history']},
   {key:'onboarding',name:'Onboarding & Exit',Icon:UserPlus,what:'Nobody forgets a step when people join or leave.',items:['Onboarding task lists','Exit and clearance tasks','Final sign-off before exit','Onboarding and exit analytics']},
   {key:'selfservice',name:'Employee Self-Service',Icon:Smartphone,what:'Employees help themselves on the web or the Nexora mobile app.',items:['Payslips as PDF','Leave requests and balances','Profile and photo','Internal job vacancies and referrals','HR requests with tracking','Employment verification letters']},
+  {key:'assistant',name:'Nex HR',Icon:Bot,what:'Instant answers to HR questions, from documents HR has approved.',items:['Answers in plain language','Knowledge base of approved HR documents','No access to employee records, salaries or payroll','Available to employees any time']},
  ]},
  {title:'Performance',sub:'Fair, documented reviews and consistent handling of conduct.',mods:[
   {key:'appraisals',name:'Performance Appraisal',Icon:Award,what:'Run review cycles the same way across the company.',items:['Reusable appraisal templates','KPI-based scoring','Review cycles and assignments','Appraisal history','Reports and analytics']},

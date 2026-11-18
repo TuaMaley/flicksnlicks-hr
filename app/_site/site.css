@@ -20,9 +20,7 @@
 .nx :focus-visible{outline:3px solid var(--red);outline-offset:3px;border-radius:4px}
 .nx main{flex:1 0 auto}
 .nx > header,.nx > footer{flex:0 0 auto}
-/* Keep the public website content 1.5 inches from the left viewport edge on desktop. */
-.nx .wrap{max-width:none;width:100%;margin:0;padding-left:1.5in;padding-right:var(--gutter)}
-@media(max-width:900px){.nx .wrap{padding-left:var(--gutter)}}
+.nx .wrap{max-width:var(--wrap);margin:0 auto;padding:0 var(--gutter)}
 .nx h1,.nx h2,.nx h3,.nx h4{color:var(--ink);font-weight:800;letter-spacing:-.025em;margin:0;font-variation-settings:'wdth' 112}
 .nx h1{font-size:clamp(40px,6.4vw,80px);line-height:.98;font-variation-settings:'wdth' 125}
 .nx h2{font-size:clamp(30px,3.8vw,48px);line-height:1.05;font-variation-settings:'wdth' 120}
@@ -392,3 +390,40 @@
 @media(max-width:900px){.video-sec .wrap{grid-template-columns:1fr}}
 .aside-video{margin-bottom:30px}
 .aside-video p{margin-top:12px;color:var(--muted);font-size:15px}
+
+/* HR Assistant illustration (AssistantDemo.tsx) */
+.hra{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.9fr);gap:18px;align-items:start;font-size:15px}
+.hra-chat{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden;color:var(--text)}
+.hra-top{display:flex;gap:12px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
+.hra-top b{display:block;color:var(--ink);line-height:1.2}
+.hra-top small{color:var(--muted);font-size:13px}
+.hra-av{width:36px;height:36px;border-radius:12px;background:var(--red);color:#fff;display:grid;place-items:center;flex:0 0 auto}
+.hra-msgs{padding:20px;display:flex;flex-direction:column;gap:12px;background:var(--fog)}
+.hra-msgs p{margin:0}
+.hra-msgs .me{align-self:flex-end;max-width:82%;background:var(--night);color:#fff;padding:10px 14px;border-radius:16px 16px 4px 16px}
+.hra-msgs .bot{align-self:flex-start;max-width:88%;background:#fff;border:1px solid var(--line);padding:12px 14px;border-radius:16px 16px 16px 4px;color:var(--ink)}
+.hra-msgs .bot.no{border-color:#F3C2C4}
+.hra .src{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:600;color:var(--ok);background:var(--ok-soft);padding:3px 10px;border-radius:999px}
+.hra .no .src{color:var(--red-deep);background:var(--red-soft)}
+.hra-input{display:flex;align-items:center;justify-content:space-between;margin:0;padding:14px 20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+.hra-input i{width:30px;height:30px;border-radius:10px;background:var(--red)}
+.hra-kb{background:var(--night);color:var(--night-text);border-radius:var(--r-lg);padding:22px}
+.hra-kb .kb-h{margin:0 0 10px;font-weight:800;color:#fff;font-size:14px;font-variation-settings:'wdth' 112}
+.hra-kb .kb-h.off{margin-top:22px;color:var(--night-text)}
+.hra-kb ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.hra-kb li{display:flex;align-items:center;gap:10px;background:var(--night-2);border:1px solid var(--night-line);border-radius:12px;padding:10px 12px;color:#fff;font-size:14px}
+.hra-kb li svg{color:#4ADE80;flex:0 0 auto}
+.hra-kb li em{margin-left:auto;font-style:normal;font-size:12px;color:#4ADE80}
+.hra-kb ul.off li{background:transparent;border-style:dashed;color:var(--night-text);text-decoration:line-through;text-decoration-color:rgba(255,107,112,.7)}
+.hra-kb ul.off li svg{color:#FF6B70}
+.hra-sec .split2{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(32px,5vw,80px);align-items:center}
+.hra-points{list-style:none;margin:28px 0 0;padding:0;display:grid;gap:18px}
+.hra-points li{display:flex;gap:14px;align-items:flex-start}
+.hra-points li .ico{flex:0 0 auto}
+.hra-points b{display:block;color:var(--ink)}
+.hra-points span{color:var(--muted)}
+@media(max-width:1080px){.hra-sec .split2{grid-template-columns:1fr}}
+@media(max-width:640px){.hra{grid-template-columns:1fr}}
+/* Keep the module explorer inside the viewport on phones */
+.explore>*{min-width:0}
+@media(max-width:600px){.mods{grid-template-columns:1fr}}

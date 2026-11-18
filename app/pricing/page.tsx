@@ -11,6 +11,7 @@ const FAQ:[string,string][]=[
  ['Can I change plan later?','Yes. Contact us and we will move you to another plan; your employee records and history stay as they are.'],
  ['Why is every registration reviewed?','A person on our team checks each new company before its workspace is created. It keeps the platform free of fake accounts and gives every customer a named contact.'],
  ['Can you set us up instead?','Yes. Book a demo and our team will create your workspace with you and help you bring employee records across.'],
+ ['Can Nex HR see salaries or employee records?','No. It answers only from the HR documents your company approves and uploads to its knowledge base. Employee records, salaries, compensation and payroll are never part of it.'],
  ['Do employees need their own licence?','Plans are priced per company. Employees use self-service on the web or the Nexora Employee app as part of your plan when it includes Employee Self-Service.'],
 ];
 export default async function Pricing(){

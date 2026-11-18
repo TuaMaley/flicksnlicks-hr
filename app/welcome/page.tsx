@@ -4,11 +4,12 @@ import SiteFrame from '../_site/SiteFrame';
 import ModuleExplorer from '../_site/ModuleExplorer';
 import Phone from '../_site/Phone';
 import VideoFeature from '../_site/VideoFeature';
+import AssistantDemo from '../_site/AssistantDemo';
 import {siteVideo} from '../_site/video';
 import {OCT_2026_BANDS,computeGhanaPayroll} from '../../lib/ghana-payroll';
-import {ArrowRight,BadgeCheck,Building2,CalendarCheck,ClipboardCheck,FileCheck2,IdCard,Landmark,LayoutDashboard,Lock,MapPin,ScrollText,ShieldCheck,Smartphone,Users,UsersRound,Wallet,Check,CheckCircle2} from 'lucide-react';
+import {ArrowRight,BadgeCheck,Building2,CalendarCheck,ClipboardCheck,FileCheck2,IdCard,Landmark,LayoutDashboard,Lock,MapPin,ScrollText,ShieldCheck,Smartphone,Users,UsersRound,Wallet,Check,CheckCircle2,Bot,BookOpenCheck,Clock} from 'lucide-react';
 
-export const metadata=pageMeta('Nexora | Run your people, not paperwork','HR and payroll software that does the heavy lifting: tax and statutory deductions calculated every run, leave and appraisals tracked, payslips on every phone.','/');
+export const metadata=pageMeta('Nexora | Run your people, not paperwork','HR and payroll software that does the heavy lifting: deductions calculated every run, payslips on every phone, and Nex HR, an assistant that answers staff questions from your own approved policies.','/');
 
 const money=(n:number)=>n.toLocaleString('en-GH',{minimumFractionDigits:2,maximumFractionDigits:2});
 
@@ -25,7 +26,7 @@ export default function Welcome(){
     <h1>Run your people, not paperwork.</h1>
     <p className="lede">Payroll, leave, appraisals and employee records in one place — with tax and statutory deductions calculated every run, and a payslip in every employee’s pocket.</p>
     <div className="actions"><a className="btn btn-red" href="/register">Register your company <ArrowRight size={18} aria-hidden="true"/></a><a className="btn btn-line" href="/request-demo">Book a demo</a></div>
-    <p className="assure"><span><BadgeCheck size={16} aria-hidden="true"/>Every new company is reviewed by our team</span><span><Lock size={16} aria-hidden="true"/>Your data is kept separate from every other company</span></p>
+    <p className="assure"><span><BadgeCheck size={16} aria-hidden="true"/>Every new company is reviewed by our team</span><span><Lock size={16} aria-hidden="true"/>Your data is kept separate from every other company</span><span><Bot size={16} aria-hidden="true"/>Nex HR answers staff from your approved policies</span></p>
    </div>
 
    <div className="stage">
@@ -74,6 +75,20 @@ export default function Welcome(){
    <div className="it"><span className="ico"><MapPin size={20} aria-hidden="true"/></span><p><b>Multi-branch</b><span>Branches, departments and positions</span></p></div>
   </div></section>
 
+  <section className="sec hra-sec" aria-labelledby="hra-h"><div className="wrap split2">
+   <div>
+    <p className="kicker"><Bot size={18} aria-hidden="true"/>Nex HR</p>
+    <h2 id="hra-h">Answers for employees, without the walk to HR</h2>
+    <p className="lede">Employees ask about leave, benefits or the dress code in plain words and get an answer straight away, taken from the HR documents your company has approved.</p>
+    <ul className="hra-points">
+     <li><span className="ico"><BookOpenCheck size={20} aria-hidden="true"/></span><p><b>Only what you approve</b><span>The assistant answers from the documents HR uploads to its knowledge base, and nothing else.</span></p></li>
+     <li><span className="ico"><Lock size={20} aria-hidden="true"/></span><p><b>No access to people data</b><span>Employee records, salaries, compensation and payroll are never part of its knowledge base, so it can’t reveal them.</span></p></li>
+     <li><span className="ico"><Clock size={20} aria-hidden="true"/></span><p><b>Fewer routine questions for HR</b><span>Staff get policy answers any time of day, and HR keeps its time for the cases that need a person.</span></p></li>
+    </ul>
+   </div>
+   <AssistantDemo/>
+  </div></section>
+
   {video&&<section className="sec video-sec" aria-labelledby="tour-h"><div className="wrap">
    <div><h2 id="tour-h">See Nexora in action</h2><p className="lede">A walkthrough of employee records, leave, payroll and self-service — the way your team will use them every day.</p>
     <div className="actions"><a className="btn btn-ink" href="/request-demo">Book a live demo</a></div></div>
@@ -103,6 +118,7 @@ export default function Welcome(){
      <li><CheckCircle2 size={20} aria-hidden="true"/><span><b>Payslips whenever they need them</b>Every month’s payslip, downloadable as a PDF.</span></li>
      <li><CheckCircle2 size={20} aria-hidden="true"/><span><b>Leave without the paperwork</b>Check balances, request time off and follow the approval.</span></li>
      <li><CheckCircle2 size={20} aria-hidden="true"/><span><b>Letters and requests</b>Request employment letters and track HR requests.</span></li>
+     <li><CheckCircle2 size={20} aria-hidden="true"/><span><b>Nex HR on hand</b>Ask policy questions and get answers from approved HR documents.</span></li>
      <li><CheckCircle2 size={20} aria-hidden="true"/><span><b>Internal vacancies</b>See open roles, apply or refer someone.</span></li>
     </ul>
     <div className="actions"><a className="btn btn-line" href="https://employee.nexora-hrms.com"><Smartphone size={18} aria-hidden="true"/>Open the employee portal</a></div>

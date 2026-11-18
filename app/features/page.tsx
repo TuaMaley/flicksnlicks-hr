@@ -1,8 +1,9 @@
 import {pageMeta} from '../_site/seo';
 import SiteFrame from '../_site/SiteFrame';
 import {GROUPS} from '../_site/content';
+import AssistantDemo from '../_site/AssistantDemo';
 import {Check,Lock,ScrollText,UsersRound,Building2,ArrowRight} from 'lucide-react';
-export const metadata=pageMeta('HR, Payroll & Self-Service Features | Nexora','Employee records, leave, payroll, appraisals, recruitment, training, onboarding, disciplinary management, self-service and access controls.','/features');
+export const metadata=pageMeta('HR, Payroll & Self-Service Features | Nexora','Employee records, leave, payroll, appraisals, recruitment, training, onboarding, disciplinary management, self-service, Nex HR (an HR assistant for employees) and access controls.','/features');
 export default function Features(){
  return <SiteFrame active="features">
   <section className="pagehead dark"><div className="wrap"><h1>Everything you need to run HR, in one place</h1><p className="lede">Each plan includes a set of modules. Your administrator decides who in your company can use each one.</p>
@@ -15,6 +16,14 @@ export default function Features(){
      <ul>{m.items.map(x=><li key={x}><Check size={16} aria-hidden="true"/>{x}</li>)}</ul>
     </div>})}
    </div>)}
+  </div></section>
+  <section className="sec fog hra-sec" id="nex-hr" aria-labelledby="hra-h"><div className="wrap split2">
+   <div>
+    <h2 id="hra-h">Nex HR: answers from your policies, never your people data</h2>
+    <p className="lede">HR uploads the documents employees should be able to ask about. The assistant answers only from those documents. It has no access to employee records, salaries, compensation or payroll, so it can’t share them.</p>
+    <div className="actions"><a className="btn btn-ink" href="/request-demo">See it in a demo</a></div>
+   </div>
+   <AssistantDemo/>
   </div></section>
   <section className="sec dark"><div className="wrap">
    <div className="head"><h2>Access & Audit Controls</h2><p>Payroll and personnel data need protecting from day one. These controls decide who sees what.</p></div>
