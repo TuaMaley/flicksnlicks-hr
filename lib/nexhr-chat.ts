@@ -1,6 +1,7 @@
 import {db} from './db';
 import {allowedToRead} from './nexhr';
 import {access} from './auth';
+import {verifiedMatrixSanction, isOccurrenceSanctionQuestion, offenceMatchScore} from './nexhr-sanctions';
 
 export const REFUSAL="I couldn't find sufficient information in your company's approved knowledge base to answer that question. Please contact your HR department for clarification.";
 export type Evidence={documentId:string;title:string;version:number;page:number|null;excerpt:string;score:number};
@@ -127,26 +128,32 @@ export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:str
    }
   }catch(e){console.error('Nex HR document extraction failed',d.id,e)}
  }
- // Prefer an exact offense row over generic disciplinary procedure passages.
- const offenseQuestion=/\b(late|lateness|tardiness|punctuality)\b/i.test(question);
- const ranked=candidates.map(e=>({...e,score:e.score+(offenseQuestion&&e.excerpt.startsWith('Sanctions matrix row:')&&/\blate reporting to work\b/i.test(e.excerpt)?1.5:0)})).sort((x,y)=>y.score-x.score);
+ // Keep independently extracted matrix rows distinct from broad PDF chunks.
+ // A broad chunk can contain several offences, and must not outrank a precise row.
+ const sanctionQuestion=isOccurrenceSanctionQuestion(question);
+ const matrixScore=(e:Evidence)=>{
+  if(!e.excerpt.startsWith('Sanctions matrix row:'))return 0;
+  const m=e.excerpt.match(/^Sanctions matrix row: Offence \/ Issue: (.+?); 1st Occurrence:/);
+  return m?offenceMatchScore(question,m[1]):0;
+ };
+ const ranked=candidates.map(e=>({...e,score:e.score+(sanctionQuestion?matrixScore(e)*4:0)})).sort((x,y)=>y.score-x.score);
+ const exactRows=sanctionQuestion?ranked.filter(e=>matrixScore(e)>=0.85):[];
+ // When a matching row exists, give it priority and do not spend the citation
+ // budget on neighboring offences or unrelated paragraphs.
+ if(exactRows.length)return exactRows.slice(0,8);
  const lexicalTop=ranked.filter(x=>x.score>=0.20).slice(0,5);
- // Semantic matching is optional and bounded. Never send unapproved or unauthorized material.
- // Include lower-lexical candidates so alternative phrasing can be discovered.
  if(process.env.NEXHR_SEMANTIC_SEARCH!=='true'||!process.env.NEXHR_OPENAI_API_KEY)return lexicalTop;
  const pool=ranked.slice(0,60);
  if(!pool.length)return [];
  const vectors=await embeddings([question,...pool.map(x=>x.excerpt)]);
  if(!vectors)return lexicalTop;
  const semantic=pool.map((e,i)=>({...e,similarity:cosine(vectors[0],vectors[i+1])}));
- // A conservative semantic threshold prevents unrelated documents from becoming evidence.
  const selected=semantic.filter(e=>e.score>=0.20||e.similarity>=0.66)
   .map(e=>({...e,score:0.45*e.score+0.55*Math.max(0,e.similarity)}))
   .sort((x,y)=>y.score-x.score).slice(0,5);
  return selected.map(({similarity,...e})=>e);
 }
 export type AnswerResult={text:string;usedEvidence:Evidence[];mode:'openai'|'extractive'|'refusal'};
-import {verifiedMatrixSanction, isOccurrenceSanctionQuestion} from './nexhr-sanctions';
 export async function answerWithSources(question:string,evidence:Evidence[]):Promise<AnswerResult>{
  if(!evidence.length)return {text:REFUSAL,usedEvidence:[],mode:'refusal'};
  const verified=verifiedMatrixSanction(question,evidence);
