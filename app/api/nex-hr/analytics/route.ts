@@ -25,6 +25,16 @@ export async function GET(){
   db.nexHrDocument.findMany({where:{companyId},select:{id:true,familyId:true,title:true,version:true,status:true,effectiveAt:true,expiresAt:true,reviewedAt:true},orderBy:[{familyId:'asc'},{version:'desc'}],take:500}),
   db.nexHrAnswerFeedback.count({where:{companyId,rating:'NOT_HELPFUL'}})
  ]);
+ // Resolve audit document IDs to human-readable titles, scoped to this company.
+ const auditDocumentIds=[...new Set(recentAudit.map(e=>e.documentId).filter((id):id is string=>Boolean(id)))];
+ const auditDocuments=auditDocumentIds.length?await db.nexHrDocument.findMany({
+  where:{companyId,id:{in:auditDocumentIds}},
+  select:{id:true,title:true,version:true}
+ }):[];
+ const auditTitles=new Map(auditDocuments.map(d=>[d.id,`${d.title} (v${d.version})`]));
+ const readableAudit=recentAudit.map(e=>({
+  ...e,documentTitle:e.documentId?(auditTitles.get(e.documentId)??'Document unavailable'):'No document linked'
+ }));
  const versions=new Map<string,{familyId:string;title:string;versions:number;latestVersion:number;approvedVersions:number;latestStatus:string}>();
  for(const d of versionRows){const v=versions.get(d.familyId);
   if(!v)versions.set(d.familyId,{familyId:d.familyId,title:d.title,versions:1,latestVersion:d.version,approvedVersions:d.status==='APPROVED'?1:0,latestStatus:d.status});
@@ -38,7 +48,7 @@ export async function GET(){
   windowDays:30, recentAnswersSampled:recentAssistant.length,recentRefusals,recentUnverified,
   recentRefusalRate:recentAssistant.length?Math.round(1000*recentRefusals/recentAssistant.length)/10:null,
   negativeFeedbackTotal:negativeFeedback,
-  auditEvents:recentAudit,versionFamilies:[...versions.values()].filter(v=>v.versions>1).slice(0,30),
+  auditEvents:readableAudit,versionFamilies:[...versions.values()].filter(v=>v.versions>1).slice(0,30),
   versionsSampled:versionRows.length,versionSampleLimit:500,
   warnings:[...(versionRows.length===500?['Version inventory is limited to 500 records.']:[]),
    ...(assistantMessages.length===1000?['Answer metrics are sampled from the 1,000 newest assistant messages.']:[]),
