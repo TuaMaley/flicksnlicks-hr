@@ -20,6 +20,22 @@ export async function GET(){
   db.nexHrDocument.count({where:{companyId,status:'APPROVED',expiresAt:{gt:now,lte:inThirtyDays}}}),
   db.nexHrDocument.count({where:{companyId,status:'APPROVED',effectiveAt:{gt:now}}})
  ]);
+ const documentQuality=await db.nexHrDocument.findMany({
+  where:{companyId,status:'APPROVED'},
+  select:{id:true,title:true,version:true,mimeType:true,fileData:true,visibility:true,effectiveAt:true,expiresAt:true},
+  orderBy:{updatedAt:'desc'},take:500
+ });
+ const emptyFiles=documentQuality.filter(d=>!d.fileData||d.fileData.length===0).length;
+ const unsupportedFormats=documentQuality.filter(d=>!(
+  d.mimeType==='application/pdf'||d.mimeType==='text/plain'||
+  d.mimeType.includes('wordprocessingml')
+ )).length;
+ const missingEffectiveDate=documentQuality.filter(d=>!d.effectiveAt).length;
+ const missingExpiryDate=documentQuality.filter(d=>!d.expiresAt).length;
+ const documentQualitySummary={
+  inspected:documentQuality.length,limitedTo500:documentQuality.length===500,
+  emptyFiles,unsupportedFormats,missingEffectiveDate,missingExpiryDate
+ };
  const refused=assistantMessages.filter(m=>m.content===REFUSAL).length;
  const unverified=assistantMessages.filter(m=>m.content.startsWith(UNVERIFIED)).length;
  const hasCitations=(m:typeof assistantMessages[number])=>Array.isArray(m.citations)&&m.citations.length>0;
@@ -36,5 +52,5 @@ export async function GET(){
   if(m.role==='user')lastUser.set(m.threadId,m.content);
   if(m.role==='assistant'&&(m.content===REFUSAL||m.content.startsWith(UNVERIFIED))){const q=lastUser.get(m.threadId);if(q&&!gapQuestions.includes(q))gapQuestions.push(q)}
  }
- return ok({threads,policyLifecycle:{pendingReviews,expiredApproved,expiringSoon,futureEffective},knowledgeGapQuestions:gapQuestions.slice(-15).reverse(),answersSampled:assistantMessages.length,refusalsSampled:refused,answerQuality:{uncitedRefusals,citedUnverified,unverified,citedAnswers,uncitedAnswers},feedback:feedback.map(x=>({rating:x.rating,count:x._count._all})),documentCounts:documentCounts.map(x=>({status:x.status,category:x.category,count:x._count._all})),note:'Answer counts and refusals cover up to the 1,000 most recent assistant messages. Unanswered questions include refusals and verification fallbacks, sampled from up to 50 conversations. Citation counts reflect stored citations, not independently verified accuracy.'});
+ return ok({threads,documentQuality:documentQualitySummary,policyLifecycle:{pendingReviews,expiredApproved,expiringSoon,futureEffective},knowledgeGapQuestions:gapQuestions.slice(-15).reverse(),answersSampled:assistantMessages.length,refusalsSampled:refused,answerQuality:{uncitedRefusals,citedUnverified,unverified,citedAnswers,uncitedAnswers},feedback:feedback.map(x=>({rating:x.rating,count:x._count._all})),documentCounts:documentCounts.map(x=>({status:x.status,category:x.category,count:x._count._all})),note:'Answer counts and refusals cover up to the 1,000 most recent assistant messages. Unanswered questions include refusals and verification fallbacks, sampled from up to 50 conversations. Citation counts reflect stored citations, not independently verified accuracy.'});
 }
