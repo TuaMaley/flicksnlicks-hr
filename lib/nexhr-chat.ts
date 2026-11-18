@@ -30,17 +30,19 @@ function layoutText(items:any[]):string{
  }
  return [...lines.entries()].sort((a,b)=>b[0]-a[0]).map(([,v])=>v.sort((a,b)=>a.x-b.x).map(x=>x.text).join(' ')).join('\n');
 }
-function extractOccurrenceRows(items:any[]):string[]{
+function extractOccurrenceRows(items:any[],carry?:[number,number,number]):string[]{
  const positioned=items.map(it=>({text:String(it.str||'').trim(),x:Number(it.transform?.[4]||0),y:Number(it.transform?.[5]||0)})).filter(it=>it.text);
  const headers=positioned.filter(it=>/^(1st|2nd|3rd)\s*Occurrence$/i.test(it.text));
- if(headers.length<2)return [];
+ if(headers.length<2&&!carry)return [];
  const first=headers.find(h=>/^1st/i.test(h.text));const second=headers.find(h=>/^2nd/i.test(h.text));
  const third=headers.find(h=>/^3rd/i.test(h.text));
- if(!first||!second||!third||!(first.x<second.x&&second.x<third.x))return [];
- const hy=Math.max(first.y,second.y,third.y);
+ const positions=first&&second&&third?[first.x,second.x,third.x]:carry;
+ if(!positions||!(positions[0]<positions[1]&&positions[1]<positions[2]))return [];
+ const [firstX,secondX,thirdX]=positions;
+ const hy=first&&second&&third?Math.max(first.y,second.y,third.y):Infinity;
  // Offence starts to the left of first-occurrence column. A first sanction
  // cell at a new baseline marks the beginning of a row in the sanctions matrix.
- const boundaries=[-Infinity,first.x-8,second.x-8,third.x-8,Infinity];
+ const boundaries=[-Infinity,firstX-8,secondX-8,thirdX-8,Infinity];
  const entries=positioned.filter(it=>it.y<hy-8).sort((a,b)=>b.y-a.y||a.x-b.x);
  const lines=new Map<number,typeof entries>();
  for(const e of entries){const y=Math.round(e.y/2)*2;const l=lines.get(y)||[];l.push(e);lines.set(y,l)}
@@ -48,7 +50,7 @@ function extractOccurrenceRows(items:any[]):string[]{
  const output:string[]=[];let current:string[][]=[];
  const flush=()=>{if(!current.length)return;
   const cols=[0,1,2,3].map(i=>current.map(r=>r[i]).filter(Boolean).join(' ').replace(/\s+/g,' ').trim());
-  if(cols[0]&&cols[1]&&cols[2])output.push(`Sanctions matrix row: Offence / Issue: ${cols[0]}; 1st Occurrence: ${cols[1]}; 2nd Occurrence: ${cols[2]}; 3rd Occurrence / Severe Case: ${cols[3]||'not specified'}.`);
+  if(cols[0]&&cols[1]&&cols[2]&&/\b(warning|suspension|termination|dismissal|coaching|reprimand|caution|verbal)\b/i.test(cols[1]+' '+cols[2]))output.push(`Sanctions matrix row: Offence / Issue: ${cols[0]}; 1st Occurrence: ${cols[1]}; 2nd Occurrence: ${cols[2]}; 3rd Occurrence / Severe Case: ${cols[3]||'not specified'}.`);
   current=[];
  };
  for(const line of ordered){
@@ -68,10 +70,19 @@ async function extract(d:{mimeType:string;fileData:Uint8Array}):Promise<{page:nu
  if(d.mimeType==='application/pdf'){
   const pdfParse=(await import('pdf-parse')).default;
   const pages:{page:number|null;text:string}[]=[];
+  let priorColumns:[number,number,number]|undefined;
   await pdfParse(b,{pagerender:async(page:any)=>{
    const c=await page.getTextContent();
    const text=layoutText(c.items);
-   const rows=extractOccurrenceRows(c.items);
+   const hs=c.items.filter((it:any)=>/^(1st|2nd|3rd)\s*Occurrence$/i.test(String(it.str||'').trim()));
+   const header=(ordinal:string)=>hs.find((it:any)=>new RegExp('^'+ordinal,'i').test(String(it.str||'').trim()));
+   const h1=header('1st'),h2=header('2nd'),h3=header('3rd');
+   const hasHeader=Boolean(h1&&h2&&h3);
+   if(hasHeader)priorColumns=[Number(h1.transform[4]),Number(h2.transform[4]),Number(h3.transform[4])];
+   // Only carry column positions to the immediately following page of the same PDF.
+   // Continuation rows are tentative and still require a recognized offence and sanction.
+   const rows=extractOccurrenceRows(c.items,priorColumns);
+   if(!hasHeader)priorColumns=undefined;
    // Store a searchable, self-contained excerpt for each table row. The row keeps
    // the column labels adjacent to their values even when the PDF draws cells apart.
    pages.push({page:page.pageNumber||pages.length+1,text:[...rows,text].join('\n')});return text;
@@ -123,7 +134,7 @@ export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:str
    for(const part of parts){
     for(const excerpt of snippets(part.text.slice(0,600000))){
      const score=lexical(q,excerpt);
-     if(score>0||process.env.NEXHR_SEMANTIC_SEARCH==='true')candidates.push({documentId:d.id,title:d.title,version:d.version,page:part.page,excerpt,score});
+     if(score>0||excerpt.startsWith('Sanctions matrix row:')||process.env.NEXHR_SEMANTIC_SEARCH==='true')candidates.push({documentId:d.id,title:d.title,version:d.version,page:part.page,excerpt,score});
     }
    }
   }catch(e){console.error('Nex HR document extraction failed',d.id,e)}
@@ -140,7 +151,14 @@ export async function retrieve(a:Awaited<ReturnType<typeof access>>,question:str
  const exactRows=sanctionQuestion?ranked.filter(e=>matrixScore(e)>=0.85):[];
  // When a matching row exists, give it priority and do not spend the citation
  // budget on neighboring offences or unrelated paragraphs.
- if(exactRows.length)return exactRows.slice(0,8);
+ if(exactRows.length){
+  console.info('Nex HR sanctions retrieval',JSON.stringify({result:'matched_rows',candidates:candidates.length,matchingRows:exactRows.length}));
+  return exactRows.slice(0,8);
+ }
+ if(sanctionQuestion)console.info('Nex HR sanctions retrieval',JSON.stringify({
+  result:'no_exact_row',candidates:candidates.length,
+  structuredRows:candidates.filter(e=>e.excerpt.startsWith('Sanctions matrix row:')).length
+ }));
  const lexicalTop=ranked.filter(x=>x.score>=0.20).slice(0,5);
  if(process.env.NEXHR_SEMANTIC_SEARCH!=='true'||!process.env.NEXHR_OPENAI_API_KEY)return lexicalTop;
  const pool=ranked.slice(0,60);
@@ -159,7 +177,13 @@ export async function answerWithSources(question:string,evidence:Evidence[]):Pro
  const verified=verifiedMatrixSanction(question,evidence);
  if(verified)return verified;
  // Do not let the language model guess a sanction for an unmatched occurrence/offence.
- if(isOccurrenceSanctionQuestion(question))return {text:REFUSAL,usedEvidence:[],mode:'refusal'};
+ if(isOccurrenceSanctionQuestion(question)){
+  console.info('Nex HR sanctions verification',JSON.stringify({
+   result:'unverified',evidenceCount:evidence.length,
+   structuredRows:evidence.filter(e=>e.excerpt.startsWith('Sanctions matrix row:')).length
+  }));
+  return {text:REFUSAL,usedEvidence:[],mode:'refusal'};
+ }
  // Avoid dumping full policy tables when AI is unavailable or validation fails.
  const fallback=():AnswerResult=>({text:'I found relevant policy material but could not confirm the specific answer. Please consult the cited document or contact HR.',usedEvidence:evidence.slice(0,2),mode:'extractive'});
  const key=process.env.NEXHR_OPENAI_API_KEY;
