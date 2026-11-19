@@ -8,10 +8,16 @@ export function detectHrIntent(question:string):HrIntent{
  // Sensitive payroll requests are routed locally before policy retrieval or an AI call.
  // No payroll figures, payslip contents, bank details, or company payroll rows
  // are queried or included in the language-model context.
- const payrollTopic=/\b(salary|salaries|wages?|payroll|payslips?|pay slips?|gross pay|net pay|take.home pay|basic pay|compensation|bank account|bank details|payment details|deductions?)\b/.test(q);
- const personalOrRecords=/\b(my|mine|me|i|i'm|i am|our|we|employee|employees|staff|everyone|everybody|all|anyone|someone|another|other|colleague|coworker|branch|department|company|list|show|view|see|check|find|retrieve|access|download|print|open|amount|details|records|report|how much|what is|what's|who earns|highest|lowest)\b/.test(q);
- const clearlyGeneral=/\b(policy|policies|rules|procedure|statutory|minimum wage law|how is .* calculated|what are .* requirements)\b/.test(q)&&! /\b(my|mine|me|our|we|employee records|staff salaries|everyone|all salaries|another|colleague|pay slip|payslip|bank details)\b/.test(q);
+ // Match ordinary language as well as payroll terminology, without reading payroll data.
+ // Personal questions and requests for another person's records are routed before
+ // policy retrieval, so the LLM never invents an individual pay amount.
+ const payrollTopic=/\b(?:salary|salaries|salaried|wages?|payroll|pay\s*checks?|pay\s*slips?|payslips?|paychecks?|paydays?|pay\s*days?|paid|payment\s+(?:history|status|date)|earnings?|gross\s+(?:pay|salary|earnings?)|net\s+(?:pay|salary|earnings?)|take[ -]?home\s+pay|basic\s+(?:pay|salary)|compensation|remuneration|allowances?|bonuses?|deductions?|paye|ssnit|pension\s+contributions?|bank\s+(?:account|details)|account\s+number)\b/i.test(q);
+ const personalOrRecords=/\b(?:my|mine|me|i|i'm|i am|am i|do i|did i|our|we|you|employee|employees|staff|everyone|everybody|all|anyone|someone|another|other|colleague|coworker|branch|department|company|list|show|view|see|check|find|retrieve|access|download|print|open|amount|details|records|report|how much|what is|what's|who earns|highest|lowest|when will|when was|how do i|where can i)\b/i.test(q);
+ const clearlyGeneral=/\b(?:policy|policies|rules|procedure|statutory|minimum wage|legal requirement|law|how (?:is|are) .* calculated|what are .* requirements|tax rates?|pension rates?)\b/i.test(q)
+   && !/\b(?:my|mine|me|i|i'm|i am|am i|our|we|someone|another|colleague|everyone|all salaries|staff salaries|employee records|personal|pay\s*slip|payslip|pay\s*check|paycheck|bank details)\b/i.test(q);
  if(payrollTopic&&personalOrRecords&&!clearlyGeneral)return 'sensitive_payroll';
+ // A bare personal pay question can omit 'salary', e.g. 'how much am I being paid?'
+ if(/\b(?:how much|when|have|was|am|were|did)\b.*\b(?:i|me|my)\b.*\bpaid\b|\b(?:am i|was i|have i|did i)\s+(?:being\s+)?paid\b|\b(?:my|mine)\s+pay\b/i.test(q)&&!clearlyGeneral)return 'sensitive_payroll';
  // A general policy question must stay in the policy knowledge flow.
  if(/\b(policy|entitlement|entitled|eligible|eligibility|rules|procedure|how many days (?:are|is) (?:employees|staff)|how much leave (?:do employees|does an employee))\b/.test(q)&&! /\b(my|mine|i have|i've|i want|i need|for me)\b/.test(q))return null;
  if(/\b(payslip|pay slip|performance appraisal|self.service)\b/.test(q)&&/\b(where|open|view|access|find|show|how)\b/.test(q))return 'navigation';
@@ -25,10 +31,10 @@ export async function employeeHrAnswer(a:Actor,question:string,intent:Exclude<Hr
  if(intent==='sensitive_payroll'){
   // Do not read the payroll tables here. Access control and any additional
   // verification must happen in the destination HRMS module, not in the LLM.
-  return 'Salary, payslips, bank details and individual payroll records are confidential. Nex HR cannot retrieve or display them in chat. Open Employee Self-Service to access your own authorized payroll information, if available: /self-service. For access issues, contact HR or Payroll. Requests for other employees’ payroll records cannot be fulfilled here.';
+  return /\b(?:other|another|someone|anyone|everyone|everybody|all|colleague|coworker|staff|employees|highest|lowest|company.wide)\b/i.test(question) && !/\b(?:my|mine|me)\b/i.test(question) ? 'I cannot provide another employee’s confidential payroll information. Access to payroll records is restricted to authorized HRMS users.' : 'Your salary, paycheck, earnings, deductions, payslips and payment history are confidential. Nex HR does not read or display these amounts in chat. To view your own finalized payslips, deductions or confirmed payments, open Employee Self-Service → My Payslips: /self-service?tab=payslips. Access is controlled by your authenticated HRMS account. For missing records, contact HR or Payroll.';
  }
  if(intent==='navigation'){
-  if(/payslip|pay slip/i.test(question))return 'Open Payroll to view your payslip, subject to your payroll permissions: /payroll';
+  if(/payslip|pay slip/i.test(question))return 'Open Employee Self-Service → My Payslips to view your own authorized payslips: /self-service?tab=payslips';
   if(/appraisal|performance/i.test(question))return 'Open Performance to view your appraisal, subject to your permissions: /performance';
   return 'Open Employee Self-Service: /self-service';
  }
