@@ -1,3 +1,4 @@
+import {notifyUser} from '../../../../../lib/notifications';
 import {NextRequest} from 'next/server';
 import {db} from '../../../../../lib/db';
 import {access,employeeWhere} from '../../../../../lib/auth';
@@ -55,5 +56,13 @@ export async function PATCH(req:NextRequest,{params}:{params:Promise<{id:string}
    return tx.appraisalReview.findUnique({where:{id}});
  });
  if(!result)return fail('Appraisal changed. Refresh and try again.',409);
+ // Notify only the employee who owns the review, after the transaction commits.
+ // Never include scores, manager comments or sensitive appraisal content in the notification.
+ if(['finalize','reject'].includes(d.action)){
+   try {
+     const recipient=await db.user.findFirst({where:{employeeId:row.employeeId,companyMemberships:{some:{companyId:a.companyId!,active:true}}},select:{id:true}});
+     if(recipient && recipient.id!==a.user.id) await notifyUser({userId:recipient.id,companyId:a.companyId!,title:d.action==='finalize'?'Appraisal finalized':'Appraisal needs attention',message:d.action==='finalize'?'Your performance appraisal has been finalized. Sign in to review it.':'Your performance appraisal has been returned for review. Sign in for details.',href:'/self-service',kind:'APPRAISAL'});
+   } catch(e){console.error('Appraisal notification delivery failed',e)}
+ }
  return ok({review:result});
 }

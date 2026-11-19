@@ -1,3 +1,4 @@
+import {notifyUser} from '../../../../../lib/notifications';
 import {NextRequest} from 'next/server';
 import {db} from '../../../../../lib/db';
 import {access,employeeWhere} from '../../../../../lib/auth';
@@ -25,5 +26,13 @@ export async function POST(req:NextRequest,{params}:Ctx){
   await tx.trainingEnrollment.createMany({data:ids.map((employeeId:string)=>({trainingId:id,employeeId,companyId:a.companyId!,enrolledById:a.user!.id}))});
   await tx.auditLog.create({data:{actorId:a.user!.id,companyId:a.companyId,action:'TRAINING_EMPLOYEES_ENROLLED',entity:'Training',entityId:id,detail:{employeeIds:ids,count:ids.length}}});
   return {created:ids.length};
- });return ok(result,201)}catch(e:any){if(e?.code==='P2002')return fail('An employee is already enrolled',409);if(['Training not found','Cannot enroll in cancelled training','Some employees are inactive or outside your authorized scope','One or more employees are already enrolled or have an enrollment history','Enrollment exceeds training capacity'].includes(e?.message))return fail(e.message,400);console.error(e);return fail('Unable to enroll employees',500)}
+ });
+ // Training enrollment notifications are best-effort, after successful commit.
+ // Only users linked to enrolled employees with active membership in this tenant receive them.
+ try {
+   const users=await db.user.findMany({where:{employeeId:{in:ids},companyMemberships:{some:{companyId:a.companyId,active:true}}},select:{id:true,employeeId:true}});
+   const training=await db.training.findFirst({where:{id,companyId:a.companyId},select:{title:true}});
+   await Promise.allSettled(users.filter(u=>u.id!==a.user!.id).map(u=>notifyUser({userId:u.id,companyId:a.companyId!,title:'Training enrollment',message:`You have been enrolled in ${training?.title||'a training program'}. View the training module for details.`,href:'/self-service',kind:'TRAINING'})));
+ } catch(e){console.error('Training notification delivery failed',e)}
+ return ok(result,201)}catch(e:any){if(e?.code==='P2002')return fail('An employee is already enrolled',409);if(['Training not found','Cannot enroll in cancelled training','Some employees are inactive or outside your authorized scope','One or more employees are already enrolled or have an enrollment history','Enrollment exceeds training capacity'].includes(e?.message))return fail(e.message,400);console.error(e);return fail('Unable to enroll employees',500)}
 }
