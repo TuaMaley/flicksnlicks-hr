@@ -2,6 +2,7 @@ import {NextRequest} from 'next/server';
 import {db} from '../../../../../../lib/db';
 import {fail,ok} from '../../../../../../lib/http';
 import {gate,log} from '../../../../../../lib/nexhr';
+import {notifyApprovedNexHrPolicy} from '../../../../../../lib/nexhr-policy-notifications';
 export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>}){
  const {a,error}=await gate('nexhr.approve');if(error)return error;
  const {id}=await params;let input:any;
@@ -19,6 +20,12 @@ export async function POST(req:NextRequest,{params}:{params:Promise<{id:string}>
  if(changed.count!==1)throw Error('Document was already reviewed');
  if(decision==='APPROVED')await tx.nexHrDocument.updateMany({where:{companyId:a.companyId!,familyId:doc.familyId,status:'APPROVED',id:{not:id}},data:{status:'SUPERSEDED'}});
  });
- await log(a.companyId!,id,a.user!.id,decision,{reason});return ok({status:decision});
+ await log(a.companyId!,id,a.user!.id,decision,{reason});
+ if(decision==='APPROVED'&&doc.visibility==='ALL_EMPLOYEES') {
+  // Notification failure must never roll back an already-approved policy.
+  try { await notifyApprovedNexHrPolicy({companyId:a.companyId!,documentId:id,title:doc.title,version:doc.version,actorId:a.user!.id,effectiveAt:doc.effectiveAt,expiresAt:doc.expiresAt}); }
+  catch(e){console.error('Nex HR policy notification failed',e)}
+ }
+ return ok({status:decision});
  }catch{return fail('Document changed; refresh',409)}
 }

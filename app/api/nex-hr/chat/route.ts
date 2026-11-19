@@ -8,6 +8,7 @@ import {Prisma} from '@prisma/client';
 import {detectHrIntent,employeeHrAnswer} from '../../../../lib/nexhr-actions-intent';
 import {detectPersonalProfileIntent,answerPersonalProfileQuestion} from '../../../../lib/nexhr-personalization';
 import {resolveNexHrFollowUp} from '../../../../lib/nexhr-conversation-context';
+import {assessNexHrRequest} from '../../../../lib/nexhr-security';
 
 export const runtime='nodejs';
 export async function GET(req:NextRequest){
@@ -27,6 +28,14 @@ export async function POST(req:NextRequest){
  const startedAt=Date.now();
  const question=String(input?.question||'').trim();const threadId=typeof input?.threadId==='string'?input.threadId:'';
  if(question.length<3||question.length>1200)return fail('Question must be between 3 and 1200 characters',400);
+ const security=assessNexHrRequest(question);
+ if(!security.allowed){
+  await db.auditLog.create({data:{companyId:a.companyId!,actorId:a.user!.id,action:'NEXHR_REQUEST_BLOCKED',entity:'NexHrSecurity',detail:{reason:security.reason}}}).catch(()=>{});
+  return fail(security.message,400);
+ }
+ const hourlyLimit=Math.max(5,Math.min(120,Number(process.env.NEXHR_HOURLY_REQUEST_LIMIT)||40));
+ const recent=await db.nexHrChatMessage.count({where:{role:'user',createdAt:{gte:new Date(Date.now()-3600000)},thread:{companyId:a.companyId!,userId:a.user!.id}}});
+ if(recent>=hourlyLimit)return fail('Nex HR hourly request limit reached. Please try again later.',429);
  let thread;
  if(threadId){thread=await db.nexHrChatThread.findFirst({where:{id:threadId,companyId:a.companyId!,userId:a.user!.id}});if(!thread)return fail('Conversation not found',404)}
  try{
