@@ -6,6 +6,7 @@ import {retrieve,answerWithSources} from '../../../../lib/nexhr-chat';
 import {allowedToRead} from '../../../../lib/nexhr';
 import {Prisma} from '@prisma/client';
 import {detectHrIntent,employeeHrAnswer} from '../../../../lib/nexhr-actions-intent';
+import {detectPersonalProfileIntent,answerPersonalProfileQuestion} from '../../../../lib/nexhr-personalization';
 
 // Resolve elliptical follow-ups using only prior user messages in this user's authorized thread.
 // This runs before retrieval; the original question is still stored in conversation history.
@@ -60,6 +61,7 @@ export async function POST(req:NextRequest){
    select:{role:true,content:true}
   }) : [];
   const intent=detectHrIntent(question);
+  const personalIntent=intent?null:detectPersonalProfileIntent(question);
   const resolvedQuestion=intent?question:resolveFollowUp(question,previous.reverse());
   // Inventory requests are answered from authorized metadata, never inferred from extracted PDF text.
   const inventoryCount=/\b(how many|number of|count|total)\b/i.test(resolvedQuestion);
@@ -74,6 +76,9 @@ export async function POST(req:NextRequest){
   if(intent){
    response=await employeeHrAnswer(a,question,intent);
    responseMode='hr_action';
+  }else if(personalIntent){
+   response=await answerPersonalProfileQuestion(a,personalIntent);
+   responseMode='personal_profile';
   }else if(isInventoryQuestion){
    const now=new Date();
    const documents=await db.nexHrDocument.findMany({
