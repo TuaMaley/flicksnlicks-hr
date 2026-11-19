@@ -7,33 +7,7 @@ import {allowedToRead} from '../../../../lib/nexhr';
 import {Prisma} from '@prisma/client';
 import {detectHrIntent,employeeHrAnswer} from '../../../../lib/nexhr-actions-intent';
 import {detectPersonalProfileIntent,answerPersonalProfileQuestion} from '../../../../lib/nexhr-personalization';
-
-// Resolve elliptical follow-ups using only prior user messages in this user's authorized thread.
-// This runs before retrieval; the original question is still stored in conversation history.
-function resolveFollowUp(question:string,history:{role:string;content:string}[]):string{
- const q=question.trim();
- if(!history.length)return q;
- // Explicitly named offences are independent questions, even within a thread.
- // Only resolve elliptical questions like "what about the second occurrence?".
- if(/\b(first|second|third|1st|2nd|3rd)\s+occurrence\s+of\s+\S/i.test(q))return q;
-
- const isFollowUp=/^(?:and\s+)?(?:what about|how about|also|then|so|what if|what happens|what is|what's|does|is|can|will|and|the first|the second|the third)\b/i.test(q) || /\b(?:it|that|this|those|them|its|their)\b/i.test(q);
- if(!isFollowUp)return q;
- // Use the most recent substantive user topic; do not carry unrelated threads across conversations.
- const prior=history.slice().reverse().filter(m=>m.role==='user').map(m=>m.content)
-   .find(p=>!(/^(?:and\s+)?(?:what about|how about|also|then|so)\b/i.test(p)&&!/(?:\bit\b|\bthat\b)/i.test(p)))
-   ||history.slice().reverse().find(m=>m.role==='user')?.content;
- if(!prior)return q;
- const topic=prior.match(/\b(?:for|on|about|regarding)\s+(.+?)(?:[?.!]|$)/i)?.[1]?.trim()
-   ||prior.match(/\b(?:lateness|late reporting to work|substance abuse|insubordination|attendance|leave|absence|discipline)\b/i)?.[0];
- if(!topic)return q;
- const ordinal=q.match(/\b(first|second|third|fourth|fifth|1st|2nd|3rd|4th|5th)\b/i)?.[1];
- if(ordinal&&/\b(?:offen[cs]e|warning|punishment|penalty|sanction)\b/i.test(q))
-  return `What is the ${ordinal} offence punishment or sanction for ${topic}?`;
- if(/\b(?:punishment|penalty|sanction|consequence|disciplinary action)\b/i.test(q))
-  return `What is the punishment or disciplinary sanction for ${topic}?`;
- return `${q} (regarding ${topic})`;
-}
+import {resolveNexHrFollowUp} from '../../../../lib/nexhr-conversation-context';
 
 export const runtime='nodejs';
 export async function GET(req:NextRequest){
@@ -60,9 +34,10 @@ export async function POST(req:NextRequest){
    where:{threadId:thread.id},orderBy:{createdAt:'desc'},take:12,
    select:{role:true,content:true}
   }) : [];
-  const intent=detectHrIntent(question);
-  const personalIntent=intent?null:detectPersonalProfileIntent(question);
-  const resolvedQuestion=intent?question:resolveFollowUp(question,previous.reverse());
+  const resolvedQuestion=resolveNexHrFollowUp(question,previous.reverse());
+  // Resolve follow-ups before routing to authenticated HRMS actions. Never send personal records to the policy model.
+  const intent=detectHrIntent(resolvedQuestion);
+  const personalIntent=intent?null:detectPersonalProfileIntent(resolvedQuestion);
   // Inventory requests are answered from authorized metadata, never inferred from extracted PDF text.
   const inventoryCount=/\b(how many|number of|count|total)\b/i.test(resolvedQuestion);
   const inventoryList=/\b(list|show|which|what|name)\b/i.test(resolvedQuestion);
@@ -74,7 +49,7 @@ export async function POST(req:NextRequest){
   let responseMode:string='inventory';
   let cited:{documentId:string;title:string;version:number;page:number|null;excerpt:string}[]=[];
   if(intent){
-   response=await employeeHrAnswer(a,question,intent);
+   response=await employeeHrAnswer(a,resolvedQuestion,intent);
    responseMode='hr_action';
   }else if(personalIntent){
    response=await answerPersonalProfileQuestion(a,personalIntent);
