@@ -27,8 +27,11 @@ export default function NexHrActions({openLeaveRequest=0}:{openLeaveRequest?:num
  },[openLeaveRequest,expanded,loading,data]);
  async function submit(e:React.FormEvent){e.preventDefault();if(!data?.canSubmitLeave||sending)return;if(!startDate||!endDate){setError('Choose both dates');return}if(!window.confirm(`Submit ${type.toLowerCase()} leave from ${startDate} to ${endDate} for HR approval?`))return;
  setSending(true);setError('');setNotice('');try{const r=await fetch('/api/leave',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,startDate,endDate,reason})});const j=await r.json();if(!r.ok)throw Error(j.error||'Request not submitted');setNotice('Leave request submitted for approval. This is not an approval confirmation.');setStartDate('');setEndDate('');setReason('');await load()}catch(e){setError(e instanceof Error?e.message:'Request not submitted')}finally{setSending(false)}}
- return <div style={{border:'1px solid var(--border,#d4d4d8)',borderRadius:10,padding:12,marginBottom:12}}>
- <button type="button" onClick={()=>{setExpanded(v=>!v);if(!expanded&&!data)void load()}} aria-expanded={expanded} style={{fontWeight:700}}>HR Actions {expanded?'▴':'▾'}</button>
+ // No persistent HR Actions launcher. The form appears only when a leave-application
+ // intent triggers openLeaveRequest from the chat. Preserve all permission checks.
+ if(!expanded)return null;
+ return <div aria-label="Leave application" style={{border:'1px solid var(--border,#d4d8df)',borderRadius:10,padding:12,marginBottom:12}}>
+ <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}><strong>Leave application</strong><button type="button" onClick={()=>setExpanded(false)} aria-label="Close leave application">Close</button></div>
  {expanded&&<div style={{display:'grid',gap:12,marginTop:10}}>
  <p style={{margin:0,fontSize:13}}>View your own leave information or submit a request through Nexora's existing approval workflow. Nex HR cannot approve leave or disclose another employee's records.</p>
  {loading&&<p>Loading your HR information…</p>}{error&&<p role="alert" style={{color:'#b91c1c'}}>{error}</p>}{notice&&<p role="status">{notice}</p>}
