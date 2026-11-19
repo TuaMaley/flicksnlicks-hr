@@ -2,9 +2,16 @@ import {db} from './db';
 import {balance} from './leave';
 import type {access} from './auth';
 type Actor=Awaited<ReturnType<typeof access>>;
-export type HrIntent='balance'|'status'|'submit'|'navigation'|null;
+export type HrIntent='balance'|'status'|'submit'|'navigation'|'sensitive_payroll'|null;
 export function detectHrIntent(question:string):HrIntent{
  const q=question.toLowerCase().replace(/[’]/g,"'");
+ // Sensitive payroll requests are routed locally before policy retrieval or an AI call.
+ // No payroll figures, payslip contents, bank details, or company payroll rows
+ // are queried or included in the language-model context.
+ const payrollTopic=/\b(salary|salaries|wages?|payroll|payslips?|pay slips?|gross pay|net pay|take.home pay|basic pay|compensation|bank account|bank details|payment details|deductions?)\b/.test(q);
+ const personalOrRecords=/\b(my|mine|me|i|i'm|i am|our|we|employee|employees|staff|everyone|everybody|all|anyone|someone|another|other|colleague|coworker|branch|department|company|list|show|view|see|check|find|retrieve|access|download|print|open|amount|details|records|report|how much|what is|what's|who earns|highest|lowest)\b/.test(q);
+ const clearlyGeneral=/\b(policy|policies|rules|procedure|statutory|minimum wage law|how is .* calculated|what are .* requirements)\b/.test(q)&&! /\b(my|mine|me|our|we|employee records|staff salaries|everyone|all salaries|another|colleague|pay slip|payslip|bank details)\b/.test(q);
+ if(payrollTopic&&personalOrRecords&&!clearlyGeneral)return 'sensitive_payroll';
  // A general policy question must stay in the policy knowledge flow.
  if(/\b(policy|entitlement|entitled|eligible|eligibility|rules|procedure|how many days (?:are|is) (?:employees|staff)|how much leave (?:do employees|does an employee))\b/.test(q)&&! /\b(my|mine|i have|i've|i want|i need|for me)\b/.test(q))return null;
  if(/\b(payslip|pay slip|performance appraisal|self.service)\b/.test(q)&&/\b(where|open|view|access|find|show|how)\b/.test(q))return 'navigation';
@@ -15,6 +22,11 @@ export function detectHrIntent(question:string):HrIntent{
  return null;
 }
 export async function employeeHrAnswer(a:Actor,question:string,intent:Exclude<HrIntent,null>):Promise<string>{
+ if(intent==='sensitive_payroll'){
+  // Do not read the payroll tables here. Access control and any additional
+  // verification must happen in the destination HRMS module, not in the LLM.
+  return 'Salary, payslips, bank details and individual payroll records are confidential. Nex HR cannot retrieve or display them in chat. Open Employee Self-Service to access your own authorized payroll information, if available: /self-service. For access issues, contact HR or Payroll. Requests for other employees’ payroll records cannot be fulfilled here.';
+ }
  if(intent==='navigation'){
   if(/payslip|pay slip/i.test(question))return 'Open Payroll to view your payslip, subject to your payroll permissions: /payroll';
   if(/appraisal|performance/i.test(question))return 'Open Performance to view your appraisal, subject to your permissions: /performance';
