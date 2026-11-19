@@ -5,6 +5,7 @@ import {ok,fail} from '../../../../lib/http';
 import {retrieve,answerWithSources} from '../../../../lib/nexhr-chat';
 import {allowedToRead} from '../../../../lib/nexhr';
 import {Prisma} from '@prisma/client';
+import {detectHrIntent,employeeHrAnswer} from '../../../../lib/nexhr-actions-intent';
 
 // Resolve elliptical follow-ups using only prior user messages in this user's authorized thread.
 // This runs before retrieval; the original question is still stored in conversation history.
@@ -58,7 +59,8 @@ export async function POST(req:NextRequest){
    where:{threadId:thread.id},orderBy:{createdAt:'desc'},take:12,
    select:{role:true,content:true}
   }) : [];
-  const resolvedQuestion=resolveFollowUp(question,previous.reverse());
+  const intent=detectHrIntent(question);
+  const resolvedQuestion=intent?question:resolveFollowUp(question,previous.reverse());
   // Inventory requests are answered from authorized metadata, never inferred from extracted PDF text.
   const inventoryCount=/\b(how many|number of|count|total)\b/i.test(resolvedQuestion);
   const inventoryList=/\b(list|show|which|what|name)\b/i.test(resolvedQuestion);
@@ -69,7 +71,10 @@ export async function POST(req:NextRequest){
   let response:string;
   let responseMode:string='inventory';
   let cited:{documentId:string;title:string;version:number;page:number|null;excerpt:string}[]=[];
-  if(isInventoryQuestion){
+  if(intent){
+   response=await employeeHrAnswer(a,question,intent);
+   responseMode='hr_action';
+  }else if(isInventoryQuestion){
    const now=new Date();
    const documents=await db.nexHrDocument.findMany({
     where:{companyId:a.companyId!,status:'APPROVED',
