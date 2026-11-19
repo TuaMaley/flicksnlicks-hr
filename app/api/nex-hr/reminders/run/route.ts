@@ -25,7 +25,11 @@ export async function GET(request: NextRequest) {
   if (!validToken(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const now = new Date();
   const day = now.toISOString().slice(0, 10);
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  // Date-only training schedules are evaluated by calendar day in Ghana (UTC+0),
+  // not by an exact 24-48 hour interval from the execution time.
+  const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const trainingFrom = new Date(todayUtc.getTime() + 24 * 60 * 60 * 1000);
+  const trainingUntil = new Date(todayUtc.getTime() + 72 * 60 * 60 * 1000);
   const inTwoDays = new Date(now.getTime() + 48 * 60 * 60 * 1000);
   try {
     // Only company-scoped records, active employees, active users and active memberships.
@@ -50,7 +54,7 @@ export async function GET(request: NextRequest) {
       JOIN "User" u ON u."employeeId" = e."id" AND u."active" = true
       JOIN "CompanyMembership" m ON m."userId" = u."id" AND m."companyId" = te."companyId" AND m."active" = true
       WHERE te."companyId" IS NOT NULL AND te."status" = 'ENROLLED'
-        AND t."startDate" > ${tomorrow} AND t."startDate" <= ${inTwoDays}
+        AND t."startDate" >= ${trainingFrom} AND t."startDate" < ${trainingUntil}
         AND e."status" = 'ACTIVE'
     `;
     const reminders: Reminder[] = [
@@ -61,7 +65,7 @@ export async function GET(request: NextRequest) {
       ...training.map(t => ({ companyId:t.companyId,userId:t.userId,sourceId:t.sourceId,
         kind:'TRAINING_REMINDER',title:'Upcoming training',
         message:`Your training session, ${t.title.slice(0, 100)}, starts within 48 hours. Review your training details.`,
-        href:'/self-service?tab=training',day }))
+        href:'/self-service?tab=training',day:t.startDate.toISOString().slice(0,10) }))
     ];
     let inserted = 0;
     for (const r of reminders) {
